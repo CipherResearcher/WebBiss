@@ -1,0 +1,1774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebBiss</title>
+    <style>:root {
+    --bg-color: #f0f2f5;
+    --card-bg: #ffffff;
+    --primary-color: #007bff;
+    --primary-hover: #0056b3;
+    --danger-color: #dc3545;
+    --danger-hover: #bd2130;
+    --success-color: #28a745;
+    --text-color: #333;
+    --border-color: #ccc;
+    --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+}
+html {
+    overflow-y: scroll;
+    scrollbar-gutter: stable;
+}
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+}
+.container {
+    max-width: 800px;
+    width: 100%;
+}
+h1 {
+    text-align: center;
+    color: var(--text-color);
+}
+.card {
+    background: var(--card-bg);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+h2 {
+    margin-top: 0;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+.form-group {
+    margin-bottom: 15px;
+}
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+input[type="text"], select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 14px;
+}
+.font-mono {
+    font-family: var(--font-mono);
+}
+.sample-input {
+    margin-bottom: 5px;
+}
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-right: 10px;
+}
+#startBtn {
+    background-color: var(--primary-color);
+    color: white;
+}
+#startBtn:hover {
+    background-color: var(--primary-hover);
+}
+#startBtn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+#stopBtn {
+    background-color: var(--danger-color);
+    color: white;
+}
+#stopBtn:hover {
+    background-color: var(--danger-hover);
+}
+#stopBtn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+.progress-bar-bg {
+    background-color: #e9ecef;
+    border-radius: 4px;
+    height: 20px;
+    overflow: hidden;
+    margin: 10px 0;
+}
+.progress-bar-fill {
+    background-color: var(--success-color);
+    height: 100%;
+    width: 0%;
+    transition: width 0.2s;
+}
+.status-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-top: 15px;
+}
+.status-item {
+    text-align: center;
+}
+.status-item .label {
+    display: block;
+    font-size: 12px;
+    color: #666;
+}
+.status-item .value {
+    display: block;
+    font-size: 18px;
+    font-weight: bold;
+}
+.result-box {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    border-radius: 4px;
+    color: #155724;
+    text-align: center;
+}
+.error-box {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    color: #721c24;
+}
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+}
+.modal-content {
+    background-color: var(--card-bg);
+    padding: 30px;
+    border-radius: 12px;
+    max-width: 600px;
+    width: 90%;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+.modal h2 {
+    color: var(--danger-color);
+    margin-top: 0;
+    border-bottom: 2px solid #eee;
+}
+.modal-body {
+    margin: 20px 0;
+    line-height: 1.6;
+}
+.modal-body ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+.modal-warning {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
+    border-radius: 6px;
+    color: #856404;
+    font-weight: 500;
+}
+#acceptDisclaimerBtn {
+    width: 100%;
+    background-color: var(--success-color);
+    color: white;
+    font-weight: bold;
+    padding: 12px;
+    margin-top: 10px;
+}
+#acceptDisclaimerBtn:hover {
+    background-color: #218838;
+}
+.hidden {
+    display: none !important;
+}</style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h2>Configuration</h2>
+            <div class="form-group">
+                <label for="kernelSelect">Kernel Mode</label>
+                <select id="kernelSelect">
+                    <option value="streamslice" selected>Stream Slice</option>
+                    <option value="bitslice">Bitslice</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="batchSizeSelect">Batch Size (keys per dispatch)</label>
+                <select id="batchSizeSelect">
+                    <option value="33554432">32M</option>
+                    <option value="67108864">64M</option>
+                    <option value="134217728" selected>128M (default)</option>
+                    <option value="268435456">256M</option>
+                    <option value="536870912">512M</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="startSeed">Start Seed (Hex, 12 chars)</label>
+                <input type="text" id="startSeed" value="181900000000" maxlength="12" class="font-mono">
+            </div>
+            <div class="form-group">
+                <label for="endSeed">End Seed (Hex, 12 chars)</label>
+                <input type="text" id="endSeed" value="18FFFFFFFFFF" maxlength="12" class="font-mono">
+            </div>
+            <div class="form-group">
+                <label>Samples (Hex, 32 chars)</label>
+                <input type="text" id="sample1" value="47 42 00 93 F5 C5 95 51 DD BA 88 AD A2 51 1D 4C" class="font-mono sample-input">
+                <input type="text" id="sample2" value="47 42 00 98 48 35 19 BF D8 6B 18 6D 5F A2 0E 87" class="font-mono sample-input">
+                <input type="text" id="sample3" value="47 42 00 9F E1 C5 8E 3D 89 D0 87 4F 0F 4E 69 E2" class="font-mono sample-input">
+            </div>
+            <button id="startBtn">Start Bruteforce</button>
+            <button id="stopBtn" disabled>Stop</button>
+        </div>
+        <div class="card status-card">
+            <h2>Status</h2>
+            <div class="status-row">
+                <span>Progress:</span>
+                <span id="progressText">0.00%</span>
+            </div>
+            <div class="progress-bar-bg">
+                <div id="progressBar" class="progress-bar-fill"></div>
+            </div>
+            <div class="status-grid">
+                <div class="status-item">
+                    <span class="label">Speed</span>
+                    <span id="speedText" class="value">0.00 M/s</span>
+                </div>
+                <div class="status-item">
+                    <span class="label">Current Seed</span>
+                    <span id="currentSeedText" class="value font-mono">-</span>
+                </div>
+                <div class="status-item">
+                    <span class="label">Time Elapsed</span>
+                    <span id="timeText" class="value">0.00s</span>
+                </div>
+            </div>
+            <div id="resultBox" class="result-box hidden">
+                <h3>Key Found!</h3>
+                <div id="foundKey" class="key-display font-mono"></div>
+            </div>
+            <div id="errorBox" class="error-box hidden"></div>
+        </div>
+    </div>
+    <div id="disclaimerModal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Disclaimer</h2>
+            <div class="modal-body">
+                <p><strong>Practical Non-Applicability to Live TV</strong></p>
+                <p>This project has no practical value for live decryption of commercial pay-TV channels. Control words (CW) in live systems rotate every few seconds or minutes, while brute-forcing a single key takes significantly longer. This tool is purely for:</p>
+                <ul>
+                    <li>Academic discussion of legacy cipher security margins</li>
+                    <li>GPU compute and memory benchmarking</li>
+                    <li>Performance engineering experiments</li>
+                </ul>
+                <p class="modal-warning">
+                    By clicking "I Understand", you agree to use this tool strictly for educational and defensive research purposes on content you are authorized to test.
+                </p>
+            </div>
+            <button id="acceptDisclaimerBtn">I Understand</button>
+        </div>
+    </div>
+    <script id="wgsl-shader" type="x-shader/x-wgsl">@group(0) @binding(0) var<storage, read> packets_data: array<u32>;
+@group(0) @binding(1) var<uniform> packet_count: u32;
+@group(0) @binding(2) var<storage, read_write> found_flag: atomic<u32>;
+@group(0) @binding(3) var<storage, read_write> result_buffer: array<u32>;
+@group(0) @binding(4) var<uniform> base_key_idx: vec2<u32>;
+@group(0) @binding(5) var<uniform> keys_to_check: vec2<u32>;
+@group(0) @binding(6) var<storage, read> key_perm_byte_storage: array<vec2<u32>>;
+@group(0) @binding(7) var<storage, read> key_perm_table_storage: array<u32>;
+@group(0) @binding(8) var<uniform> sbox_table: array<vec4<u32>, 64>;
+const BITS_SLICE_LANES = 32u;
+const MAX_PRELOAD_PACKETS = 64u;
+fn u64_add(a: vec2<u32>, b: vec2<u32>) -> vec2<u32> {
+let lo = a.x + b.x;
+let carry = select(0u, 1u, lo < a.x);
+let hi = a.y + b.y + carry;
+return vec2<u32>(lo, hi);
+}
+fn u64_sub(a: vec2<u32>, b: vec2<u32>) -> vec2<u32> {
+let lo = a.x - b.x;
+let borrow = select(0u, 1u, lo > a.x);
+let hi = a.y - b.y - borrow;
+return vec2<u32>(lo, hi);
+}
+fn u64_shl(v: vec2<u32>, shift: u32) -> vec2<u32> {
+if (shift == 0u) { return v; }
+if (shift >= 32u) {
+return vec2<u32>(0u, v.x << (shift - 32u));
+}
+let lo = v.x << shift;
+let hi = (v.y << shift) | (v.x >> (32u - shift));
+return vec2<u32>(lo, hi);
+}
+fn u64_ge(a: vec2<u32>, b: vec2<u32>) -> bool {
+if (a.y > b.y) { return true; }
+if (a.y < b.y) { return false; }
+return a.x >= b.x;
+}
+fn bs_not_mask(v: u32, lane_mask: u32) -> u32 {
+return (~v) & lane_mask;
+}
+fn get_key_perm_table(idx: u32) -> u32 {
+return key_perm_table_storage[idx];
+}
+fn u64_or(a: vec2<u32>, b: vec2<u32>) -> vec2<u32> {
+return vec2<u32>(a.x | b.x, a.y | b.y);
+}
+fn key_permute64_from_table(x: vec2<u32>) -> vec2<u32> {
+let v0 = (x.y >> 24u) & 0xFFu;
+let v1 = (x.y >> 16u) & 0xFFu;
+let v2 = (x.y >> 8u) & 0xFFu;
+let v3 = (x.y >> 0u) & 0xFFu;
+let v4 = (x.x >> 24u) & 0xFFu;
+let v5 = (x.x >> 16u) & 0xFFu;
+let v6 = (x.x >> 8u) & 0xFFu;
+let v7 = (x.x >> 0u) & 0xFFu;
+let t0 = key_perm_byte_storage[0u * 256u + v0];
+let t1 = key_perm_byte_storage[1u * 256u + v1];
+let t2 = key_perm_byte_storage[2u * 256u + v2];
+let t3 = key_perm_byte_storage[3u * 256u + v3];
+let t4 = key_perm_byte_storage[4u * 256u + v4];
+let t5 = key_perm_byte_storage[5u * 256u + v5];
+let t6 = key_perm_byte_storage[6u * 256u + v6];
+let t7 = key_perm_byte_storage[7u * 256u + v7];
+let a0 = u64_or(t0, t1);
+let a1 = u64_or(t2, t3);
+let a2 = u64_or(t4, t5);
+let a3 = u64_or(t6, t7);
+let b0 = u64_or(a0, a1);
+let b1 = u64_or(a2, a3);
+return u64_or(b0, b1);
+}
+fn get_block_perm_out_to_in(bit: u32) -> u32 {
+var out = 0u;
+if (bit == 0u) { out = 6u; }
+else if (bit == 1u) { out = 0u; }
+else if (bit == 2u) { out = 4u; }
+else if (bit == 3u) { out = 7u; }
+else if (bit == 4u) { out = 3u; }
+else if (bit == 5u) { out = 2u; }
+else if (bit == 6u) { out = 5u; }
+else { out = 1u; }
+return out;
+}
+fn block_decypher3_from_p0_jit(u0: u32, u1: u32, p0: vec2<u32>) -> vec2<u32> {
+var R1 = (u0 >> 0u) & 0xFFu;
+var R2 = (u0 >> 8u) & 0xFFu;
+var R3 = (u0 >> 16u) & 0xFFu;
+var R4 = (u0 >> 24u) & 0xFFu;
+var R5 = (u1 >> 0u) & 0xFFu;
+var R6 = (u1 >> 8u) & 0xFFu;
+var R7 = (u1 >> 16u) & 0xFFu;
+var R8 = (u1 >> 24u) & 0xFFu;
+var p_curr = p0;
+var p_next = key_permute64_from_table(p_curr);
+for (var group = 0u; group < 7u; group++) {
+let xval = 6u - group;
+let kb7 = (p_curr.x >> 0u) & 0xFFu;
+let kb6 = (p_curr.x >> 8u) & 0xFFu;
+let kb5 = (p_curr.x >> 16u) & 0xFFu;
+let kb4 = (p_curr.x >> 24u) & 0xFFu;
+let kb3 = (p_curr.y >> 0u) & 0xFFu;
+let kb2 = (p_curr.y >> 8u) & 0xFFu;
+let kb1 = (p_curr.y >> 16u) & 0xFFu;
+let kb0 = (p_curr.y >> 24u) & 0xFFu;
+{
+let sbox_in = (kb7 ^ xval) ^ R7;
+let entry = sbox_table[sbox_in / 4u][sbox_in % 4u];
+let sbox_out = entry & 0xFFu;
+let perm_out = (entry >> 8u) & 0xFFu;
+let next_R8 = R7;
+R7 = R6 ^ perm_out;
+R6 = R5;
+R5 = R4 ^ R8 ^ sbox_out;
+R4 = R3 ^ R8 ^ sbox_out;
+R3 = R2 ^ R8 ^ sbox_out;
+R2 = R1;
+R1 = R8 ^ sbox_out;
+R8 = next_R8;
+}
+{
+let sbox_in = (kb6 ^ xval) ^ R7;
+let entry = sbox_table[sbox_in / 4u][sbox_in % 4u];
+let sbox_out = entry & 0xFFu;
+let perm_out = (entry >> 8u) & 0xFFu;
+let next_R8 = R7;
+R7 = R6 ^ perm_out;
+R6 = R5;
+R5 = R4 ^ R8 ^ sbox_out;
+R4 = R3 ^ R8 ^ sbox_out;
+R3 = R2 ^ R8 ^ sbox_out;
+R2 = R1;
+R1 = R8 ^ sbox_out;
+R8 = next_R8;
+}
+{
+let sbox_in = (kb5 ^ xval) ^ R7;
+let entry = sbox_table[sbox_in / 4u][sbox_in % 4u];
+let sbox_out = entry & 0xFFu;
+let perm_out = (entry >> 8u) & 0xFFu;
+let next_R8 = R7;
+R7 = R6 ^ perm_out;
+R6 = R5;
+R5 = R4 ^ R8 ^ sbox_out;
+R4 = R3 ^ R8 ^ sbox_out;
+R3 = R2 ^ R8 ^ sbox_out;
+R2 = R1;
+R1 = R8 ^ sbox_out;
+R8 = next_R8;
+}
+{
+let sbox_in = (kb4 ^ xval) ^ R7;
+let entry = sbox_table[sbox_in / 4u][sbox_in % 4u];
+let sbox_out = entry & 0xFFu;
+let perm_out = (entry >> 8u) & 0xFFu;
+let next_R8 = R7;
+R7 = R6 ^ perm_out;
+R6 = R5;
+R5 = R4 ^ R8 ^ sbox_out;
+R4 = R3 ^ R8 ^ sbox_out;
+R3 = R2 ^ R8 ^ sbox_out;
+R2 = R1;
+R1 = R8 ^ sbox_out;
+R8 = next_R8;
+}
+{
+let sbox_in = (kb3 ^ xval) ^ R7;
+let entry = sbox_table[sbox_in / 4u][sbox_in % 4u];
+let sbox_out = entry & 0xFFu;
+let perm_out = (entry >> 8u) & 0xFFu;
+let next_R8 = R7;
+R7 = R6 ^ perm_out;
+R6 = R5;
+R5 = R4 ^ R8 ^ sbox_out;
+R4 = R3 ^ R8 ^ sbox_out;
+R3 = R2 ^ R8 ^ sbox_out;
+R2 = R1;
+R1 = R8 ^ sbox_out;
+R8 = next_R8;
+}
+{
+let sbox_in = (kb2 ^ xval) ^ R7;
+let entry = sbox_table[sbox_in / 4u][sbox_in % 4u];
+let sbox_out = entry & 0xFFu;
+let perm_out = (entry >> 8u) & 0xFFu;
+let next_R8 = R7;
+R7 = R6 ^ perm_out;
+R6 = R5;
+R5 = R4 ^ R8 ^ sbox_out;
+R4 = R3 ^ R8 ^ sbox_out;
+R3 = R2 ^ R8 ^ sbox_out;
+R2 = R1;
+R1 = R8 ^ sbox_out;
+R8 = next_R8;
+}
+{
+let sbox_in = (kb1 ^ xval) ^ R7;
+let entry = sbox_table[sbox_in / 4u][sbox_in % 4u];
+let sbox_out = entry & 0xFFu;
+let perm_out = (entry >> 8u) & 0xFFu;
+let next_R8 = R7;
+R7 = R6 ^ perm_out;
+R6 = R5;
+R5 = R4 ^ R8 ^ sbox_out;
+R4 = R3 ^ R8 ^ sbox_out;
+R3 = R2 ^ R8 ^ sbox_out;
+R2 = R1;
+R1 = R8 ^ sbox_out;
+R8 = next_R8;
+}
+{
+let sbox_in = (kb0 ^ xval) ^ R7;
+let entry = sbox_table[sbox_in / 4u][sbox_in % 4u];
+let sbox_out = entry & 0xFFu;
+let perm_out = (entry >> 8u) & 0xFFu;
+let next_R8 = R7;
+R7 = R6 ^ perm_out;
+R6 = R5;
+R5 = R4 ^ R8 ^ sbox_out;
+R4 = R3 ^ R8 ^ sbox_out;
+R3 = R2 ^ R8 ^ sbox_out;
+R2 = R1;
+R1 = R8 ^ sbox_out;
+R8 = next_R8;
+}
+if (group < 6u) {
+p_curr = p_next;
+p_next = key_permute64_from_table(p_curr);
+}
+}
+let lo = R1 | (R2 << 8u) | (R3 << 16u) | (R4 << 24u);
+let hi = R5 | (R6 << 8u) | (R7 << 16u) | (R8 << 24u);
+return vec2<u32>(lo, hi);
+}
+fn bs_stream_sbox1(fa: u32, fb: u32, fc: u32, fd: u32, fe: u32, lane_mask: u32) -> vec2<u32> {
+let tmp0 = fa ^ (fb ^ bs_not_mask((((fa | fb) ^ fc) | (fc ^ fd)), lane_mask));
+let tmp1 = (fa | fb) ^ bs_not_mask((fc & (fa | (fb ^ fd))), lane_mask);
+let tmp2 = fa ^ ((fb & fd) ^ ((fa & fd) | fc));
+let tmp3 = (fa & fc) ^ (fa ^ ((fa & fb) | fd));
+let sa = tmp0 ^ (fe & tmp1);
+let sb = tmp2 ^ (fe & tmp3);
+return vec2<u32>(sa, sb);
+}
+fn bs_stream_sbox2(fa: u32, fb: u32, fc: u32, fd: u32, fe: u32, lane_mask: u32) -> vec2<u32> {
+let tmp0 = fa ^ ((fb & (fc | fd)) ^ (fc ^ bs_not_mask(fd, lane_mask)));
+let tmp1 = (fa & (fb ^ fd)) | ((fa | fb) & fc);
+let tmp2 = (fb & fd) ^ ((fa & fd) | (fb ^ bs_not_mask(fc, lane_mask)));
+let tmp3 = (fa & fd) | (fa ^ (fb ^ (fc & fd)));
+let sa = tmp0 ^ (fe & tmp1);
+let sb = tmp2 ^ (fe & tmp3);
+return vec2<u32>(sa, sb);
+}
+fn bs_stream_sbox3(fa: u32, fb: u32, fc: u32, fd: u32, fe: u32, lane_mask: u32) -> vec2<u32> {
+let tmp0 = fa ^ (fb ^ ((fc & (fa | fd)) ^ fd));
+let tmp1 = (fa & fc) ^ ((fa ^ fd) | ((fb | fc) ^ bs_not_mask(fd, lane_mask)));
+let tmp2 = fa ^ (((fb ^ fc) & fd) ^ fc);
+let sa = tmp0 ^ (bs_not_mask(fe, lane_mask) & tmp1);
+let sb = tmp2 ^ fe;
+return vec2<u32>(sa, sb);
+}
+fn bs_stream_sbox4(fa: u32, fb: u32, fc: u32, fd: u32, fe: u32, lane_mask: u32) -> vec2<u32> {
+let tmp0 = fa ^ (((fc & (fa ^ fd)) | (fb ^ (fc | bs_not_mask(fd, lane_mask)))));
+let tmp1 = (fa & fb) ^ (fb ^ (((fa | fc) & fd) ^ fc));
+let tmp2 = fa ^ ((fb & fc) | (((fa & (fb ^ fd)) | fc) ^ fd));
+let tmp_sa = tmp0 ^ (fe & (tmp1 ^ tmp0));
+let sa = tmp_sa;
+let sb = (tmp_sa ^ tmp2) ^ fe;
+return vec2<u32>(sa, sb);
+}
+fn bs_stream_sbox5(fa: u32, fb: u32, fc: u32, fd: u32, fe: u32, lane_mask: u32) -> vec2<u32> {
+let all1 = lane_mask;
+let tmp0 = ((fa & (fb | fc)) ^ fb) | (((fa ^ fc) | fd) ^ all1);
+let tmp1 = fb ^ ((fc ^ fd) & (fc ^ (fb | (fa ^ fd))));
+let tmp2 = (fa & fc) ^ (fb ^ (((fb | (fa ^ fc))) & fd));
+let tmp3 = ((fa ^ fb) & (fc ^ all1)) | fd;
+let sa = tmp0 ^ (fe & tmp1);
+let sb = tmp2 ^ (fe & tmp3);
+return vec2<u32>(sa, sb);
+}
+fn bs_stream_sbox6(fa: u32, fb: u32, fc: u32, fd: u32, fe: u32, lane_mask: u32) -> vec2<u32> {
+let tmp0 = ((fa & fc) & fd) ^ ((fb & (fa | fd)) ^ fc);
+let tmp1 = bs_not_mask(((fa ^ fc) & fd), lane_mask);
+let tmp2 = (fa & (fb | fc)) ^ (fb ^ ((fb & fc) | fd));
+let tmp3 = fc & ((fa & (fb ^ fd)) ^ (fb | fd));
+let sa = tmp0 ^ (fe & tmp1);
+let sb = tmp2 ^ (fe & tmp3);
+return vec2<u32>(sa, sb);
+}
+fn bs_stream_sbox7(fa: u32, fb: u32, fc: u32, fd: u32, fe: u32, lane_mask: u32) -> vec2<u32> {
+let all1 = lane_mask;
+let tmp0 = fb ^ ((fc & fd) | (fa ^ (fc ^ fd)));
+let tmp1 = (fb | fd) & ((fa & fc) | (fb ^ (fc ^ fd)));
+let tmp2 = (fa | fb) ^ ((fc & (fb | fd)) ^ fd);
+let tmp3 = fd | ((fa & fc) ^ all1);
+let sa = tmp0 ^ (fe & tmp1);
+let sb = tmp2 ^ (fe & tmp3);
+return vec2<u32>(sa, sb);
+}
+fn bs_block_sbox(in8: array<u32, 8>, lane_mask: u32) -> array<u32, 8> {
+let x0 = in8[7]; let x1 = in8[6]; let x2 = in8[5]; let x3 = in8[4];
+let x4 = in8[3]; let x5 = in8[2]; let x6 = in8[1]; let x7 = in8[0];
+var out8: array<u32, 8>;
+let y0 = ((x0 & x3 & x6 & x7 & ~x5) | (x0 & x3 & x7 & ~x1 & ~x5) | (x0 & x1 & x2 & x4 & x7 & ~x5) | (x2 & x4 & x5 & x6 & x7 & ~x3) | (x2 & x6 & ~x1 & ~x3 & ~x4) | (x3 & x7 & ~x2 & ~x4 & ~x5) | (x0 & x1 & x2 & x5 & ~x3 & ~x7) | (x0 & x2 & x3 & x6 & ~x4 & ~x5) | (x0 & x3 & x4 & x6 & ~x2 & ~x5) | (x1 & x2 & x6 & x7 & ~x0 & ~x5) | (x0 & x1 & x2 & x3 & x4 & x7 & ~x6) | (x0 & x1 & x3 & x4 & x5 & x7 & ~x2) | (x0 & x2 & x4 & x5 & x6 & x7 & ~x1) | (x1 & x2 & x3 & x4 & x5 & x6 & ~x7) | (x0 & x2 & x6 & ~x1 & ~x3 & ~x7) | (x0 & x5 & x6 & ~x1 & ~x4 & ~x7) | (x0 & x5 & x7 & ~x2 & ~x3 & ~x4) | (x1 & x3 & x4 & ~x2 & ~x6 & ~x7) | (x3 & x5 & x6 & ~x2 & ~x4 & ~x7) | (x1 & x2 & x4 & x5 & x7 & ~x0 & ~x3) | (x0 & x4 & ~x2 & ~x3 & ~x5 & ~x6) | (x1 & x3 & ~x0 & ~x2 & ~x5 & ~x7) | (x2 & x3 & ~x0 & ~x1 & ~x4 & ~x5) | (x2 & x5 & ~x0 & ~x3 & ~x6 & ~x7) | (x3 & x6 & ~x0 & ~x2 & ~x4 & ~x5) | (x4 & x6 & ~x1 & ~x3 & ~x5 & ~x7) | (x4 & x7 & ~x0 & ~x1 & ~x3 & ~x5) | (x5 & x7 & ~x1 & ~x3 & ~x4 & ~x6) | (x0 & x1 & x4 & x7 & ~x2 & ~x3 & ~x6) | (x0 & x2 & x4 & x7 & ~x1 & ~x3 & ~x6) | (x1 & x3 & x4 & x7 & ~x0 & ~x5 & ~x6) | (x3 & x4 & x5 & x7 & ~x0 & ~x1 & ~x2) | (x3 & x4 & x5 & x7 & ~x0 & ~x1 & ~x6) | (x0 & ~x1 & ~x2 & ~x3 & ~x6 & ~x7) | (x0 & ~x1 & ~x2 & ~x4 & ~x5 & ~x6) | (x0 & ~x1 & ~x3 & ~x4 & ~x5 & ~x7) | (x4 & ~x0 & ~x2 & ~x3 & ~x5 & ~x7) | (x5 & ~x2 & ~x3 & ~x4 & ~x6 & ~x7) | (x0 & x1 & x2 & ~x3 & ~x4 & ~x5 & ~x6) | (x0 & x1 & x3 & ~x4 & ~x5 & ~x6 & ~x7) | (x0 & x1 & x6 & ~x2 & ~x3 & ~x4 & ~x5) | (x1 & x5 & x6 & ~x0 & ~x2 & ~x3 & ~x7) | (x2 & x3 & x4 & ~x1 & ~x5 & ~x6 & ~x7) | (x3 & x4 & x5 & ~x0 & ~x2 & ~x6 & ~x7) | (x1 & x2 & x3 & x5 & x7 & ~x0 & ~x4 & ~x6) | (x1 & x7 & ~x0 & ~x3 & ~x4 & ~x5 & ~x6));
+out8[0] = y0 & lane_mask;
+let y1 = ((x0 & x4 & x7 & ~x2 & ~x6) | (x0 & x2 & x4 & x5 & x6 & ~x7) | (x1 & x2 & x3 & x4 & x6 & ~x7) | (x2 & x3 & ~x0 & ~x4 & ~x7) | (x0 & x1 & x2 & x7 & ~x4 & ~x5) | (x0 & x1 & x3 & x7 & ~x4 & ~x6) | (x1 & x3 & x4 & x6 & ~x2 & ~x5) | (x1 & x3 & x6 & x7 & ~x0 & ~x4) | (x1 & x4 & x5 & x6 & ~x0 & ~x3) | (x0 & x1 & x2 & x3 & x4 & x5 & ~x7) | (x0 & x2 & x3 & x5 & x6 & x7 & ~x4) | (x2 & x3 & x4 & x5 & x6 & x7 & ~x1) | (x4 & ~x0 & ~x1 & ~x2 & ~x6) | (x0 & x1 & x2 & ~x3 & ~x4 & ~x6) | (x0 & x2 & x4 & ~x1 & ~x3 & ~x6) | (x0 & x5 & x7 & ~x1 & ~x2 & ~x3) | (x1 & x2 & x3 & ~x0 & ~x5 & ~x6) | (x1 & x2 & x4 & ~x0 & ~x3 & ~x7) | (x1 & x2 & x6 & ~x3 & ~x4 & ~x7) | (x1 & x5 & x6 & ~x3 & ~x4 & ~x7) | (x2 & x3 & x6 & ~x4 & ~x5 & ~x7) | (x2 & x5 & x6 & ~x0 & ~x3 & ~x4) | (x2 & x5 & x6 & ~x1 & ~x3 & ~x4) | (x0 & x1 & x3 & x5 & x6 & ~x2 & ~x7) | (x0 & x2 & x3 & x4 & x7 & ~x1 & ~x5) | (x0 & x6 & ~x1 & ~x2 & ~x3 & ~x4) | (x2 & x3 & ~x1 & ~x5 & ~x6 & ~x7) | (x2 & x7 & ~x1 & ~x3 & ~x5 & ~x6) | (x3 & x4 & ~x0 & ~x1 & ~x2 & ~x7) | (x3 & x7 & ~x0 & ~x1 & ~x2 & ~x6) | (x6 & x7 & ~x0 & ~x1 & ~x2 & ~x3) | (x0 & x1 & x4 & x5 & ~x2 & ~x3 & ~x6) | (x4 & ~x0 & ~x2 & ~x5 & ~x6 & ~x7) | (x0 & x2 & x5 & ~x1 & ~x4 & ~x6 & ~x7) | (x0 & x4 & x6 & ~x1 & ~x2 & ~x5 & ~x7) | (x1 & x3 & x5 & ~x0 & ~x2 & ~x4 & ~x6) | (x1 & x5 & x7 & ~x0 & ~x3 & ~x4 & ~x6) | (x2 & x4 & x6 & ~x0 & ~x3 & ~x5 & ~x7) | (x2 & x6 & x7 & ~x0 & ~x1 & ~x4 & ~x5) | (~x0 & ~x1 & ~x3 & ~x4 & ~x5 & ~x6) | (~x0 & ~x2 & ~x3 & ~x4 & ~x5 & ~x6) | (x0 & x3 & ~x1 & ~x2 & ~x4 & ~x5 & ~x6) | (x5 & ~x1 & ~x2 & ~x3 & ~x4 & ~x6 & ~x7));
+out8[1] = y1 & lane_mask;
+let y2 = ((x2 & x4 & x6 & x7 & ~x5) | (x3 & x4 & x7 & ~x1 & ~x5) | (x2 & x3 & x5 & x6 & x7 & ~x1) | (x0 & x4 & ~x2 & ~x5 & ~x6) | (x3 & x5 & ~x0 & ~x2 & ~x7) | (x6 & x7 & ~x0 & ~x2 & ~x5) | (x0 & x1 & x3 & x7 & ~x4 & ~x5) | (x0 & x2 & x3 & x4 & ~x5 & ~x7) | (x0 & x2 & x4 & x5 & ~x3 & ~x6) | (x0 & x2 & x5 & x6 & ~x3 & ~x4) | (x0 & x2 & x5 & x6 & ~x4 & ~x7) | (x0 & x2 & x5 & x7 & ~x1 & ~x3) | (x0 & x4 & x5 & x7 & ~x1 & ~x3) | (x1 & x2 & x5 & x7 & ~x0 & ~x4) | (x2 & x3 & x4 & x5 & ~x0 & ~x1) | (x2 & x3 & x4 & x7 & ~x0 & ~x5) | (x0 & x2 & x7 & ~x1 & ~x5 & ~x6) | (x0 & x3 & x6 & ~x1 & ~x2 & ~x4) | (x1 & x4 & x6 & ~x0 & ~x3 & ~x5) | (x1 & x4 & x7 & ~x0 & ~x3 & ~x6) | (x1 & x5 & x6 & ~x3 & ~x4 & ~x7) | (x1 & x6 & x7 & ~x0 & ~x2 & ~x4) | (x3 & x4 & x5 & ~x0 & ~x6 & ~x7) | (x1 & x3 & x4 & x5 & x6 & ~x2 & ~x7) | (x1 & x3 & x4 & x5 & x7 & ~x2 & ~x6) | (x0 & x4 & ~x1 & ~x2 & ~x3 & ~x7) | (x0 & x6 & ~x1 & ~x4 & ~x5 & ~x7) | (x0 & x7 & ~x2 & ~x3 & ~x5 & ~x6) | (x2 & x3 & ~x0 & ~x1 & ~x6 & ~x7) | (x2 & x3 & ~x4 & ~x5 & ~x6 & ~x7) | (x2 & x4 & ~x1 & ~x3 & ~x6 & ~x7) | (x2 & x6 & ~x0 & ~x1 & ~x3 & ~x5) | (x2 & x6 & ~x1 & ~x3 & ~x4 & ~x7) | (x4 & x7 & ~x0 & ~x1 & ~x2 & ~x5) | (x0 & x1 & x2 & x6 & ~x3 & ~x5 & ~x7) | (x0 & x3 & x5 & x7 & ~x1 & ~x2 & ~x6) | (x1 & x2 & x4 & x6 & ~x0 & ~x3 & ~x7) | (x2 & ~x0 & ~x1 & ~x4 & ~x5 & ~x7) | (x0 & x5 & ~x1 & ~x2 & ~x3 & ~x6 & ~x7) | (x1 & x2 & ~x0 & ~x3 & ~x4 & ~x6 & ~x7) | (x3 & x7 & ~x0 & ~x1 & ~x2 & ~x4 & ~x6) | (x1 & ~x0 & ~x2 & ~x3 & ~x4 & ~x5 & ~x7));
+out8[2] = y2 & lane_mask;
+let y3 = ((x0 & x3 & x4 & x6 & x7 & ~x5) | (x1 & x2 & x3 & x4 & x7 & ~x6) | (x1 & x2 & x4 & x5 & x6 & ~x3) | (x0 & x2 & ~x1 & ~x3 & ~x4) | (x1 & x2 & ~x0 & ~x4 & ~x6) | (x1 & x2 & ~x5 & ~x6 & ~x7) | (x2 & x3 & ~x0 & ~x6 & ~x7) | (x0 & x1 & x4 & x6 & ~x2 & ~x7) | (x0 & x4 & x5 & x6 & ~x3 & ~x7) | (x3 & x4 & x6 & x7 & ~x0 & ~x2) | (x0 & x1 & x2 & x3 & x5 & x6 & ~x7) | (x1 & x2 & x3 & x5 & x6 & x7 & ~x4) | (x2 & ~x0 & ~x3 & ~x5 & ~x6) | (x2 & ~x3 & ~x5 & ~x6 & ~x7) | (x6 & ~x0 & ~x2 & ~x3 & ~x4) | (x0 & x5 & x6 & ~x1 & ~x2 & ~x3) | (x1 & x2 & x3 & ~x4 & ~x5 & ~x7) | (x1 & x5 & x7 & ~x0 & ~x4 & ~x6) | (x2 & x3 & x7 & ~x1 & ~x4 & ~x6) | (x2 & x4 & x7 & ~x0 & ~x1 & ~x3) | (x2 & x5 & x6 & ~x0 & ~x1 & ~x7) | (x0 & x1 & x2 & x6 & x7 & ~x4 & ~x5) | (x0 & x3 & x4 & x5 & x7 & ~x2 & ~x6) | (~x1 & ~x4 & ~x5 & ~x6 & ~x7) | (x1 & x4 & ~x3 & ~x5 & ~x6 & ~x7) | (x1 & x6 & ~x0 & ~x2 & ~x4 & ~x5) | (x1 & x7 & ~x0 & ~x3 & ~x4 & ~x5) | (x1 & x7 & ~x2 & ~x3 & ~x4 & ~x5) | (x2 & x6 & ~x0 & ~x1 & ~x4 & ~x7) | (x3 & x5 & ~x2 & ~x4 & ~x6 & ~x7) | (x4 & x5 & ~x0 & ~x1 & ~x3 & ~x7) | (x0 & x1 & x2 & x4 & ~x3 & ~x6 & ~x7) | (x0 & x1 & x3 & x5 & ~x2 & ~x6 & ~x7) | (x0 & x1 & x4 & x7 & ~x2 & ~x3 & ~x6) | (x0 & x3 & x6 & x7 & ~x1 & ~x2 & ~x5) | (x1 & x3 & x4 & x7 & ~x0 & ~x2 & ~x5) | (x2 & x4 & x5 & x7 & ~x1 & ~x3 & ~x6) | (x0 & ~x2 & ~x3 & ~x4 & ~x5 & ~x6) | (x7 & ~x0 & ~x1 & ~x2 & ~x3 & ~x5) | (x7 & ~x1 & ~x2 & ~x3 & ~x4 & ~x6) | (x0 & x3 & x4 & ~x2 & ~x5 & ~x6 & ~x7) | (x1 & x2 & x4 & ~x0 & ~x3 & ~x5 & ~x7));
+out8[3] = y3 & lane_mask;
+let y4 = ((x0 & x2 & x7 & ~x1 & ~x5) | (x2 & x3 & x4 & ~x0 & ~x7) | (x2 & x4 & x7 & ~x1 & ~x6) | (x0 & x1 & x2 & x5 & x7 & ~x3) | (x0 & x2 & x3 & x6 & x7 & ~x1) | (x0 & x2 & x4 & x6 & x7 & ~x5) | (x1 & x2 & x3 & x4 & x5 & ~x7) | (x1 & x2 & x3 & x5 & x7 & ~x4) | (x1 & x2 & x3 & x6 & x7 & ~x0) | (x1 & x3 & x5 & x6 & x7 & ~x0) | (x0 & x1 & ~x2 & ~x6 & ~x7) | (x0 & x2 & x3 & x6 & ~x1 & ~x4) | (x1 & x2 & x5 & x6 & ~x0 & ~x3) | (x1 & x5 & x6 & x7 & ~x3 & ~x4) | (x2 & x5 & x6 & x7 & ~x3 & ~x4) | (x0 & x1 & x3 & x4 & x5 & x7 & ~x2) | (x0 & x1 & x2 & ~x3 & ~x5 & ~x7) | (x0 & x1 & x5 & ~x2 & ~x4 & ~x7) | (x0 & x3 & x4 & ~x2 & ~x6 & ~x7) | (x0 & x3 & x5 & ~x1 & ~x6 & ~x7) | (x0 & x4 & x5 & ~x1 & ~x2 & ~x7) | (x0 & x4 & x5 & ~x2 & ~x3 & ~x7) | (x1 & x4 & x6 & ~x0 & ~x5 & ~x7) | (x2 & x4 & x7 & ~x1 & ~x3 & ~x5) | (x0 & x1 & x3 & x4 & x6 & ~x2 & ~x5) | (x0 & x2 & ~x1 & ~x3 & ~x5 & ~x6) | (x0 & x7 & ~x1 & ~x3 & ~x4 & ~x5) | (x0 & x7 & ~x1 & ~x3 & ~x5 & ~x6) | (x0 & x7 & ~x3 & ~x4 & ~x5 & ~x6) | (x1 & x3 & ~x0 & ~x4 & ~x5 & ~x7) | (x1 & x4 & ~x0 & ~x2 & ~x3 & ~x5) | (x1 & x5 & ~x0 & ~x3 & ~x6 & ~x7) | (x2 & x7 & ~x0 & ~x1 & ~x3 & ~x6) | (x4 & x5 & ~x1 & ~x2 & ~x6 & ~x7) | (x6 & x7 & ~x0 & ~x1 & ~x2 & ~x3) | (x6 & x7 & ~x0 & ~x1 & ~x2 & ~x5) | (x0 & x1 & x3 & x7 & ~x2 & ~x4 & ~x5) | (x1 & x3 & x4 & x7 & ~x0 & ~x5 & ~x6) | (x0 & x2 & x5 & ~x1 & ~x4 & ~x6 & ~x7) | (x0 & x3 & x6 & ~x1 & ~x4 & ~x5 & ~x7) | (x0 & x4 & x6 & ~x1 & ~x2 & ~x3 & ~x7) | (x1 & x2 & x7 & ~x0 & ~x3 & ~x4 & ~x5) | (x3 & x5 & x7 & ~x0 & ~x1 & ~x2 & ~x4) | (x4 & x5 & x6 & ~x0 & ~x1 & ~x2 & ~x3) | (~x0 & ~x2 & ~x3 & ~x4 & ~x6 & ~x7) | (x0 & x7 & ~x1 & ~x2 & ~x3 & ~x4 & ~x6) | (x2 & ~x0 & ~x1 & ~x4 & ~x5 & ~x6 & ~x7));
+out8[4] = y4 & lane_mask;
+let y5 = ((x0 & x3 & x6 & ~x2 & ~x4) | (x0 & x1 & x3 & x6 & x7 & ~x4) | (x0 & x1 & x4 & x6 & x7 & ~x2) | (x0 & x2 & x3 & x4 & x5 & ~x6) | (x0 & x2 & x3 & x4 & x7 & ~x1) | (x1 & x2 & x3 & x4 & x6 & ~x0) | (x1 & x2 & x3 & x4 & x6 & ~x5) | (x1 & x4 & x5 & x6 & x7 & ~x3) | (x1 & x3 & ~x0 & ~x2 & ~x6) | (x0 & x1 & x5 & x6 & ~x2 & ~x7) | (x0 & x3 & x5 & x6 & ~x4 & ~x7) | (x1 & x2 & x5 & x7 & ~x3 & ~x4) | (x3 & x4 & x5 & x7 & ~x0 & ~x6) | (x7 & ~x0 & ~x2 & ~x4 & ~x6) | (x0 & x3 & x6 & ~x1 & ~x5 & ~x7) | (x0 & x5 & x6 & ~x1 & ~x3 & ~x7) | (x1 & x3 & x7 & ~x2 & ~x4 & ~x6) | (x1 & x3 & x7 & ~x2 & ~x5 & ~x6) | (x2 & x3 & x4 & ~x1 & ~x5 & ~x6) | (x2 & x4 & x6 & ~x1 & ~x3 & ~x5) | (x3 & x5 & x6 & ~x1 & ~x2 & ~x4) | (x4 & x5 & x6 & ~x0 & ~x2 & ~x7) | (x4 & x5 & x7 & ~x1 & ~x2 & ~x6) | (x0 & x2 & x3 & x5 & x7 & ~x1 & ~x6) | (~x0 & ~x1 & ~x4 & ~x5 & ~x6) | (~x0 & ~x1 & ~x4 & ~x5 & ~x7) | (~x1 & ~x2 & ~x4 & ~x5 & ~x7) | (x0 & x1 & ~x2 & ~x3 & ~x6 & ~x7) | (x0 & x3 & ~x1 & ~x2 & ~x4 & ~x7) | (x1 & x2 & ~x4 & ~x5 & ~x6 & ~x7) | (x1 & x3 & ~x0 & ~x4 & ~x6 & ~x7) | (x1 & x5 & ~x0 & ~x2 & ~x3 & ~x4) | (x1 & x2 & x6 & x7 & ~x0 & ~x3 & ~x4) | (x2 & x5 & x6 & x7 & ~x0 & ~x3 & ~x4) | (x3 & x4 & x6 & x7 & ~x1 & ~x2 & ~x5) | (x3 & ~x0 & ~x1 & ~x5 & ~x6 & ~x7) | (x5 & ~x0 & ~x1 & ~x2 & ~x3 & ~x6) | (x6 & ~x0 & ~x1 & ~x2 & ~x3 & ~x5) | (x6 & ~x0 & ~x2 & ~x4 & ~x5 & ~x7) | (x7 & ~x2 & ~x3 & ~x4 & ~x5 & ~x6) | (x0 & x1 & x2 & ~x3 & ~x4 & ~x5 & ~x7) | (x0 & x4 & ~x1 & ~x3 & ~x5 & ~x6 & ~x7) | (x1 & x4 & ~x2 & ~x3 & ~x5 & ~x6 & ~x7) | (x1 & x2 & x4 & x7 & ~x0 & ~x3 & ~x5 & ~x6));
+out8[5] = y5 & lane_mask;
+let y6 = ((x1 & x4 & x5 & ~x0 & ~x2) | (x1 & x4 & x5 & ~x2 & ~x3) | (x2 & x6 & x7 & ~x3 & ~x4) | (x0 & x1 & x3 & x4 & x6 & ~x5) | (x0 & x1 & x2 & x3 & x5 & x6 & x7) | (x1 & x5 & ~x0 & ~x3 & ~x6) | (x0 & x1 & x2 & x7 & ~x4 & ~x6) | (x0 & x2 & x4 & x7 & ~x3 & ~x5) | (x0 & x2 & x5 & x6 & ~x1 & ~x4) | (x0 & x4 & x5 & x7 & ~x3 & ~x6) | (x1 & x3 & x5 & x6 & ~x0 & ~x4) | (x1 & x3 & x6 & x7 & ~x0 & ~x2) | (x1 & x4 & x5 & x6 & ~x0 & ~x7) | (x2 & x3 & x4 & x5 & ~x0 & ~x1) | (x3 & x5 & x6 & x7 & ~x0 & ~x2) | (x0 & x3 & x7 & ~x1 & ~x2 & ~x6) | (x0 & x3 & x7 & ~x1 & ~x5 & ~x6) | (x1 & x4 & x5 & ~x2 & ~x6 & ~x7) | (x1 & x4 & x6 & ~x2 & ~x3 & ~x7) | (x2 & x3 & x5 & ~x1 & ~x6 & ~x7) | (x4 & x6 & x7 & ~x1 & ~x2 & ~x5) | (x2 & x4 & x5 & x6 & x7 & ~x0 & ~x1) | (x0 & x1 & ~x2 & ~x4 & ~x5 & ~x6) | (x0 & x1 & ~x3 & ~x5 & ~x6 & ~x7) | (x1 & x3 & ~x0 & ~x5 & ~x6 & ~x7) | (x1 & x3 & ~x2 & ~x4 & ~x5 & ~x7) | (x2 & x3 & ~x0 & ~x1 & ~x4 & ~x6) | (x2 & x5 & ~x3 & ~x4 & ~x6 & ~x7) | (x3 & x6 & ~x0 & ~x1 & ~x4 & ~x7) | (x4 & x7 & ~x0 & ~x3 & ~x5 & ~x6) | (x4 & x7 & ~x1 & ~x2 & ~x3 & ~x6) | (x6 & x7 & ~x0 & ~x3 & ~x4 & ~x5) | (x0 & x1 & x5 & x6 & ~x2 & ~x3 & ~x7) | (x0 & x2 & x5 & x6 & ~x1 & ~x3 & ~x7) | (x0 & x5 & x6 & x7 & ~x1 & ~x3 & ~x4) | (x3 & ~x2 & ~x4 & ~x5 & ~x6 & ~x7) | (x6 & ~x0 & ~x1 & ~x3 & ~x5 & ~x7) | (x6 & ~x1 & ~x3 & ~x4 & ~x5 & ~x7) | (x7 & ~x0 & ~x1 & ~x3 & ~x4 & ~x6) | (x0 & x3 & x4 & x5 & x6 & ~x1 & ~x2 & ~x7) | (x1 & x2 & ~x0 & ~x3 & ~x4 & ~x5 & ~x7) | (x2 & x4 & ~x0 & ~x1 & ~x3 & ~x6 & ~x7));
+out8[6] = y6 & lane_mask;
+let y7 = ((x2 & x3 & x4 & x5 & ~x6) | (x0 & x1 & x2 & x3 & x6 & x7) | (x0 & x1 & x2 & x4 & x5 & x6) | (x0 & x2 & x3 & ~x6 & ~x7) | (x1 & x3 & x6 & ~x2 & ~x7) | (x0 & x1 & x3 & x4 & x7 & ~x6) | (x2 & x3 & x5 & x6 & x7 & ~x1) | (x1 & x6 & ~x2 & ~x5 & ~x7) | (x1 & x2 & x5 & x6 & ~x0 & ~x3) | (x2 & x4 & x6 & x7 & ~x0 & ~x3) | (x0 & x1 & x3 & ~x2 & ~x4 & ~x5) | (x0 & x2 & x7 & ~x1 & ~x3 & ~x6) | (x0 & x2 & x7 & ~x3 & ~x4 & ~x5) | (x0 & x3 & x5 & ~x1 & ~x6 & ~x7) | (x0 & x3 & x7 & ~x2 & ~x5 & ~x6) | (x1 & x2 & x5 & ~x0 & ~x3 & ~x4) | (x1 & x3 & x6 & ~x0 & ~x4 & ~x7) | (x1 & x4 & x6 & ~x0 & ~x2 & ~x5) | (x1 & x4 & x6 & ~x2 & ~x3 & ~x5) | (x1 & x4 & x7 & ~x0 & ~x3 & ~x5) | (x2 & x5 & x6 & ~x0 & ~x3 & ~x4) | (x4 & x5 & x7 & ~x2 & ~x3 & ~x6) | (x0 & x1 & x5 & x6 & x7 & ~x3 & ~x4) | (x0 & x3 & x4 & x6 & x7 & ~x1 & ~x5) | (x0 & x3 & x5 & x6 & x7 & ~x1 & ~x4) | (x0 & x1 & ~x3 & ~x4 & ~x5 & ~x7) | (x0 & x5 & ~x2 & ~x4 & ~x6 & ~x7) | (x1 & x5 & ~x2 & ~x3 & ~x6 & ~x7) | (x1 & x7 & ~x2 & ~x4 & ~x5 & ~x6) | (x2 & x5 & ~x1 & ~x3 & ~x6 & ~x7) | (x3 & x4 & ~x0 & ~x2 & ~x5 & ~x7) | (x1 & x3 & x5 & x7 & ~x0 & ~x4 & ~x6) | (x2 & x3 & x4 & x7 & ~x0 & ~x1 & ~x6) | (x2 & ~x1 & ~x3 & ~x4 & ~x6 & ~x7) | (x3 & ~x1 & ~x4 & ~x5 & ~x6 & ~x7) | (x4 & ~x0 & ~x1 & ~x3 & ~x6 & ~x7) | (x4 & ~x1 & ~x2 & ~x3 & ~x5 & ~x7) | (x7 & ~x0 & ~x1 & ~x2 & ~x3 & ~x6) | (x0 & x4 & x6 & ~x1 & ~x2 & ~x3 & ~x7) | (x1 & x2 & x4 & ~x3 & ~x5 & ~x6 & ~x7) | (x2 & x3 & x6 & ~x0 & ~x4 & ~x5 & ~x7) | (x4 & x5 & x7 & ~x0 & ~x1 & ~x2 & ~x6) | (x0 & x6 & ~x1 & ~x2 & ~x3 & ~x4 & ~x5) | (x5 & x6 & ~x0 & ~x1 & ~x2 & ~x4 & ~x7) | (x6 & x7 & ~x0 & ~x1 & ~x2 & ~x4 & ~x5));
+out8[7] = y7 & lane_mask;
+return out8;
+}
+fn bs_plane_const_byte(v: u32, lane_mask: u32, bit: u32) -> u32 {
+if (((v >> bit) & 1u) != 0u) { return lane_mask; } else { return 0u; }
+}
+fn bs_byte_to_planes(v: u32, lane_mask: u32) -> array<u32, 8> {
+var out8: array<u32, 8>;
+for (var b = 0u; b < 8u; b++) {
+out8[b] = bs_plane_const_byte(v, lane_mask, b);
+}
+return out8;
+}
+fn bs_reduce_or8(v8: array<u32, 8>) -> u32 {
+var m = 0u;
+for (var i = 0u; i < 8u; i++) {
+m |= v8[i];
+}
+return m;
+}
+fn bs_idx10(base: u32, add: u32) -> u32 {
+let x = base + add;
+if (x < 10u) { return x; } else { return x - 10u; }
+}
+fn bs_stream_check3_from_packet(
+lane_mask_in: u32,
+cw_byte_planes: array<array<u32, 8>, 8>,
+block0: array<u32, 8>,
+block1: array<u32, 8>,
+block2: array<u32, 8>,
+u0: u32, u1: u32, u2: u32
+) -> u32 {
+var lane_mask = lane_mask_in;
+var A: array<array<u32, 4>, 10>;
+var B: array<array<u32, 4>, 10>;
+var head = 0u;
+for (var b = 0u; b < 4u; b++) {
+A[0][b] = cw_byte_planes[0][b + 0u];
+A[1][b] = cw_byte_planes[0][b + 4u];
+A[2][b] = cw_byte_planes[1][b + 0u];
+A[3][b] = cw_byte_planes[1][b + 4u];
+A[4][b] = cw_byte_planes[2][b + 0u];
+A[5][b] = cw_byte_planes[2][b + 4u];
+A[6][b] = cw_byte_planes[3][b + 0u];
+A[7][b] = cw_byte_planes[3][b + 4u];
+A[8][b] = 0u;
+A[9][b] = 0u;
+B[0][b] = cw_byte_planes[4][b + 0u];
+B[1][b] = cw_byte_planes[4][b + 4u];
+B[2][b] = cw_byte_planes[5][b + 0u];
+B[3][b] = cw_byte_planes[5][b + 4u];
+B[4][b] = cw_byte_planes[6][b + 0u];
+B[5][b] = cw_byte_planes[6][b + 4u];
+B[6][b] = cw_byte_planes[7][b + 0u];
+B[7][b] = cw_byte_planes[7][b + 4u];
+B[8][b] = 0u;
+B[9][b] = 0u;
+}
+var X = array<u32, 4>(0u, 0u, 0u, 0u);
+var Y = array<u32, 4>(0u, 0u, 0u, 0u);
+var Z = array<u32, 4>(0u, 0u, 0u, 0u);
+var D = array<u32, 4>(0u, 0u, 0u, 0u);
+var E = array<u32, 4>(0u, 0u, 0u, 0u);
+var F = array<u32, 4>(0u, 0u, 0u, 0u);
+var p = 0u;
+var q = 0u;
+var r = 0u;
+var iv: array<u32, 8>;
+iv[0] = (u0 >> 0u) & 0xFFu;
+iv[1] = (u0 >> 8u) & 0xFFu;
+iv[2] = (u0 >> 16u) & 0xFFu;
+iv[3] = (u0 >> 24u) & 0xFFu;
+iv[4] = (u1 >> 0u) & 0xFFu;
+iv[5] = (u1 >> 8u) & 0xFFu;
+iv[6] = (u1 >> 16u) & 0xFFu;
+iv[7] = (u1 >> 24u) & 0xFFu;
+for (var i = 0u; i < 8u; i++) {
+let in1v = (iv[i] >> 4u) & 0x0Fu;
+let in2v = (iv[i] >> 0u) & 0x0Fu;
+var in1p: array<u32, 4>;
+var in2p: array<u32, 4>;
+for (var b = 0u; b < 4u; b++) {
+if (((in1v >> b) & 1u) != 0u) { in1p[b] = lane_mask; } else { in1p[b] = 0u; }
+if (((in2v >> b) & 1u) != 0u) { in2p[b] = lane_mask; } else { in2p[b] = 0u; }
+}
+for (var j = 0u; j < 4u; j++) {
+var extra: array<u32, 4>;
+extra[3] = B[bs_idx10(head, 2u)][0] ^ B[bs_idx10(head, 5u)][1] ^ B[bs_idx10(head, 6u)][2] ^ B[bs_idx10(head, 8u)][3];
+extra[2] = B[bs_idx10(head, 5u)][0] ^ B[bs_idx10(head, 7u)][1] ^ B[bs_idx10(head, 2u)][3] ^ B[bs_idx10(head, 3u)][2];
+extra[1] = B[bs_idx10(head, 4u)][3] ^ B[bs_idx10(head, 7u)][2] ^ B[bs_idx10(head, 3u)][0] ^ B[bs_idx10(head, 4u)][1];
+extra[0] = B[bs_idx10(head, 8u)][2] ^ B[bs_idx10(head, 5u)][3] ^ B[bs_idx10(head, 2u)][1] ^ B[bs_idx10(head, 7u)][0];
+var ain: array<u32, 4>;
+var bin: array<u32, 4>;
+if ((j & 1u) != 0u) { ain = in2p; bin = in1p; } else { ain = in1p; bin = in2p; }
+var nextA: array<u32, 4>;
+var nextB: array<u32, 4>;
+for (var b = 0u; b < 4u; b++) {
+nextA[b] = A[bs_idx10(head, 9u)][b] ^ X[b] ^ D[b] ^ ain[b];
+nextB[b] = B[bs_idx10(head, 6u)][b] ^ B[bs_idx10(head, 9u)][b] ^ Y[b] ^ bin[b];
+}
+{
+let tmp3 = nextB[3];
+let tmp2 = nextB[2];
+let tmp4 = p;
+let tmp1 = nextB[1];
+let tmp0 = nextB[0];
+nextB[3] = tmp3 ^ ((tmp3 ^ tmp2) & tmp4);
+nextB[2] = tmp2 ^ ((tmp2 ^ tmp1) & tmp4);
+nextB[1] = tmp1 ^ ((tmp1 ^ tmp0) & tmp4);
+nextB[0] = tmp0 ^ ((tmp0 ^ tmp3) & tmp4);
+}
+{
+var carry = r;
+for (var b = 0u; b < 4u; b++) {
+let zx = Z[b] ^ E[b];
+let ze = Z[b] & E[b];
+let oldF = F[b];
+F[b] = E[b] ^ (q & (Z[b] ^ carry));
+D[b] = extra[b] ^ zx;
+let tmp3 = zx & carry;
+E[b] = oldF;
+carry = ze | tmp3;
+}
+r = r ^ (q & (carry ^ r));
+}
+let s1 = bs_stream_sbox1(A[bs_idx10(head, 0u)][2], A[bs_idx10(head, 5u)][1], A[bs_idx10(head, 6u)][3], A[bs_idx10(head, 8u)][0], A[bs_idx10(head, 3u)][0], lane_mask);
+let s2 = bs_stream_sbox2(A[bs_idx10(head, 2u)][2], A[bs_idx10(head, 5u)][3], A[bs_idx10(head, 6u)][0], A[bs_idx10(head, 8u)][1], A[bs_idx10(head, 1u)][1], lane_mask);
+let s3 = bs_stream_sbox3(A[bs_idx10(head, 1u)][0], A[bs_idx10(head, 4u)][1], A[bs_idx10(head, 4u)][3], A[bs_idx10(head, 5u)][2], A[bs_idx10(head, 0u)][3], lane_mask);
+let s4 = bs_stream_sbox4(A[bs_idx10(head, 0u)][1], A[bs_idx10(head, 1u)][3], A[bs_idx10(head, 3u)][2], A[bs_idx10(head, 7u)][0], A[bs_idx10(head, 2u)][3], lane_mask);
+let s5 = bs_stream_sbox5(A[bs_idx10(head, 3u)][3], A[bs_idx10(head, 5u)][0], A[bs_idx10(head, 7u)][1], A[bs_idx10(head, 8u)][2], A[bs_idx10(head, 4u)][2], lane_mask);
+let s6 = bs_stream_sbox6(A[bs_idx10(head, 3u)][1], A[bs_idx10(head, 4u)][0], A[bs_idx10(head, 6u)][2], A[bs_idx10(head, 8u)][3], A[bs_idx10(head, 2u)][1], lane_mask);
+let s7 = bs_stream_sbox7(A[bs_idx10(head, 2u)][0], A[bs_idx10(head, 6u)][1], A[bs_idx10(head, 7u)][2], A[bs_idx10(head, 7u)][3], A[bs_idx10(head, 1u)][2], lane_mask);
+X[0] = s1.x; X[1] = s2.x; X[2] = s3.y; X[3] = s4.y;
+Y[0] = s3.x; Y[1] = s4.x; Y[2] = s5.y; Y[3] = s6.y;
+Z[0] = s5.x; Z[1] = s6.x; Z[2] = s1.y; Z[3] = s2.y;
+p = s7.x;
+q = s7.y;
+head = head + 9u;
+if (head >= 10u) { head -= 10u; }
+for (var b = 0u; b < 4u; b++) {
+A[head][b] = nextA[b];
+B[head][b] = nextB[b];
+}
+}
+}
+let c8v = (u2 >> 0u) & 0xFFu;
+let c9v = (u2 >> 8u) & 0xFFu;
+let c10v = (u2 >> 16u) & 0xFFu;
+var c8p: array<u32, 8>;
+var c9p: array<u32, 8>;
+var c10p: array<u32, 8>;
+for (var out_i = 0u; out_i < 3u; out_i++) {
+var op = array<u32, 8>(0u,0u,0u,0u,0u,0u,0u,0u);
+for (var j = 0u; j < 4u; j++) {
+var extra: array<u32, 4>;
+extra[3] = B[bs_idx10(head, 2u)][0] ^ B[bs_idx10(head, 5u)][1] ^ B[bs_idx10(head, 6u)][2] ^ B[bs_idx10(head, 8u)][3];
+extra[2] = B[bs_idx10(head, 5u)][0] ^ B[bs_idx10(head, 7u)][1] ^ B[bs_idx10(head, 2u)][3] ^ B[bs_idx10(head, 3u)][2];
+extra[1] = B[bs_idx10(head, 4u)][3] ^ B[bs_idx10(head, 7u)][2] ^ B[bs_idx10(head, 3u)][0] ^ B[bs_idx10(head, 4u)][1];
+extra[0] = B[bs_idx10(head, 8u)][2] ^ B[bs_idx10(head, 5u)][3] ^ B[bs_idx10(head, 2u)][1] ^ B[bs_idx10(head, 7u)][0];
+var nextA: array<u32, 4>;
+var nextB: array<u32, 4>;
+for (var b = 0u; b < 4u; b++) {
+nextA[b] = A[bs_idx10(head, 9u)][b] ^ X[b];
+nextB[b] = B[bs_idx10(head, 6u)][b] ^ B[bs_idx10(head, 9u)][b] ^ Y[b];
+}
+{
+let tmp3 = nextB[3];
+let tmp2 = nextB[2];
+let tmp4 = p;
+let tmp1 = nextB[1];
+let tmp0 = nextB[0];
+nextB[3] = tmp3 ^ ((tmp3 ^ tmp2) & tmp4);
+nextB[2] = tmp2 ^ ((tmp2 ^ tmp1) & tmp4);
+nextB[1] = tmp1 ^ ((tmp1 ^ tmp0) & tmp4);
+nextB[0] = tmp0 ^ ((tmp0 ^ tmp3) & tmp4);
+}
+{
+var carry = r;
+for (var b = 0u; b < 4u; b++) {
+let zx = Z[b] ^ E[b];
+let ze = Z[b] & E[b];
+let oldF = F[b];
+F[b] = E[b] ^ (q & (Z[b] ^ carry));
+D[b] = extra[b] ^ zx;
+let tmp3 = zx & carry;
+E[b] = oldF;
+carry = ze | tmp3;
+}
+r = r ^ (q & (carry ^ r));
+}
+let s1 = bs_stream_sbox1(A[bs_idx10(head, 0u)][2], A[bs_idx10(head, 5u)][1], A[bs_idx10(head, 6u)][3], A[bs_idx10(head, 8u)][0], A[bs_idx10(head, 3u)][0], lane_mask);
+let s2 = bs_stream_sbox2(A[bs_idx10(head, 2u)][2], A[bs_idx10(head, 5u)][3], A[bs_idx10(head, 6u)][0], A[bs_idx10(head, 8u)][1], A[bs_idx10(head, 1u)][1], lane_mask);
+let s3 = bs_stream_sbox3(A[bs_idx10(head, 1u)][0], A[bs_idx10(head, 4u)][1], A[bs_idx10(head, 4u)][3], A[bs_idx10(head, 5u)][2], A[bs_idx10(head, 0u)][3], lane_mask);
+let s4 = bs_stream_sbox4(A[bs_idx10(head, 0u)][1], A[bs_idx10(head, 1u)][3], A[bs_idx10(head, 3u)][2], A[bs_idx10(head, 7u)][0], A[bs_idx10(head, 2u)][3], lane_mask);
+let s5 = bs_stream_sbox5(A[bs_idx10(head, 3u)][3], A[bs_idx10(head, 5u)][0], A[bs_idx10(head, 7u)][1], A[bs_idx10(head, 8u)][2], A[bs_idx10(head, 4u)][2], lane_mask);
+let s6 = bs_stream_sbox6(A[bs_idx10(head, 3u)][1], A[bs_idx10(head, 4u)][0], A[bs_idx10(head, 6u)][2], A[bs_idx10(head, 8u)][3], A[bs_idx10(head, 2u)][1], lane_mask);
+let s7 = bs_stream_sbox7(A[bs_idx10(head, 2u)][0], A[bs_idx10(head, 6u)][1], A[bs_idx10(head, 7u)][2], A[bs_idx10(head, 7u)][3], A[bs_idx10(head, 1u)][2], lane_mask);
+X[0] = s1.x; X[1] = s2.x; X[2] = s3.y; X[3] = s4.y;
+Y[0] = s3.x; Y[1] = s4.x; Y[2] = s5.y; Y[3] = s6.y;
+Z[0] = s5.x; Z[1] = s6.x; Z[2] = s1.y; Z[3] = s2.y;
+p = s7.x;
+q = s7.y;
+let t0 = D[0] ^ D[1];
+let t1 = D[2] ^ D[3];
+op[7] = op[5]; op[6] = op[4]; op[5] = op[3]; op[4] = op[2];
+op[3] = op[1]; op[2] = op[0]; op[1] = t1;    op[0] = t0;
+head = head + 9u;
+if (head >= 10u) { head -= 10u; }
+for (var b = 0u; b < 4u; b++) {
+A[head][b] = nextA[b];
+B[head][b] = nextB[b];
+}
+}
+var cv_planes: array<u32, 8>;
+if (out_i == 0u) {
+c8p = bs_byte_to_planes(c8v, lane_mask);
+cv_planes = c8p;
+} else if (out_i == 1u) {
+c9p = bs_byte_to_planes(c9v, lane_mask);
+cv_planes = c9p;
+} else {
+c10p = bs_byte_to_planes(c10v, lane_mask);
+cv_planes = c10p;
+}
+var blk: array<u32, 8>;
+if (out_i == 0u) { blk = block0; }
+else if (out_i == 1u) { blk = block1; }
+else { blk = block2; }
+var diff: array<u32, 8>;
+for (var b = 0u; b < 8u; b++) {
+var v = blk[b] ^ op[b] ^ cv_planes[b];
+if (out_i == 2u && b == 0u) { v ^= lane_mask; }
+diff[b] = v;
+}
+let mismatch = bs_reduce_or8(diff);
+lane_mask &= ~mismatch;
+if (lane_mask == 0u) { return 0u; }
+}
+return lane_mask;
+}
+fn bs_block_decypher3_from_cw(
+cw_byte_planes: array<array<u32, 8>, 8>,
+lane_mask: u32,
+u0: u32, u1: u32,
+out_b0: ptr<function, array<u32, 8>>,
+out_b1: ptr<function, array<u32, 8>>,
+out_b2: ptr<function, array<u32, 8>>
+) {
+let ib0 = (u0 >> 0u) & 0xFFu;
+let ib1 = (u0 >> 8u) & 0xFFu;
+let ib2 = (u0 >> 16u) & 0xFFu;
+let ib3 = (u0 >> 24u) & 0xFFu;
+let ib4 = (u1 >> 0u) & 0xFFu;
+let ib5 = (u1 >> 8u) & 0xFFu;
+let ib6 = (u1 >> 16u) & 0xFFu;
+let ib7 = (u1 >> 24u) & 0xFFu;
+var R1 = bs_byte_to_planes(ib0, lane_mask);
+var R2 = bs_byte_to_planes(ib1, lane_mask);
+var R3 = bs_byte_to_planes(ib2, lane_mask);
+var R4 = bs_byte_to_planes(ib3, lane_mask);
+var R5 = bs_byte_to_planes(ib4, lane_mask);
+var R6 = bs_byte_to_planes(ib5, lane_mask);
+var R7 = bs_byte_to_planes(ib6, lane_mask);
+var R8 = bs_byte_to_planes(ib7, lane_mask);
+var kbits: array<u32, 64>;
+for (var b = 0u; b < 64u; b++) {
+let by = b >> 3u;
+let bit = 7u - (b & 7u);
+kbits[b] = cw_byte_planes[by][bit];
+}
+var ktmp: array<u32, 64>;
+for (var g_step = 0u; g_step < 7u; g_step++) {
+let g = 6u - g_step;
+for (var j_step = 0u; j_step < 8u; j_step++) {
+let j = 7u - j_step;
+var kbyte: array<u32, 8>;
+for (var bit = 0u; bit < 8u; bit++) {
+let bidx = j * 8u + (7u - bit);
+var plane = kbits[bidx];
+if (((g >> bit) & 1u) != 0u) { plane ^= lane_mask; }
+kbyte[bit] = plane;
+}
+var sbox_in: array<u32, 8>;
+for (var bit = 0u; bit < 8u; bit++) { sbox_in[bit] = kbyte[bit] ^ R7[bit]; }
+let sbox_out = bs_block_sbox(sbox_in, lane_mask);
+var perm_out: array<u32, 8>;
+for (var bit = 0u; bit < 8u; bit++) { perm_out[bit] = sbox_out[get_block_perm_out_to_in(bit)]; }
+var common_xor: array<u32, 8>;
+for (var bit = 0u; bit < 8u; bit++) { common_xor[bit] = R8[bit] ^ sbox_out[bit]; }
+let next_R8 = R7;
+var new_R7: array<u32, 8>;
+for (var bit = 0u; bit < 8u; bit++) { new_R7[bit] = R6[bit] ^ perm_out[bit]; }
+let new_R6 = R5;
+var new_R5: array<u32, 8>;
+for (var bit = 0u; bit < 8u; bit++) { new_R5[bit] = R4[bit] ^ common_xor[bit]; }
+var new_R4: array<u32, 8>;
+for (var bit = 0u; bit < 8u; bit++) { new_R4[bit] = R3[bit] ^ common_xor[bit]; }
+var new_R3: array<u32, 8>;
+for (var bit = 0u; bit < 8u; bit++) { new_R3[bit] = R2[bit] ^ common_xor[bit]; }
+let new_R2 = R1;
+let new_R1 = common_xor;
+R1 = new_R1; R2 = new_R2; R3 = new_R3; R4 = new_R4;
+R5 = new_R5; R6 = new_R6; R7 = new_R7; R8 = next_R8;
+}
+if (g > 0u) {
+for (var b = 0u; b < 64u; b++) {
+let dst = get_key_perm_table(b);
+ktmp[dst] = kbits[b];
+}
+for (var b = 0u; b < 64u; b++) { kbits[b] = ktmp[b]; }
+}
+}
+*out_b0 = R1;
+*out_b1 = R2;
+*out_b2 = R3;
+}
+var<workgroup> tg_u0: array<u32, 64>;
+var<workgroup> tg_u1: array<u32, 64>;
+var<workgroup> tg_u2: array<u32, 64>;
+@compute @workgroup_size(256)
+fn dvbcsa_bruteforce_streamslice(
+@builtin(global_invocation_id) id: vec3<u32>,
+@builtin(local_invocation_index) tid: u32
+) {
+let found = atomicLoad(&found_flag);
+let use_tg = (packet_count <= MAX_PRELOAD_PACKETS);
+if (use_tg) {
+if (found == 0u) {
+var i = tid;
+while (i < packet_count) {
+let base = i * 4u;
+tg_u0[i] = packets_data[base + 0u];
+tg_u1[i] = packets_data[base + 1u];
+tg_u2[i] = packets_data[base + 2u];
+i += 256u;
+}
+}
+workgroupBarrier();
+}
+if (found > 0u) { return; }
+let offset = u64_shl(vec2<u32>(id.x, 0u), 5u);
+let thread_base = u64_add(base_key_idx, offset);
+let diff_check = u64_sub(thread_base, base_key_idx);
+if (u64_ge(diff_check, keys_to_check)) { return; }
+var lane_mask = 0u;
+var p0_lane: array<vec2<u32>, 32>;
+for (var lane = 0u; lane < BITS_SLICE_LANES; lane++) {
+let idx = u64_add(thread_base, vec2<u32>(lane, 0u));
+let diff = u64_sub(idx, base_key_idx);
+if (u64_ge(diff, keys_to_check)) {
+p0_lane[lane] = vec2<u32>(0u, 0u);
+continue;
+}
+lane_mask |= (1u << lane);
+let seed0 = (idx.y >> 8u) & 0xFFu;
+let seed1 = (idx.y >> 0u) & 0xFFu;
+let seed2 = (idx.x >> 24u) & 0xFFu;
+let seed3 = (idx.x >> 16u) & 0xFFu;
+let seed4 = (idx.x >> 8u) & 0xFFu;
+let seed5 = (idx.x >> 0u) & 0xFFu;
+let cw0 = seed0;
+let cw1 = seed1;
+let cw2 = seed2;
+let cw3 = (seed0 + seed1 + seed2) & 0xFFu;
+let cw4 = seed3;
+let cw5 = seed4;
+let cw6 = seed5;
+let cw7 = (seed3 + seed4 + seed5) & 0xFFu;
+let hi = (cw0 << 24u) | (cw1 << 16u) | (cw2 << 8u) | cw3;
+let lo = (cw4 << 24u) | (cw5 << 16u) | (cw6 << 8u) | cw7;
+p0_lane[lane] = vec2<u32>(lo, hi);
+}
+for (var pidx = 0u; pidx < packet_count; pidx++) {
+var u0: u32; var u1: u32; var u2: u32;
+if (use_tg) {
+u0 = tg_u0[pidx];
+u1 = tg_u1[pidx];
+u2 = tg_u2[pidx];
+} else {
+let base = pidx * 4u;
+u0 = packets_data[base + 0u];
+u1 = packets_data[base + 1u];
+u2 = packets_data[base + 2u];
+}
+var block0: array<u32, 8>;
+var block1: array<u32, 8>;
+var block2: array<u32, 8>;
+for(var j=0u; j<8u; j++) { block0[j] = 0u; block1[j] = 0u; block2[j] = 0u; }
+for (var lane = 0u; lane < BITS_SLICE_LANES; lane++) {
+let m = 1u << lane;
+if ((lane_mask & m) == 0u) { continue; }
+let b3 = block_decypher3_from_p0_jit(u0, u1, p0_lane[lane]);
+let v0 = (b3.x >> 0u) & 0xFFu;
+let v1 = (b3.x >> 8u) & 0xFFu;
+let v2 = (b3.x >> 16u) & 0xFFu;
+for (var bit = 0u; bit < 8u; bit++) {
+if (((v0 >> bit) & 1u) != 0u) { block0[bit] |= m; }
+if (((v1 >> bit) & 1u) != 0u) { block1[bit] |= m; }
+if (((v2 >> bit) & 1u) != 0u) { block2[bit] |= m; }
+}
+}
+var cw_byte_planes: array<array<u32, 8>, 8>;
+for(var i=0u; i<8u; i++) { for(var j=0u; j<8u; j++) { cw_byte_planes[i][j] = 0u; } }
+for (var lane = 0u; lane < BITS_SLICE_LANES; lane++) {
+let m = 1u << lane;
+if ((lane_mask & m) == 0u) { continue; }
+let p0 = p0_lane[lane];
+let p0_swapped_x = ((p0.x & 0xF0F0F0F0u) >> 4u) | ((p0.x & 0x0F0F0F0Fu) << 4u);
+let p0_swapped_y = ((p0.y & 0xF0F0F0F0u) >> 4u) | ((p0.y & 0x0F0F0F0Fu) << 4u);
+for (var by = 0u; by < 8u; by++) {
+var v: u32;
+let shift = 56u - 8u * by;
+if (shift >= 32u) {
+v = (p0_swapped_y >> (shift - 32u)) & 0xFFu;
+} else {
+v = (p0_swapped_x >> shift) & 0xFFu;
+}
+for (var bit = 0u; bit < 8u; bit++) {
+if (((v >> bit) & 1u) != 0u) {
+cw_byte_planes[by][bit] |= m;
+}
+}
+}
+}
+lane_mask = bs_stream_check3_from_packet(lane_mask, cw_byte_planes, block0, block1, block2, u0, u1, u2);
+if (lane_mask == 0u) { return; }
+if (atomicLoad(&found_flag) > 0u) { return; }
+}
+let old_val = atomicExchange(&found_flag, 1u);
+if (old_val == 0u) {
+let lane = countTrailingZeros(lane_mask);
+result_buffer[0] = p0_lane[lane].x;
+result_buffer[1] = p0_lane[lane].y;
+}
+}
+@compute @workgroup_size(256)
+fn dvbcsa_bruteforce_streamslice_bitslice(
+@builtin(global_invocation_id) id: vec3<u32>,
+@builtin(local_invocation_index) tid: u32
+) {
+let found = atomicLoad(&found_flag);
+let use_tg = (packet_count <= MAX_PRELOAD_PACKETS);
+if (use_tg) {
+if (found == 0u) {
+var i = tid;
+while (i < packet_count) {
+let base = i * 4u;
+tg_u0[i] = packets_data[base + 0u];
+tg_u1[i] = packets_data[base + 1u];
+tg_u2[i] = packets_data[base + 2u];
+i += 256u;
+}
+}
+workgroupBarrier();
+}
+if (found > 0u) { return; }
+let offset = u64_shl(vec2<u32>(id.x, 0u), 5u);
+let thread_base = u64_add(base_key_idx, offset);
+let diff_check = u64_sub(thread_base, base_key_idx);
+if (u64_ge(diff_check, keys_to_check)) { return; }
+var lane_mask = 0u;
+var p0_lane: array<vec2<u32>, 32>;
+for (var lane = 0u; lane < BITS_SLICE_LANES; lane++) {
+let idx = u64_add(thread_base, vec2<u32>(lane, 0u));
+let diff = u64_sub(idx, base_key_idx);
+if (u64_ge(diff, keys_to_check)) {
+p0_lane[lane] = vec2<u32>(0u, 0u);
+continue;
+}
+lane_mask |= (1u << lane);
+let seed0 = (idx.y >> 8u) & 0xFFu;
+let seed1 = (idx.y >> 0u) & 0xFFu;
+let seed2 = (idx.x >> 24u) & 0xFFu;
+let seed3 = (idx.x >> 16u) & 0xFFu;
+let seed4 = (idx.x >> 8u) & 0xFFu;
+let seed5 = (idx.x >> 0u) & 0xFFu;
+let cw0 = seed0;
+let cw1 = seed1;
+let cw2 = seed2;
+let cw3 = (seed0 + seed1 + seed2) & 0xFFu;
+let cw4 = seed3;
+let cw5 = seed4;
+let cw6 = seed5;
+let cw7 = (seed3 + seed4 + seed5) & 0xFFu;
+let hi = (cw0 << 24u) | (cw1 << 16u) | (cw2 << 8u) | cw3;
+let lo = (cw4 << 24u) | (cw5 << 16u) | (cw6 << 8u) | cw7;
+p0_lane[lane] = vec2<u32>(lo, hi);
+}
+for (var pidx = 0u; pidx < packet_count; pidx++) {
+var u0: u32; var u1: u32; var u2: u32;
+if (use_tg) {
+u0 = tg_u0[pidx];
+u1 = tg_u1[pidx];
+u2 = tg_u2[pidx];
+} else {
+let base = pidx * 4u;
+u0 = packets_data[base + 0u];
+u1 = packets_data[base + 1u];
+u2 = packets_data[base + 2u];
+}
+var cw_byte_planes_block: array<array<u32, 8>, 8>;
+var cw_byte_planes_stream: array<array<u32, 8>, 8>;
+for (var i = 0u; i < 8u; i++) {
+for (var j = 0u; j < 8u; j++) {
+cw_byte_planes_block[i][j] = 0u;
+cw_byte_planes_stream[i][j] = 0u;
+}
+}
+for (var lane = 0u; lane < BITS_SLICE_LANES; lane++) {
+let m = 1u << lane;
+if ((lane_mask & m) == 0u) { continue; }
+let p0 = p0_lane[lane];
+let p0_swapped_x = ((p0.x & 0xF0F0F0F0u) >> 4u) | ((p0.x & 0x0F0F0F0Fu) << 4u);
+let p0_swapped_y = ((p0.y & 0xF0F0F0F0u) >> 4u) | ((p0.y & 0x0F0F0F0Fu) << 4u);
+for (var by = 0u; by < 8u; by++) {
+let shift = 56u - 8u * by;
+var v_block: u32;
+var v_stream: u32;
+if (shift >= 32u) {
+v_block = (p0.y >> (shift - 32u)) & 0xFFu;
+v_stream = (p0_swapped_y >> (shift - 32u)) & 0xFFu;
+} else {
+v_block = (p0.x >> shift) & 0xFFu;
+v_stream = (p0_swapped_x >> shift) & 0xFFu;
+}
+for (var bit = 0u; bit < 8u; bit++) {
+if (((v_block >> bit) & 1u) != 0u) { cw_byte_planes_block[by][bit] |= m; }
+if (((v_stream >> bit) & 1u) != 0u) { cw_byte_planes_stream[by][bit] |= m; }
+}
+}
+}
+var block0: array<u32, 8>;
+var block1: array<u32, 8>;
+var block2: array<u32, 8>;
+bs_block_decypher3_from_cw(cw_byte_planes_block, lane_mask, u0, u1, &block0, &block1, &block2);
+lane_mask = bs_stream_check3_from_packet(lane_mask, cw_byte_planes_stream, block0, block1, block2, u0, u1, u2);
+if (lane_mask == 0u) { return; }
+if (atomicLoad(&found_flag) > 0u) { return; }
+}
+let old_val = atomicExchange(&found_flag, 1u);
+if (old_val == 0u) {
+let lane = countTrailingZeros(lane_mask);
+result_buffer[0] = p0_lane[lane].x;
+result_buffer[1] = p0_lane[lane].y;
+}
+}</script><script type="module">function getKeyPermByteTable() {
+    const metalTable = [
+        0x12, 0x24, 0x09, 0x07, 0x2A, 0x31, 0x1D, 0x15, 0x1C, 0x36, 0x3E, 0x32, 0x13, 0x21, 0x3B, 0x40,
+        0x18, 0x14, 0x25, 0x27, 0x02, 0x35, 0x1B, 0x01, 0x22, 0x04, 0x0D, 0x0E, 0x39, 0x28, 0x1A, 0x29,
+        0x33, 0x23, 0x34, 0x0C, 0x16, 0x30, 0x1E, 0x3A, 0x2D, 0x1F, 0x08, 0x19, 0x17, 0x2F, 0x3D, 0x11,
+        0x3C, 0x05, 0x38, 0x2B, 0x0B, 0x06, 0x0A, 0x2C, 0x20, 0x3F, 0x2E, 0x0F, 0x03, 0x26, 0x10, 0x37
+    ];
+    const table = new Uint8Array(64);
+    for (let i = 0; i < 64; i++) {
+        table[i] = metalTable[i] - 1;
+    }
+    return table;
+}
+function buildKeyPermByteLut(bitPerm) {
+    const lut = new Uint32Array(8 * 256 * 2);
+    const src = new Uint8Array(8);
+    const dst = new Uint8Array(8);
+    for (let byteIndex = 0; byteIndex < 8; byteIndex++) {
+        for (let v = 0; v < 256; v++) {
+            src.fill(0);
+            dst.fill(0);
+            src[byteIndex] = v;
+            for (let b = 0; b < 64; b++) {
+                const srcByte = b >> 3;
+                const srcBit = 7 - (b & 7);
+                if (((src[srcByte] >> srcBit) & 1) === 0)
+                    continue;
+                const dstIdx = bitPerm[b];
+                const dstByte = dstIdx >> 3;
+                const dstBit = 7 - (dstIdx & 7);
+                dst[dstByte] |= 1 << dstBit;
+            }
+            const hi = ((dst[0] << 24) | (dst[1] << 16) | (dst[2] << 8) | dst[3]) >>> 0;
+            const lo = ((dst[4] << 24) | (dst[5] << 16) | (dst[6] << 8) | dst[7]) >>> 0;
+            const base = (byteIndex * 256 + v) * 2;
+            lut[base + 0] = lo;
+            lut[base + 1] = hi;
+        }
+    }
+    const input = new Uint8Array(8);
+    const slowOut = new Uint8Array(8);
+    const fastOut = new Uint8Array(8);
+    let seed = 0x12345678;
+    for (let t = 0; t < 32; t++) {
+        seed = (Math.imul(seed, 1664525) + 1013904223) | 0;
+        for (let i = 0; i < 8; i++) {
+            seed = (Math.imul(seed, 1664525) + 1013904223) | 0;
+            input[i] = seed & 0xFF;
+        }
+        slowOut.fill(0);
+        for (let b = 0; b < 64; b++) {
+            const srcByte = b >> 3;
+            const srcBit = 7 - (b & 7);
+            if (((input[srcByte] >> srcBit) & 1) === 0)
+                continue;
+            const dstIdx = bitPerm[b];
+            const dstByte = dstIdx >> 3;
+            const dstBit = 7 - (dstIdx & 7);
+            slowOut[dstByte] |= 1 << dstBit;
+        }
+        let lo = 0;
+        let hi = 0;
+        for (let i = 0; i < 8; i++) {
+            const v = input[i];
+            const base = (i * 256 + v) * 2;
+            lo |= lut[base + 0] | 0;
+            hi |= lut[base + 1] | 0;
+        }
+        fastOut[0] = (hi >>> 24) & 0xFF;
+        fastOut[1] = (hi >>> 16) & 0xFF;
+        fastOut[2] = (hi >>> 8) & 0xFF;
+        fastOut[3] = (hi >>> 0) & 0xFF;
+        fastOut[4] = (lo >>> 24) & 0xFF;
+        fastOut[5] = (lo >>> 16) & 0xFF;
+        fastOut[6] = (lo >>> 8) & 0xFF;
+        fastOut[7] = (lo >>> 0) & 0xFF;
+        for (let i = 0; i < 8; i++) {
+            if (slowOut[i] !== fastOut[i]) {
+                throw new Error('key_perm_byte LUT mismatch');
+            }
+        }
+    }
+    return lut;
+}
+const BLOCK_SBOX_PERM = new Uint32Array([
+    0xD43A, 0xD9EA, 0x5168, 0xFDFE, 0xC633, 0x5BE9, 0x1888, 0x941A, 0x8A83, 0xBBCF, 0x4BE1, 0xF77F, 0xDCBA, 0xC9E2, 0x5438, 0x8412,
+    0x59E8, 0xE227, 0x4361, 0x2E95, 0x300C, 0xE436, 0x6BE5, 0x4570, 0xC8A2, 0xA006, 0x8882, 0x757C, 0xA617, 0xCAA3, 0xE026, 0x1349,
+    0xFCBE, 0xD57A, 0x736D, 0xA347, 0x0BC1, 0x0751, 0xBA8F, 0xCFF3, 0x39CC, 0x975B, 0xE367, 0x7EBD, 0x3BCD, 0x1418, 0x1008, 0x1BC9,
+    0xFFFF, 0x5369, 0xFBEF, 0x8203, 0xB14E, 0x1148, 0x914A, 0x2884, 0xF63F, 0x6CB4, 0x0410, 0x2004, 0x3DDC, 0x6FF5, 0x355C, 0xA9C6,
+    0xA416, 0xDAAB, 0x78AC, 0x314C, 0x4FF1, 0xD16A, 0xF22F, 0x743C, 0xD63B, 0x2DD4, 0x2FD5, 0x2C94, 0x0DD0, 0x29C4, 0xC363, 0xC162,
+    0x4771, 0x4AA1, 0x5FF9, 0xB34F, 0xF02E, 0xD8AA, 0x2BC5, 0xA556, 0xCBE3, 0x5639, 0x8E93, 0xB9CE, 0x6365, 0x6164, 0x69E4, 0x1558,
+    0x716C, 0x1619, 0x8142, 0x5779, 0x3FDD, 0xF9EE, 0xAC96, 0xEDF6, 0x988A, 0x79EC, 0xB41E, 0x2A85, 0x8753, 0x2345, 0xBDDE, 0xDEBB,
+    0xF57E, 0x900A, 0x9C9A, 0x8613, 0xD02A, 0x3E9D, 0x89C2, 0xB55E, 0x955A, 0xB61F, 0xC432, 0x6635, 0x3C9C, 0x58A8, 0xC773, 0x4430,
+    0x5229, 0x763D, 0xEBE7, 0x8C92, 0xAA87, 0x961B, 0xD22B, 0x934B, 0x6AA5, 0xA757, 0xAE97, 0x0140, 0x2615, 0xE9E6, 0x7CBC, 0xB00E,
+    0xDBEB, 0x8BC3, 0x6434, 0x722D, 0x5CB8, 0x2144, 0x6225, 0x68A4, 0x341C, 0xABC7, 0xC223, 0x7BED, 0x0C90, 0xF16E, 0x0550, 0x0000,
+    0x1E99, 0xBC9E, 0x334D, 0x1FD9, 0x9DDA, 0x3A8D, 0xF36F, 0xB75F, 0xF43E, 0xAFD7, 0x4221, 0x6574, 0xA886, 0xBFDF, 0xD36B, 0x2205,
+    0xB88E, 0x375D, 0xE637, 0x0611, 0x8DD2, 0x5028, 0x6775, 0xADD6, 0xEAA7, 0xE777, 0x6024, 0xFEBF, 0x4DF0, 0x4CB0, 0x8002, 0xEEB7,
+    0x5DF8, 0x7DFC, 0x0A81, 0x1209, 0x4EB1, 0x0201, 0xE576, 0x0E91, 0x777D, 0xB20F, 0x19C8, 0x48A0, 0xCDF2, 0x9BCB, 0x5578, 0x4160,
+    0x0FD1, 0xEFF7, 0x49E0, 0x6EB5, 0x1C98, 0xC022, 0xCEB3, 0x4020, 0x361D, 0xE8A6, 0x9FDB, 0xD77B, 0x1759, 0xBE9F, 0xF8AE, 0x4631,
+    0xDFFB, 0x8FD3, 0xECB6, 0x99CA, 0x8343, 0xC572, 0xA207, 0x6DF4, 0x1DD8, 0x0341, 0x2414, 0x2755, 0x320D, 0x2554, 0x9A8B, 0x5EB9,
+    0x7AAD, 0xA146, 0x920B, 0xFAAF, 0x0880, 0x8552, 0x702C, 0xDDFA, 0x388C, 0x1A89, 0xE166, 0x7FFD, 0xCCB2, 0x5AA9, 0x9E9B, 0x09C0,
+]);
+const startBtn = document.getElementById('startBtn');
+const stopBtn = document.getElementById('stopBtn');
+const progressBar = document.getElementById('progressBar');
+const progressText = document.getElementById('progressText');
+const speedText = document.getElementById('speedText');
+const currentSeedText = document.getElementById('currentSeedText');
+const timeText = document.getElementById('timeText');
+const resultBox = document.getElementById('resultBox');
+const foundKeyDiv = document.getElementById('foundKey');
+const errorBox = document.getElementById('errorBox');
+const kernelSelect = document.getElementById('kernelSelect');
+const batchSizeSelect = document.getElementById('batchSizeSelect');
+const disclaimerModal = document.getElementById('disclaimerModal');
+const acceptDisclaimerBtn = document.getElementById('acceptDisclaimerBtn');
+let isRunning = false;
+let stopRequested = false;
+let currentKernel = 'streamslice'; 
+const KERNEL_STORAGE_KEY = 'webbiss.kernel';
+const BATCH_SIZE_STORAGE_KEY = 'webbiss.batchSize';
+const DISCLAIMER_STORAGE_KEY = 'webbiss.disclaimerAccepted';
+function checkDisclaimer() {
+    try {
+        const accepted = localStorage.getItem(DISCLAIMER_STORAGE_KEY);
+        if (accepted !== 'true') {
+            disclaimerModal.classList.remove('hidden');
+        }
+    }
+    catch {
+        disclaimerModal.classList.remove('hidden');
+    }
+}
+function acceptDisclaimer() {
+    try {
+        localStorage.setItem(DISCLAIMER_STORAGE_KEY, 'true');
+    }
+    catch {
+    }
+    disclaimerModal.classList.add('hidden');
+}
+function getStoredKernel() {
+    try {
+        return localStorage.getItem(KERNEL_STORAGE_KEY);
+    }
+    catch {
+        return null;
+    }
+}
+function setStoredKernel(kernel) {
+    try {
+        localStorage.setItem(KERNEL_STORAGE_KEY, kernel);
+    }
+    catch {
+    }
+}
+function getStoredBatchSize() {
+    try {
+        return localStorage.getItem(BATCH_SIZE_STORAGE_KEY);
+    }
+    catch {
+        return null;
+    }
+}
+function setStoredBatchSize(batchSize) {
+    try {
+        localStorage.setItem(BATCH_SIZE_STORAGE_KEY, batchSize);
+    }
+    catch {
+    }
+}
+function applyBatchSizeToUI(batchSize) {
+    const allowed = new Set([
+        '33554432',
+        '67108864',
+        '134217728',
+        '268435456',
+        '536870912'
+    ]);
+    const v = allowed.has(batchSize) ? batchSize : '134217728';
+    batchSizeSelect.value = v;
+}
+function applyKernelToUI(kernel) {
+    if (kernel === 'streamslice' || kernel === 'bitslice') {
+        kernelSelect.value = kernel;
+        currentKernel = kernel;
+    }
+}
+function parseHex(hex) {
+    hex = hex.replace(/\s+/g, '');
+    if (!hex.startsWith('0x'))
+        hex = '0x' + hex;
+    return BigInt(hex);
+}
+function parseHexBytes(hex) {
+    hex = hex.replace(/\s+/g, '');
+    if (hex.length % 2 !== 0)
+        throw new Error('Invalid hex string length');
+    const bytes = new Uint8Array(hex.length / 2);
+    for (let i = 0; i < bytes.length; i++) {
+        bytes[i] = parseInt(hex.substring(i * 2, i * 2 + 2), 16);
+    }
+    return bytes;
+}
+function bytesToHex(bytes) {
+    return Array.from(bytes).map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ');
+}
+function u64ToU32(v) {
+    const lo = Number(v & 0xffffffffn);
+    const hi = Number((v >> 32n) & 0xffffffffn);
+    return [lo, hi];
+}
+function computeProgressPercent(checked, total) {
+    if (total <= 0n)
+        return 0;
+    const clamped = checked > total ? total : checked;
+    const scaled = (clamped * 10000n + total / 2n) / total;
+    return Number(scaled) / 100;
+}
+let device = null;
+let shaderModule = null;
+let pipelineByKernel = {};
+async function getOrCreatePipeline(kernel) {
+    if (!device || !shaderModule)
+        throw new Error('GPU not initialized');
+    const cached = pipelineByKernel[kernel];
+    if (cached)
+        return cached;
+    const entryPoint = kernel === 'bitslice'
+        ? 'dvbcsa_bruteforce_streamslice_bitslice'
+        : 'dvbcsa_bruteforce_streamslice';
+    const createAsync = device
+        .createComputePipelineAsync;
+    const pipeline = createAsync
+        ? await createAsync.call(device, {
+            layout: 'auto',
+            compute: { module: shaderModule, entryPoint }
+        })
+        : device.createComputePipeline({
+            layout: 'auto',
+            compute: { module: shaderModule, entryPoint }
+        });
+    pipelineByKernel[kernel] = pipeline;
+    return pipeline;
+}
+async function init() {
+    if (!navigator.gpu) {
+        showError('WebGPU not supported in this browser.');
+        return;
+    }
+    const adapter = await navigator.gpu.requestAdapter({
+        powerPreference: "high-performance"
+    });
+    if (!adapter) {
+        showError('No WebGPU adapter found.');
+        return;
+    }
+    device = await adapter.requestDevice();
+    const embeddedShader = document.getElementById('wgsl-shader');
+    let shaderCode = '';
+    if (embeddedShader && embeddedShader.textContent) {
+        shaderCode = embeddedShader.textContent;
+    }
+    else {
+        const shaderResponse = await fetch('dvbcsa.wgsl');
+        if (!shaderResponse.ok) {
+            showError('Failed to load shader file.');
+            return;
+        }
+        shaderCode = await shaderResponse.text();
+    }
+    shaderModule = device.createShaderModule({
+        code: shaderCode
+    });
+    const info = await shaderModule.getCompilationInfo();
+    if (info.messages.length > 0) {
+        let hasError = false;
+        for (const msg of info.messages) {
+            console.log(`[Shader ${msg.type}] ${msg.message} at line ${msg.lineNum}`);
+            if (msg.type === 'error')
+                hasError = true;
+        }
+        if (hasError) {
+            showError('Shader compilation failed. Check console for details.');
+            return;
+        }
+    }
+    const storedKernel = getStoredKernel();
+    if (storedKernel) {
+        applyKernelToUI(storedKernel);
+    }
+    else {
+        applyKernelToUI(kernelSelect.value);
+        setStoredKernel(currentKernel);
+    }
+    const storedBatchSize = getStoredBatchSize();
+    if (storedBatchSize) {
+        applyBatchSizeToUI(storedBatchSize);
+    }
+    else {
+        applyBatchSizeToUI(batchSizeSelect.value);
+        setStoredBatchSize(batchSizeSelect.value);
+    }
+    try {
+        await getOrCreatePipeline('streamslice');
+        await getOrCreatePipeline('bitslice');
+        showError('');
+    }
+    catch (e) {
+        showError(e.message);
+        return;
+    }
+    setupEventListeners();
+    checkDisclaimer();
+}
+async function reinitializeWithKernel(kernel) {
+    if (!device || !shaderModule) {
+        showError('GPU not initialized');
+        return;
+    }
+    applyKernelToUI(kernel);
+    setStoredKernel(currentKernel);
+    showError('Compiling kernel...');
+    try {
+        await getOrCreatePipeline(currentKernel);
+        showError('');
+    }
+    catch (e) {
+        showError(e.message);
+    }
+}
+function showError(msg) {
+    errorBox.textContent = msg;
+    if (msg.trim().length === 0) {
+        errorBox.classList.add('hidden');
+    }
+    else {
+        errorBox.classList.remove('hidden');
+    }
+}
+function setupEventListeners() {
+    startBtn.addEventListener('click', () => {
+        if (device && shaderModule) {
+            startBruteforce();
+        }
+        else {
+            showError('GPU not initialized');
+        }
+    });
+    stopBtn.addEventListener('click', () => {
+        stopRequested = true;
+        stopBtn.disabled = true;
+    });
+    kernelSelect.addEventListener('change', async () => {
+        if (isRunning) {
+            showError('Cannot switch kernel mode while running. Please stop first.');
+            kernelSelect.value = currentKernel; 
+            return;
+        }
+        const newKernel = kernelSelect.value;
+        await reinitializeWithKernel(newKernel);
+    });
+    batchSizeSelect.addEventListener('change', () => {
+        setStoredBatchSize(batchSizeSelect.value);
+    });
+    acceptDisclaimerBtn.addEventListener('click', () => {
+        acceptDisclaimer();
+    });
+}
+async function startBruteforce() {
+    if (isRunning)
+        return;
+    if (!device || !shaderModule) {
+        showError('GPU not initialized');
+        return;
+    }
+    try {
+        isRunning = true;
+        stopRequested = false;
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+        progressBar.style.width = '0%';
+        progressText.textContent = '0.00%';
+        resultBox.classList.add('hidden');
+        errorBox.classList.add('hidden');
+        foundKeyDiv.textContent = '';
+        const startSeed = parseHex(document.getElementById('startSeed').value);
+        const endSeed = parseHex(document.getElementById('endSeed').value);
+        const s1 = parseHexBytes(document.getElementById('sample1').value);
+        const s2 = parseHexBytes(document.getElementById('sample2').value);
+        const s3 = parseHexBytes(document.getElementById('sample3').value);
+        const packets = [s1, s2, s3];
+        const packetCount = packets.length;
+        const flatPayloads = new Uint8Array(packetCount * 16);
+        for (let i = 0; i < packetCount; i++) {
+            const p = packets[i];
+            const headerLen = 4;
+            if (p.length > headerLen) {
+                const copyLen = Math.min(16, p.length - headerLen);
+                for (let j = 0; j < copyLen; j++) {
+                    flatPayloads[i * 16 + j] = p[headerLen + j];
+                }
+            }
+        }
+        const packetsBuf = device.createBuffer({
+            size: flatPayloads.byteLength,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+            mappedAtCreation: true
+        });
+        new Uint8Array(packetsBuf.getMappedRange()).set(flatPayloads);
+        packetsBuf.unmap();
+        const packetCountBuf = device.createBuffer({
+            size: 4,
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+            mappedAtCreation: true
+        });
+        new Uint32Array(packetCountBuf.getMappedRange()).set([packetCount]);
+        packetCountBuf.unmap();
+        const foundFlagBuf = device.createBuffer({
+            size: 4,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC
+        });
+        const resultBuf = device.createBuffer({
+            size: 8,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST
+        });
+        const baseKeyBuf = device.createBuffer({
+            size: 8,
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+        });
+        const keysToCheckBuf = device.createBuffer({
+            size: 8,
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+        });
+        const keyPermBitTable = getKeyPermByteTable();
+        const keyPermBytes = buildKeyPermByteLut(keyPermBitTable);
+        const keyPermBuf = device.createBuffer({
+            size: keyPermBytes.byteLength,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+            mappedAtCreation: true
+        });
+        new Uint32Array(keyPermBuf.getMappedRange()).set(keyPermBytes);
+        keyPermBuf.unmap();
+        const keyPermTableU32 = new Uint32Array(64);
+        for (let i = 0; i < 64; i++) {
+            keyPermTableU32[i] = keyPermBitTable[i];
+        }
+        const keyPermTableBuf = device.createBuffer({
+            size: keyPermTableU32.byteLength,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+            mappedAtCreation: true
+        });
+        new Uint32Array(keyPermTableBuf.getMappedRange()).set(keyPermTableU32);
+        keyPermTableBuf.unmap();
+        const blockPerm = new Uint8Array([
+            0x00, 0x02, 0x80, 0x82, 0x20, 0x22, 0xA0, 0xA2, 0x10, 0x12, 0x90, 0x92, 0x30, 0x32, 0xB0, 0xB2,
+            0x04, 0x06, 0x84, 0x86, 0x24, 0x26, 0xA4, 0xA6, 0x14, 0x16, 0x94, 0x96, 0x34, 0x36, 0xB4, 0xB6,
+            0x40, 0x42, 0xC0, 0xC2, 0x60, 0x62, 0xE0, 0xE2, 0x50, 0x52, 0xD0, 0xD2, 0x70, 0x72, 0xF0, 0xF2,
+            0x44, 0x46, 0xC4, 0xC6, 0x64, 0x66, 0xE4, 0xE6, 0x54, 0x56, 0xD4, 0xD6, 0x74, 0x76, 0xF4, 0xF6,
+            0x01, 0x03, 0x81, 0x83, 0x21, 0x23, 0xA1, 0xA3, 0x11, 0x13, 0x91, 0x93, 0x31, 0x33, 0xB1, 0xB3,
+            0x05, 0x07, 0x85, 0x87, 0x25, 0x27, 0xA5, 0xA7, 0x15, 0x17, 0x95, 0x97, 0x35, 0x37, 0xB5, 0xB7,
+            0x41, 0x43, 0xC1, 0xC3, 0x61, 0x63, 0xE1, 0xE3, 0x51, 0x53, 0xD1, 0xD3, 0x71, 0x73, 0xF1, 0xF3,
+            0x45, 0x47, 0xC5, 0xC7, 0x65, 0x67, 0xE5, 0xE7, 0x55, 0x57, 0xD5, 0xD7, 0x75, 0x77, 0xF5, 0xF7,
+            0x08, 0x0A, 0x88, 0x8A, 0x28, 0x2A, 0xA8, 0xAA, 0x18, 0x1A, 0x98, 0x9A, 0x38, 0x3A, 0xB8, 0xBA,
+            0x0C, 0x0E, 0x8C, 0x8E, 0x2C, 0x2E, 0xAC, 0xAE, 0x1C, 0x1E, 0x9C, 0x9E, 0x3C, 0x3E, 0xBC, 0xBE,
+            0x48, 0x4A, 0xC8, 0xCA, 0x68, 0x6A, 0xE8, 0xEA, 0x58, 0x5A, 0xD8, 0xDA, 0x78, 0x7A, 0xF8, 0xFA,
+            0x4C, 0x4E, 0xCC, 0xCE, 0x6C, 0x6E, 0xEC, 0xEE, 0x5C, 0x5E, 0xDC, 0xDE, 0x7C, 0x7E, 0xFC, 0xFE,
+            0x09, 0x0B, 0x89, 0x8B, 0x29, 0x2B, 0xA9, 0xAB, 0x19, 0x1B, 0x99, 0x9B, 0x39, 0x3B, 0xB9, 0xBB,
+            0x0D, 0x0F, 0x8D, 0x8F, 0x2D, 0x2F, 0xAD, 0xAF, 0x1D, 0x1F, 0x9D, 0x9F, 0x3D, 0x3F, 0xBD, 0xBF,
+            0x49, 0x4B, 0xC9, 0xCB, 0x69, 0x6B, 0xE9, 0xEB, 0x59, 0x5B, 0xD9, 0xDB, 0x79, 0x7B, 0xF9, 0xFB,
+            0x4D, 0x4F, 0xCD, 0xCF, 0x6D, 0x6F, 0xED, 0xEF, 0x5D, 0x5F, 0xDD, 0xDF, 0x7D, 0x7F, 0xFD, 0xFF
+        ]);
+        const permMapBuf = device.createBuffer({
+            size: blockPerm.byteLength,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+            mappedAtCreation: true
+        });
+        new Uint8Array(permMapBuf.getMappedRange()).set(blockPerm);
+        permMapBuf.unmap();
+        const sboxBuf = device.createBuffer({
+            size: 1024,
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+            mappedAtCreation: true
+        });
+        const sboxMapped = new Uint32Array(sboxBuf.getMappedRange());
+        sboxMapped.set(BLOCK_SBOX_PERM);
+        sboxBuf.unmap();
+        const kernel = (kernelSelect.value === 'bitslice' ? 'bitslice' : 'streamslice');
+        const pipeline = await getOrCreatePipeline(kernel);
+        const bindGroupEntries = [
+            { binding: 0, resource: { buffer: packetsBuf } },
+            { binding: 1, resource: { buffer: packetCountBuf } },
+            { binding: 2, resource: { buffer: foundFlagBuf } },
+            { binding: 3, resource: { buffer: resultBuf } },
+            { binding: 4, resource: { buffer: baseKeyBuf } },
+            { binding: 5, resource: { buffer: keysToCheckBuf } }
+        ];
+        if (kernel === 'streamslice') {
+            bindGroupEntries.push({ binding: 6, resource: { buffer: keyPermBuf } });
+            bindGroupEntries.push({ binding: 8, resource: { buffer: sboxBuf } });
+        }
+        else {
+            bindGroupEntries.push({ binding: 7, resource: { buffer: keyPermTableBuf } });
+        }
+        const bindGroup = device.createBindGroup({
+            layout: pipeline.getBindGroupLayout(0),
+            entries: bindGroupEntries
+        });
+        const stagingBuf = device.createBuffer({
+            size: 4 + 8, 
+            usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST
+        });
+        const startTime = performance.now();
+        let lastUpdate = startTime;
+        let checkedCount = 0n;
+        let currentSeed = startSeed;
+        let keyFound = false;
+        const batchSize = BigInt(batchSizeSelect.value);
+        const keysPerThread = 32n;
+        const maxWorkgroups1D = BigInt(device.limits.maxComputeWorkgroupsPerDimension);
+        const maxKeysPerDispatch = maxWorkgroups1D * 256n * keysPerThread;
+        device.queue.writeBuffer(foundFlagBuf, 0, new Uint32Array([0]));
+        while (currentSeed <= endSeed && !stopRequested) {
+            const remaining = endSeed - currentSeed + 1n;
+            let keysRemainingInBatch = remaining < batchSize ? remaining : batchSize;
+            while (keysRemainingInBatch > 0n && !stopRequested) {
+                const keysThisDispatch = keysRemainingInBatch < maxKeysPerDispatch ? keysRemainingInBatch : maxKeysPerDispatch;
+                const [baseLo, baseHi] = u64ToU32(currentSeed);
+                device.queue.writeBuffer(baseKeyBuf, 0, new Uint32Array([baseLo, baseHi]));
+                const [countLo, countHi] = u64ToU32(keysThisDispatch);
+                device.queue.writeBuffer(keysToCheckBuf, 0, new Uint32Array([countLo, countHi]));
+                const dispatchCount = Number((keysThisDispatch + keysPerThread - 1n) / keysPerThread);
+                const workgroups = Math.ceil(dispatchCount / 256);
+                const encoder = device.createCommandEncoder();
+                const pass = encoder.beginComputePass();
+                pass.setPipeline(pipeline);
+                pass.setBindGroup(0, bindGroup);
+                pass.dispatchWorkgroups(workgroups);
+                pass.end();
+                encoder.copyBufferToBuffer(foundFlagBuf, 0, stagingBuf, 0, 4);
+                encoder.copyBufferToBuffer(resultBuf, 0, stagingBuf, 4, 8);
+                device.queue.submit([encoder.finish()]);
+                await stagingBuf.mapAsync(GPUMapMode.READ);
+                const arrayBuffer = stagingBuf.getMappedRange();
+                const dataView = new DataView(arrayBuffer);
+                const found = dataView.getUint32(0, true);
+                if (found > 0) {
+                    const resLo = dataView.getUint32(4, true);
+                    const resHi = dataView.getUint32(8, true);
+                    const keyBytes = new Uint8Array(8);
+                    keyBytes[0] = (resHi >>> 24) & 0xFF; 
+                    keyBytes[1] = (resHi >>> 16) & 0xFF; 
+                    keyBytes[2] = (resHi >>> 8) & 0xFF; 
+                    keyBytes[3] = (resHi >>> 0) & 0xFF; 
+                    keyBytes[4] = (resLo >>> 24) & 0xFF; 
+                    keyBytes[5] = (resLo >>> 16) & 0xFF; 
+                    keyBytes[6] = (resLo >>> 8) & 0xFF; 
+                    keyBytes[7] = (resLo >>> 0) & 0xFF; 
+                    const keyHex = bytesToHex(keyBytes);
+                    foundKeyDiv.textContent = keyHex;
+                    resultBox.classList.remove('hidden');
+                    stagingBuf.unmap();
+                    keyFound = true;
+                    break;
+                }
+                stagingBuf.unmap();
+                checkedCount += keysThisDispatch;
+                currentSeed += keysThisDispatch;
+                keysRemainingInBatch -= keysThisDispatch;
+            }
+            if (keyFound)
+                break;
+            const now = performance.now();
+            if (now - lastUpdate > 100) {
+                const elapsed = (now - startTime) / 1000;
+                const total = endSeed - startSeed + 1n;
+                const progress = computeProgressPercent(checkedCount, total);
+                const speed = (Number(checkedCount) / elapsed) / 1000000; 
+                progressText.textContent = `${progress.toFixed(2)}%`;
+                progressBar.style.width = `${progress}%`;
+                speedText.textContent = `${speed.toFixed(2)} M/s`;
+                currentSeedText.textContent = currentSeed.toString(16).toUpperCase();
+                timeText.textContent = `${elapsed.toFixed(2)}s`;
+                lastUpdate = now;
+                await new Promise(r => setTimeout(r, 0));
+            }
+        }
+        if (stopRequested) {
+            progressText.textContent += " (Stopped)";
+        }
+        else if (keyFound || currentSeed > endSeed) {
+            const now = performance.now();
+            const elapsed = (now - startTime) / 1000;
+            const total = endSeed - startSeed + 1n;
+            const progress = keyFound ? 100 : computeProgressPercent(checkedCount, total);
+            const speed = elapsed > 0 ? (Number(checkedCount) / elapsed) / 1000000 : 0;
+            progressText.textContent = `${progress.toFixed(2)}%`;
+            progressBar.style.width = `${progress}%`;
+            speedText.textContent = `${speed.toFixed(2)} M/s`;
+            currentSeedText.textContent = keyFound ? currentSeed.toString(16).toUpperCase() : endSeed.toString(16).toUpperCase();
+            timeText.textContent = `${elapsed.toFixed(2)}s`;
+        }
+    }
+    catch (err) {
+        showError(err.message);
+        console.error(err);
+    }
+    finally {
+        isRunning = false;
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+    }
+}
+init();</script>
+</body>
+</html>
