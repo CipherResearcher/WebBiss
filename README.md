@@ -71,6 +71,17 @@ This repository is provided strictly for educational, defensive security researc
 
 You are solely responsible for ensuring your activities comply with applicable laws, regulations, contracts, and policies in your jurisdiction and context.
 
+## Speed
+| Device Name      | Stream Slice Mode | Bit Slice Mode |
+|------------------|-------------------|----------------|
+| Apple M4         | **800 M/s**       | 200 M/s        |
+| Apple A18 Pro    | **290 M/s**       | 68 M/s         |
+| NVIDIA RTX 4070S | 800 M/s           | **3400 M/s**   |
+| Intel            | N/A               | N/A            |
+| AMD              | N/A               | N/A            |
+
+> Performance varies significantly across platforms and kernel types. On Apple devices (M4 and A18 Pro), the stream slice mode is 4× faster than bit slice mode. In contrast, on an NVIDIA RTX 4070 Super, bit slice mode outperforms stream slice by over 4×. Additionally, compared to native APIs, WebGPU achieves approximately 60% of native performance on Windows (~40% slower) and about 80% on macOS (~20% slower).
+
 ## References
 
 - [aycwabtu](https://github.com/aycwabtu/aycwabtu)
