@@ -207,6 +207,129 @@ button {
 }
 .hidden {
     display: none !important;
+}
+.label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+.label-row label {
+    margin-bottom: 0;
+}
+.small-btn {
+    padding: 4px 8px;
+    font-size: 12px;
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    margin-right: 0;
+}
+.small-btn:hover {
+    background-color: var(--primary-hover);
+}
+.import-link {
+    font-size: 13px;
+    color: var(--primary-color);
+    text-decoration: none;
+    border-bottom: 1px dashed var(--primary-color);
+    transition: color 0.2s, border-color 0.2s;
+}
+.import-link:hover {
+    color: var(--primary-hover);
+    border-bottom-style: solid;
+}
+.import-link.disabled {
+    color: #999;
+    border-bottom-color: #ccc;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+.dropzone {
+    border: 2px dashed var(--border-color);
+    border-radius: 8px;
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background-color 0.2s;
+    position: relative;
+    margin-bottom: 20px;
+}
+.dropzone:hover, .dropzone.drag-over {
+    border-color: var(--primary-color);
+    background-color: rgba(0, 123, 255, 0.05);
+}
+.hidden-input {
+    display: none;
+}
+.drop-hint {
+    color: #666;
+    font-size: 16px;
+}
+.file-name {
+    margin-top: 10px;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+}
+.secondary {
+    background-color: #6c757d;
+    color: white;
+}
+.secondary:hover {
+    background-color: #5a6268;
+}
+.status-text {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #666;
+}
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 2000;
+}
+.toast {
+    background-color: #333;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: slideIn 0.3s ease-out forwards;
+    min-width: 250px;
+    max-width: 400px;
+    word-break: break-word;
+}
+.toast.fade-out {
+    animation: fadeOut 0.5s ease-in forwards;
+}
+.toast.success {
+    border-left: 4px solid var(--success-color);
+}
+.toast.error {
+    border-left: 4px solid var(--danger-color);
+}
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
 }</style>
 </head>
 <body>
@@ -239,7 +362,10 @@ button {
                 <input type="text" id="endSeed" value="18FFFFFFFFFF" maxlength="12" class="font-mono">
             </div>
             <div class="form-group">
-                <label>Samples (Hex, 32 chars)</label>
+                <div class="label-row">
+                    <label>Samples (Hex, 32 chars)</label>
+                    <a href="#" id="importBtn" class="import-link">Import from File</a>
+                </div>
                 <input type="text" id="sample1" value="47 42 00 93 F5 C5 95 51 DD BA 88 AD A2 51 1D 4C" class="font-mono sample-input">
                 <input type="text" id="sample2" value="47 42 00 98 48 35 19 BF D8 6B 18 6D 5F A2 0E 87" class="font-mono sample-input">
                 <input type="text" id="sample3" value="47 42 00 9F E1 C5 8E 3D 89 D0 87 4F 0F 4E 69 E2" class="font-mono sample-input">
@@ -295,6 +421,30 @@ button {
             <button id="acceptDisclaimerBtn">I Understand</button>
         </div>
     </div>
+    <div id="importModal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Import from TS File</h2>
+            <div class="modal-body">
+                <div class="dropzone" id="fileDropZone">
+                    <input type="file" id="fileInput" accept=".ts" class="hidden-input">
+                    <div class="drop-hint">Drop a .ts file here, or click to choose</div>
+                    <div class="file-name hidden" id="fileNameDisplay"></div>
+                </div>
+                <div id="importControls" class="hidden">
+                    <div class="form-group">
+                        <label for="pidSelect">Select Encrypted PID</label>
+                        <select id="pidSelect"></select>
+                    </div>
+                    <div id="importStatus" class="status-text"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="confirmImportBtn" disabled>Import Samples</button>
+                <button id="cancelImportBtn" class="secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+    <div id="toastContainer" class="toast-container"></div>
     <script id="wgsl-shader" type="x-shader/x-wgsl">@group(0) @binding(0) var<storage, read> packets_data: array<u32>;
 @group(0) @binding(1) var<uniform> packet_count: u32;
 @group(0) @binding(2) var<storage, read_write> found_flag: atomic<u32>;
@@ -1169,6 +1319,105 @@ result_buffer[1] = p0_lane[lane].y;
     }
     return table;
 }
+function readUInt32BE(bytes, offset) {
+    return ((bytes[offset] << 24) | (bytes[offset + 1] << 16) | (bytes[offset + 2] << 8) | bytes[offset + 3]) >>> 0;
+}
+function getPidFromHeaderInt(tsHeaderInt) {
+    return (tsHeaderInt & 0x1fff00) >>> 8;
+}
+function getAdaptationControl(tsHeaderInt) {
+    return (tsHeaderInt & 0x30) >>> 4;
+}
+function getPayloadUnitStart(tsHeaderInt) {
+    return (tsHeaderInt & 0x400000) >>> 22;
+}
+function getEncTag(tsHeaderInt) {
+    return (tsHeaderInt & 0xc0) >>> 6;
+}
+function findTsSyncOffset(data) {
+    const len = data.length;
+    for (let offset = 0; offset + 376 < len; offset++) {
+        if (data[offset] === 0x47 && data[offset + 188] === 0x47)
+            return offset;
+    }
+    return -1;
+}
+function bytesToHexWithSpaces(bytes, start, length) {
+    const end = Math.min(bytes.length, start + length);
+    const parts = [];
+    for (let i = start; i < end; i++) {
+        parts.push(bytes[i].toString(16).padStart(2, "0").toUpperCase());
+    }
+    return parts.join(" ");
+}
+async function readFileChunk(file, offset, size) {
+    const end = Math.min(file.size, offset + size);
+    const blob = file.slice(offset, end);
+    const buf = await blob.arrayBuffer();
+    return new Uint8Array(buf);
+}
+async function checkIsEncrypted(file, offset, maxBytes, count) {
+    const data = await readFileChunk(file, offset, maxBytes);
+    const syncOffset = findTsSyncOffset(data);
+    if (syncOffset < 0) {
+        return { ok: false, error: "TS sync not found.", encrypted: false, pids: [] };
+    }
+    const encryptedPids = new Set();
+    let counter = 0;
+    for (let pos = syncOffset; pos + 188 <= data.length; pos += 188) {
+        if (data[pos] !== 0x47)
+            continue;
+        const headerInt = readUInt32BE(data, pos);
+        const pid = getPidFromHeaderInt(headerInt);
+        const adaptationControl = getAdaptationControl(headerInt);
+        if (pid > 8191 || pid <= 32 || adaptationControl !== 1)
+            continue;
+        const encTag = getEncTag(headerInt);
+        if (encTag === 2 || encTag === 3) {
+            counter += 1;
+            if (counter > count)
+                encryptedPids.add(pid);
+        }
+        else {
+            counter = 0;
+        }
+    }
+    const pids = Array.from(encryptedPids).sort((a, b) => a - b);
+    return { ok: true, encrypted: pids.length > 0, pids: pids.length > 0 ? pids : [-1], syncOffset };
+}
+async function getTsSamples(file, offset, inputPid, maxBytes) {
+    const data = await readFileChunk(file, offset, maxBytes);
+    const syncOffset = findTsSyncOffset(data);
+    if (syncOffset < 0) {
+        return { ok: false, error: "TS sync not found." };
+    }
+    const samples = [];
+    const pesIndexes = [];
+    for (let pos = syncOffset; pos + 188 <= data.length; pos += 188) {
+        if (data[pos] !== 0x47)
+            continue;
+        const headerInt = readUInt32BE(data, pos);
+        const pid = getPidFromHeaderInt(headerInt);
+        if (pid !== inputPid)
+            continue;
+        const adaptationControl = getAdaptationControl(headerInt);
+        const payloadUnitStart = getPayloadUnitStart(headerInt);
+        if (payloadUnitStart !== 1)
+            continue;
+        if (adaptationControl !== 1)
+            continue;
+        const pesIndex = 4;
+        const tsPacket = data.subarray(pos, pos + 188);
+        pesIndexes.push(pesIndex);
+        samples.push(bytesToHexWithSpaces(tsPacket, 0, 16));
+        if (samples.length >= 3)
+            break;
+    }
+    if (samples.length < 3) {
+        return { ok: false, error: "Failed to extract 3 samples for the selected PID." };
+    }
+    return { ok: true, samples, pesIndexes, syncOffset };
+}
 function buildKeyPermByteLut(bitPerm) {
     const lut = new Uint32Array(8 * 256 * 2);
     const src = new Uint8Array(8);
@@ -1272,6 +1521,17 @@ const kernelSelect = document.getElementById('kernelSelect');
 const batchSizeSelect = document.getElementById('batchSizeSelect');
 const disclaimerModal = document.getElementById('disclaimerModal');
 const acceptDisclaimerBtn = document.getElementById('acceptDisclaimerBtn');
+const importBtn = document.getElementById('importBtn');
+const cancelImportBtn = document.getElementById('cancelImportBtn');
+const importModal = document.getElementById('importModal');
+const fileDropZone = document.getElementById('fileDropZone');
+const fileInput = document.getElementById('fileInput');
+const fileNameDisplay = document.getElementById('fileNameDisplay');
+const importControls = document.getElementById('importControls');
+const pidSelect = document.getElementById('pidSelect');
+const confirmImportBtn = document.getElementById('confirmImportBtn');
+const importStatus = document.getElementById('importStatus');
+const toastContainer = document.getElementById('toastContainer');
 let isRunning = false;
 let stopRequested = false;
 let currentKernel = 'streamslice'; 
@@ -1327,6 +1587,18 @@ function setStoredBatchSize(batchSize) {
     catch {
     }
 }
+function showToast(message, type = 'success', duration = 3000) {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    toastContainer.appendChild(toast);
+    setTimeout(() => {
+        toast.classList.add('fade-out');
+        setTimeout(() => {
+            toast.remove();
+        }, 500); 
+    }, duration);
+}
 function applyBatchSizeToUI(batchSize) {
     const allowed = new Set([
         '33554432',
@@ -1343,6 +1615,9 @@ function applyKernelToUI(kernel) {
         kernelSelect.value = kernel;
         currentKernel = kernel;
     }
+}
+function setUIEnabled(enabled) {
+    startBtn.disabled = !enabled;
 }
 function parseHex(hex) {
     hex = hex.replace(/\s+/g, '');
@@ -1402,15 +1677,17 @@ async function getOrCreatePipeline(kernel) {
     return pipeline;
 }
 async function init() {
+    setUIEnabled(false);
+    setupEventListeners();
     if (!navigator.gpu) {
-        showError('WebGPU not supported in this browser.');
+        showToast('WebGPU is not supported or disabled. Note: WebGPU requires a secure context (HTTPS or localhost) and a compatible browser (Chrome 113+, Edge 113+).', 'error', 8000);
         return;
     }
     const adapter = await navigator.gpu.requestAdapter({
         powerPreference: "high-performance"
     });
     if (!adapter) {
-        showError('No WebGPU adapter found.');
+        showToast('No WebGPU adapter found. This may happen if your GPU doesn\'t support WebGPU or drivers are outdated.', 'error', 8000);
         return;
     }
     device = await adapter.requestDevice();
@@ -1422,7 +1699,7 @@ async function init() {
     else {
         const shaderResponse = await fetch('dvbcsa.wgsl');
         if (!shaderResponse.ok) {
-            showError('Failed to load shader file.');
+            showToast('Failed to load shader file.', 'error', 5000);
             return;
         }
         shaderCode = await shaderResponse.text();
@@ -1433,13 +1710,16 @@ async function init() {
     const info = await shaderModule.getCompilationInfo();
     if (info.messages.length > 0) {
         let hasError = false;
+        let errorMsg = '';
         for (const msg of info.messages) {
             console.log(`[Shader ${msg.type}] ${msg.message} at line ${msg.lineNum}`);
-            if (msg.type === 'error')
+            if (msg.type === 'error') {
                 hasError = true;
+                errorMsg = msg.message;
+            }
         }
         if (hasError) {
-            showError('Shader compilation failed. Check console for details.');
+            showToast(`Shader compilation failed: ${errorMsg}. Check console for details.`, 'error', 8000);
             return;
         }
     }
@@ -1462,38 +1742,31 @@ async function init() {
     try {
         await getOrCreatePipeline('streamslice');
         await getOrCreatePipeline('bitslice');
-        showError('');
     }
     catch (e) {
-        showError(e.message);
+        showToast(e.message, 'error', 5000);
         return;
     }
-    setupEventListeners();
+    setUIEnabled(true);
     checkDisclaimer();
 }
 async function reinitializeWithKernel(kernel) {
     if (!device || !shaderModule) {
-        showError('GPU not initialized');
+        showToast('GPU not initialized', 'error', 5000);
         return;
     }
     applyKernelToUI(kernel);
     setStoredKernel(currentKernel);
-    showError('Compiling kernel...');
     try {
         await getOrCreatePipeline(currentKernel);
-        showError('');
     }
     catch (e) {
-        showError(e.message);
+        showToast(e.message, 'error', 5000);
     }
 }
 function showError(msg) {
-    errorBox.textContent = msg;
-    if (msg.trim().length === 0) {
-        errorBox.classList.add('hidden');
-    }
-    else {
-        errorBox.classList.remove('hidden');
+    if (msg.trim().length > 0) {
+        showToast(msg, 'error', 5000);
     }
 }
 function setupEventListeners() {
@@ -1502,7 +1775,7 @@ function setupEventListeners() {
             startBruteforce();
         }
         else {
-            showError('GPU not initialized');
+            showToast('GPU not initialized. Please ensure your browser supports WebGPU and you are using HTTPS/localhost.', 'error', 6000);
         }
     });
     stopBtn.addEventListener('click', () => {
@@ -1511,7 +1784,7 @@ function setupEventListeners() {
     });
     kernelSelect.addEventListener('change', async () => {
         if (isRunning) {
-            showError('Cannot switch kernel mode while running. Please stop first.');
+            showToast('Cannot switch kernel mode while running. Please stop first.', 'error', 4000);
             kernelSelect.value = currentKernel; 
             return;
         }
@@ -1524,6 +1797,109 @@ function setupEventListeners() {
     acceptDisclaimerBtn.addEventListener('click', () => {
         acceptDisclaimer();
     });
+    importBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        importModal.classList.remove('hidden');
+        resetImportModal();
+    });
+    cancelImportBtn.addEventListener('click', () => {
+        importModal.classList.add('hidden');
+    });
+    fileDropZone.addEventListener('click', () => fileInput.click());
+    fileDropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        fileDropZone.classList.add('drag-over');
+    });
+    fileDropZone.addEventListener('dragleave', () => {
+        fileDropZone.classList.remove('drag-over');
+    });
+    fileDropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        fileDropZone.classList.remove('drag-over');
+        const dragEvent = e;
+        if (dragEvent.dataTransfer?.files.length) {
+            handleFileSelect(dragEvent.dataTransfer.files[0]);
+        }
+    });
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files?.length) {
+            handleFileSelect(fileInput.files[0]);
+        }
+    });
+    confirmImportBtn.addEventListener('click', async () => {
+        if (!selectedFile || !pidSelect.value)
+            return;
+        confirmImportBtn.disabled = true;
+        importStatus.textContent = "Extracting samples...";
+        try {
+            const pid = parseInt(pidSelect.value);
+            const result = await getTsSamples(selectedFile, 0, pid, 20 * 1024 * 1024);
+            if (result.ok && result.samples) {
+                const inputs = [
+                    document.getElementById('sample1'),
+                    document.getElementById('sample2'),
+                    document.getElementById('sample3')
+                ];
+                for (let i = 0; i < 3; i++) {
+                    if (i < result.samples.length) {
+                        inputs[i].value = result.samples[i];
+                    }
+                }
+                importModal.classList.add('hidden');
+                showToast(`Successfully imported ${result.samples.length} samples for PID ${pid}`);
+            }
+            else {
+                importStatus.textContent = result.error || "Failed to extract samples.";
+                confirmImportBtn.disabled = false;
+            }
+        }
+        catch (e) {
+            importStatus.textContent = "Error: " + e.message;
+            confirmImportBtn.disabled = false;
+        }
+    });
+}
+let selectedFile = null;
+function resetImportModal() {
+    selectedFile = null;
+    fileInput.value = '';
+    fileNameDisplay.classList.add('hidden');
+    importControls.classList.add('hidden');
+    confirmImportBtn.disabled = true;
+    importStatus.textContent = '';
+    pidSelect.innerHTML = '';
+}
+async function handleFileSelect(file) {
+    if (!file.name.toLowerCase().endsWith('.ts')) {
+        importStatus.textContent = "Please select a .ts file.";
+        return;
+    }
+    selectedFile = file;
+    fileNameDisplay.textContent = file.name;
+    fileNameDisplay.classList.remove('hidden');
+    importStatus.textContent = "Scanning for encrypted PIDs (max 20MB)...";
+    importControls.classList.remove('hidden');
+    confirmImportBtn.disabled = true;
+    pidSelect.innerHTML = '';
+    try {
+        const result = await checkIsEncrypted(file, 0, 20 * 1024 * 1024, 5);
+        if (result.ok && result.encrypted) {
+            importStatus.textContent = `Found ${result.pids.length} encrypted PID(s).`;
+            result.pids.forEach(pid => {
+                const option = document.createElement('option');
+                option.value = pid.toString();
+                option.textContent = `PID ${pid}`;
+                pidSelect.appendChild(option);
+            });
+            confirmImportBtn.disabled = false;
+        }
+        else {
+            importStatus.textContent = result.error || "No encrypted PIDs found in the first 20MB.";
+        }
+    }
+    catch (e) {
+        importStatus.textContent = "Error scanning file: " + e.message;
+    }
 }
 async function startBruteforce() {
     if (isRunning)
@@ -1544,9 +1920,19 @@ async function startBruteforce() {
         foundKeyDiv.textContent = '';
         const startSeed = parseHex(document.getElementById('startSeed').value);
         const endSeed = parseHex(document.getElementById('endSeed').value);
-        const s1 = parseHexBytes(document.getElementById('sample1').value);
-        const s2 = parseHexBytes(document.getElementById('sample2').value);
-        const s3 = parseHexBytes(document.getElementById('sample3').value);
+        const sample1Input = document.getElementById('sample1');
+        const sample2Input = document.getElementById('sample2');
+        const sample3Input = document.getElementById('sample3');
+        if (!sample1Input.value.trim() || !sample2Input.value.trim() || !sample3Input.value.trim()) {
+            showToast('All 3 samples are required for brute-forcing.', 'error', 5000);
+            isRunning = false;
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            return;
+        }
+        const s1 = parseHexBytes(sample1Input.value);
+        const s2 = parseHexBytes(sample2Input.value);
+        const s3 = parseHexBytes(sample3Input.value);
         const packets = [s1, s2, s3];
         const packetCount = packets.length;
         const flatPayloads = new Uint8Array(packetCount * 16);
@@ -1760,7 +2146,7 @@ async function startBruteforce() {
         }
     }
     catch (err) {
-        showError(err.message);
+        showToast(err.message, 'error', 8000);
         console.error(err);
     }
     finally {
