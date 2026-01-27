@@ -354,6 +354,15 @@ button {
                 </select>
             </div>
             <div class="form-group">
+                <label for="submitBatchSelect">Submit Batch (dispatches per check)</label>
+                <select id="submitBatchSelect">
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="5">5</option>
+                    <option value="10" selected>10 (default)</option>
+                </select>
+            </div>
+            <div class="form-group">
                 <label for="startSeed">Start Seed (Hex, 12 chars)</label>
                 <input type="text" id="startSeed" value="181900000000" maxlength="12" class="font-mono">
             </div>
@@ -517,16 +526,8 @@ let b1 = u64_or(a2, a3);
 return u64_or(b0, b1);
 }
 fn get_block_perm_out_to_in(bit: u32) -> u32 {
-var out = 0u;
-if (bit == 0u) { out = 6u; }
-else if (bit == 1u) { out = 0u; }
-else if (bit == 2u) { out = 4u; }
-else if (bit == 3u) { out = 7u; }
-else if (bit == 4u) { out = 3u; }
-else if (bit == 5u) { out = 2u; }
-else if (bit == 6u) { out = 5u; }
-else { out = 1u; }
-return out;
+let lut = array<u32, 8>(6u, 0u, 4u, 7u, 3u, 2u, 5u, 1u);
+return lut[bit];
 }
 fn block_decypher3_from_p0_jit(u0: u32, u1: u32, p0: vec2<u32>) -> vec2<u32> {
 var R1 = (u0 >> 0u) & 0xFFu;
@@ -551,7 +552,7 @@ let kb1 = (p_curr.y >> 16u) & 0xFFu;
 let kb0 = (p_curr.y >> 24u) & 0xFFu;
 {
 let sbox_in = (kb7 ^ xval) ^ R7;
-let entry = sbox_table[sbox_in / 4u][sbox_in % 4u];
+let entry = sbox_table[sbox_in >> 2u][sbox_in & 3u];
 let sbox_out = entry & 0xFFu;
 let perm_out = (entry >> 8u) & 0xFFu;
 let next_R8 = R7;
@@ -566,7 +567,7 @@ R8 = next_R8;
 }
 {
 let sbox_in = (kb6 ^ xval) ^ R7;
-let entry = sbox_table[sbox_in / 4u][sbox_in % 4u];
+let entry = sbox_table[sbox_in >> 2u][sbox_in & 3u];
 let sbox_out = entry & 0xFFu;
 let perm_out = (entry >> 8u) & 0xFFu;
 let next_R8 = R7;
@@ -581,7 +582,7 @@ R8 = next_R8;
 }
 {
 let sbox_in = (kb5 ^ xval) ^ R7;
-let entry = sbox_table[sbox_in / 4u][sbox_in % 4u];
+let entry = sbox_table[sbox_in >> 2u][sbox_in & 3u];
 let sbox_out = entry & 0xFFu;
 let perm_out = (entry >> 8u) & 0xFFu;
 let next_R8 = R7;
@@ -596,7 +597,7 @@ R8 = next_R8;
 }
 {
 let sbox_in = (kb4 ^ xval) ^ R7;
-let entry = sbox_table[sbox_in / 4u][sbox_in % 4u];
+let entry = sbox_table[sbox_in >> 2u][sbox_in & 3u];
 let sbox_out = entry & 0xFFu;
 let perm_out = (entry >> 8u) & 0xFFu;
 let next_R8 = R7;
@@ -611,7 +612,7 @@ R8 = next_R8;
 }
 {
 let sbox_in = (kb3 ^ xval) ^ R7;
-let entry = sbox_table[sbox_in / 4u][sbox_in % 4u];
+let entry = sbox_table[sbox_in >> 2u][sbox_in & 3u];
 let sbox_out = entry & 0xFFu;
 let perm_out = (entry >> 8u) & 0xFFu;
 let next_R8 = R7;
@@ -626,7 +627,7 @@ R8 = next_R8;
 }
 {
 let sbox_in = (kb2 ^ xval) ^ R7;
-let entry = sbox_table[sbox_in / 4u][sbox_in % 4u];
+let entry = sbox_table[sbox_in >> 2u][sbox_in & 3u];
 let sbox_out = entry & 0xFFu;
 let perm_out = (entry >> 8u) & 0xFFu;
 let next_R8 = R7;
@@ -641,7 +642,7 @@ R8 = next_R8;
 }
 {
 let sbox_in = (kb1 ^ xval) ^ R7;
-let entry = sbox_table[sbox_in / 4u][sbox_in % 4u];
+let entry = sbox_table[sbox_in >> 2u][sbox_in & 3u];
 let sbox_out = entry & 0xFFu;
 let perm_out = (entry >> 8u) & 0xFFu;
 let next_R8 = R7;
@@ -656,7 +657,7 @@ R8 = next_R8;
 }
 {
 let sbox_in = (kb0 ^ xval) ^ R7;
-let entry = sbox_table[sbox_in / 4u][sbox_in % 4u];
+let entry = sbox_table[sbox_in >> 2u][sbox_in & 3u];
 let sbox_out = entry & 0xFFu;
 let perm_out = (entry >> 8u) & 0xFFu;
 let next_R8 = R7;
@@ -1444,49 +1445,6 @@ function buildKeyPermByteLut(bitPerm) {
             lut[base + 1] = hi;
         }
     }
-    const input = new Uint8Array(8);
-    const slowOut = new Uint8Array(8);
-    const fastOut = new Uint8Array(8);
-    let seed = 0x12345678;
-    for (let t = 0; t < 32; t++) {
-        seed = (Math.imul(seed, 1664525) + 1013904223) | 0;
-        for (let i = 0; i < 8; i++) {
-            seed = (Math.imul(seed, 1664525) + 1013904223) | 0;
-            input[i] = seed & 0xFF;
-        }
-        slowOut.fill(0);
-        for (let b = 0; b < 64; b++) {
-            const srcByte = b >> 3;
-            const srcBit = 7 - (b & 7);
-            if (((input[srcByte] >> srcBit) & 1) === 0)
-                continue;
-            const dstIdx = bitPerm[b];
-            const dstByte = dstIdx >> 3;
-            const dstBit = 7 - (dstIdx & 7);
-            slowOut[dstByte] |= 1 << dstBit;
-        }
-        let lo = 0;
-        let hi = 0;
-        for (let i = 0; i < 8; i++) {
-            const v = input[i];
-            const base = (i * 256 + v) * 2;
-            lo |= lut[base + 0] | 0;
-            hi |= lut[base + 1] | 0;
-        }
-        fastOut[0] = (hi >>> 24) & 0xFF;
-        fastOut[1] = (hi >>> 16) & 0xFF;
-        fastOut[2] = (hi >>> 8) & 0xFF;
-        fastOut[3] = (hi >>> 0) & 0xFF;
-        fastOut[4] = (lo >>> 24) & 0xFF;
-        fastOut[5] = (lo >>> 16) & 0xFF;
-        fastOut[6] = (lo >>> 8) & 0xFF;
-        fastOut[7] = (lo >>> 0) & 0xFF;
-        for (let i = 0; i < 8; i++) {
-            if (slowOut[i] !== fastOut[i]) {
-                throw new Error('key_perm_byte LUT mismatch');
-            }
-        }
-    }
     return lut;
 }
 const BLOCK_SBOX_PERM = new Uint32Array([
@@ -1519,6 +1477,7 @@ const foundKeyDiv = document.getElementById('foundKey');
 const errorBox = document.getElementById('errorBox');
 const kernelSelect = document.getElementById('kernelSelect');
 const batchSizeSelect = document.getElementById('batchSizeSelect');
+const submitBatchSelect = document.getElementById('submitBatchSelect');
 const disclaimerModal = document.getElementById('disclaimerModal');
 const acceptDisclaimerBtn = document.getElementById('acceptDisclaimerBtn');
 const importBtn = document.getElementById('importBtn');
@@ -1537,6 +1496,7 @@ let stopRequested = false;
 let currentKernel = 'streamslice'; 
 const KERNEL_STORAGE_KEY = 'webbiss.kernel';
 const BATCH_SIZE_STORAGE_KEY = 'webbiss.batchSize';
+const SUBMIT_BATCH_STORAGE_KEY = 'webbiss.submitBatch';
 const DISCLAIMER_STORAGE_KEY = 'webbiss.disclaimerAccepted';
 function checkDisclaimer() {
     try {
@@ -1587,6 +1547,21 @@ function setStoredBatchSize(batchSize) {
     catch {
     }
 }
+function getStoredSubmitBatch() {
+    try {
+        return localStorage.getItem(SUBMIT_BATCH_STORAGE_KEY);
+    }
+    catch {
+        return null;
+    }
+}
+function setStoredSubmitBatch(submitBatch) {
+    try {
+        localStorage.setItem(SUBMIT_BATCH_STORAGE_KEY, submitBatch);
+    }
+    catch {
+    }
+}
 function showToast(message, type = 'success', duration = 3000) {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
@@ -1609,6 +1584,11 @@ function applyBatchSizeToUI(batchSize) {
     ]);
     const v = allowed.has(batchSize) ? batchSize : '134217728';
     batchSizeSelect.value = v;
+}
+function applySubmitBatchToUI(submitBatch) {
+    const allowed = new Set(['2', '3', '5', '10']);
+    const v = allowed.has(submitBatch) ? submitBatch : '10';
+    submitBatchSelect.value = v;
 }
 function applyKernelToUI(kernel) {
     if (kernel === 'streamslice' || kernel === 'bitslice') {
@@ -1678,9 +1658,13 @@ async function getOrCreatePipeline(kernel) {
 }
 async function init() {
     setUIEnabled(false);
+    const startBtnText = startBtn.textContent || 'Start Bruteforce';
+    startBtn.textContent = 'Compiling shader...';
     setupEventListeners();
+    checkDisclaimer();
     if (!navigator.gpu) {
         showToast('WebGPU is not supported or disabled. Note: WebGPU requires a secure context (HTTPS or localhost) and a compatible browser (Chrome 113+, Edge 113+).', 'error', 8000);
+        startBtn.textContent = startBtnText;
         return;
     }
     const adapter = await navigator.gpu.requestAdapter({
@@ -1688,6 +1672,7 @@ async function init() {
     });
     if (!adapter) {
         showToast('No WebGPU adapter found. This may happen if your GPU doesn\'t support WebGPU or drivers are outdated.', 'error', 8000);
+        startBtn.textContent = startBtnText;
         return;
     }
     device = await adapter.requestDevice();
@@ -1700,6 +1685,7 @@ async function init() {
         const shaderResponse = await fetch('dvbcsa.wgsl');
         if (!shaderResponse.ok) {
             showToast('Failed to load shader file.', 'error', 5000);
+            startBtn.textContent = startBtnText;
             return;
         }
         shaderCode = await shaderResponse.text();
@@ -1719,7 +1705,9 @@ async function init() {
             }
         }
         if (hasError) {
+            console.error('Shader compilation failed:', errorMsg);
             showToast(`Shader compilation failed: ${errorMsg}. Check console for details.`, 'error', 8000);
+            startBtn.textContent = startBtnText;
             return;
         }
     }
@@ -1739,16 +1727,26 @@ async function init() {
         applyBatchSizeToUI(batchSizeSelect.value);
         setStoredBatchSize(batchSizeSelect.value);
     }
+    const storedSubmitBatch = getStoredSubmitBatch();
+    if (storedSubmitBatch) {
+        applySubmitBatchToUI(storedSubmitBatch);
+    }
+    else {
+        applySubmitBatchToUI(submitBatchSelect.value);
+        setStoredSubmitBatch(submitBatchSelect.value);
+    }
     try {
         await getOrCreatePipeline('streamslice');
         await getOrCreatePipeline('bitslice');
     }
     catch (e) {
+        console.error('init failed:', e);
         showToast(e.message, 'error', 5000);
+        startBtn.textContent = startBtnText;
         return;
     }
     setUIEnabled(true);
-    checkDisclaimer();
+    startBtn.textContent = startBtnText;
 }
 async function reinitializeWithKernel(kernel) {
     if (!device || !shaderModule) {
@@ -1761,6 +1759,7 @@ async function reinitializeWithKernel(kernel) {
         await getOrCreatePipeline(currentKernel);
     }
     catch (e) {
+        console.error('reinitializeWithKernel failed:', e);
         showToast(e.message, 'error', 5000);
     }
 }
@@ -1793,6 +1792,9 @@ function setupEventListeners() {
     });
     batchSizeSelect.addEventListener('change', () => {
         setStoredBatchSize(batchSizeSelect.value);
+    });
+    submitBatchSelect.addEventListener('change', () => {
+        setStoredSubmitBatch(submitBatchSelect.value);
     });
     acceptDisclaimerBtn.addEventListener('click', () => {
         acceptDisclaimer();
@@ -1968,14 +1970,19 @@ async function startBruteforce() {
             size: 8,
             usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST
         });
-        const baseKeyBuf = device.createBuffer({
-            size: 8,
-            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
-        });
-        const keysToCheckBuf = device.createBuffer({
-            size: 8,
-            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
-        });
+        const submitBatchN = Number(submitBatchSelect.value) || 10;
+        const baseKeyBufs = [];
+        const keysToCheckBufs = [];
+        for (let i = 0; i < submitBatchN; i++) {
+            baseKeyBufs.push(device.createBuffer({
+                size: 8,
+                usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+            }));
+            keysToCheckBufs.push(device.createBuffer({
+                size: 8,
+                usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+            }));
+        }
         const keyPermBitTable = getKeyPermByteTable();
         const keyPermBytes = buildKeyPermByteLut(keyPermBitTable);
         const keyPermBuf = device.createBuffer({
@@ -2031,25 +2038,27 @@ async function startBruteforce() {
         sboxBuf.unmap();
         const kernel = (kernelSelect.value === 'bitslice' ? 'bitslice' : 'streamslice');
         const pipeline = await getOrCreatePipeline(kernel);
-        const bindGroupEntries = [
+        const baseEntries = [
             { binding: 0, resource: { buffer: packetsBuf } },
             { binding: 1, resource: { buffer: packetCountBuf } },
             { binding: 2, resource: { buffer: foundFlagBuf } },
-            { binding: 3, resource: { buffer: resultBuf } },
-            { binding: 4, resource: { buffer: baseKeyBuf } },
-            { binding: 5, resource: { buffer: keysToCheckBuf } }
+            { binding: 3, resource: { buffer: resultBuf } }
         ];
-        if (kernel === 'streamslice') {
-            bindGroupEntries.push({ binding: 6, resource: { buffer: keyPermBuf } });
-            bindGroupEntries.push({ binding: 8, resource: { buffer: sboxBuf } });
+        const extraEntries = kernel === 'streamslice'
+            ? [{ binding: 6, resource: { buffer: keyPermBuf } }, { binding: 8, resource: { buffer: sboxBuf } }]
+            : [{ binding: 7, resource: { buffer: keyPermTableBuf } }];
+        const bindGroups = [];
+        for (let i = 0; i < submitBatchN; i++) {
+            bindGroups.push(device.createBindGroup({
+                layout: pipeline.getBindGroupLayout(0),
+                entries: [
+                    ...baseEntries,
+                    { binding: 4, resource: { buffer: baseKeyBufs[i] } },
+                    { binding: 5, resource: { buffer: keysToCheckBufs[i] } },
+                    ...extraEntries
+                ]
+            }));
         }
-        else {
-            bindGroupEntries.push({ binding: 7, resource: { buffer: keyPermTableBuf } });
-        }
-        const bindGroup = device.createBindGroup({
-            layout: pipeline.getBindGroupLayout(0),
-            entries: bindGroupEntries
-        });
         const stagingBuf = device.createBuffer({
             size: 4 + 8, 
             usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST
@@ -2059,6 +2068,7 @@ async function startBruteforce() {
         let checkedCount = 0n;
         let currentSeed = startSeed;
         let keyFound = false;
+        let dispatchCounter = 0;
         const batchSize = BigInt(batchSizeSelect.value);
         const keysPerThread = 32n;
         const maxWorkgroups1D = BigInt(device.limits.maxComputeWorkgroupsPerDimension);
@@ -2067,50 +2077,59 @@ async function startBruteforce() {
         while (currentSeed <= endSeed && !stopRequested) {
             const remaining = endSeed - currentSeed + 1n;
             let keysRemainingInBatch = remaining < batchSize ? remaining : batchSize;
+            const pendingCmds = [];
             while (keysRemainingInBatch > 0n && !stopRequested) {
                 const keysThisDispatch = keysRemainingInBatch < maxKeysPerDispatch ? keysRemainingInBatch : maxKeysPerDispatch;
+                const slot = dispatchCounter % submitBatchN;
+                dispatchCounter += 1;
                 const [baseLo, baseHi] = u64ToU32(currentSeed);
-                device.queue.writeBuffer(baseKeyBuf, 0, new Uint32Array([baseLo, baseHi]));
+                device.queue.writeBuffer(baseKeyBufs[slot], 0, new Uint32Array([baseLo, baseHi]));
                 const [countLo, countHi] = u64ToU32(keysThisDispatch);
-                device.queue.writeBuffer(keysToCheckBuf, 0, new Uint32Array([countLo, countHi]));
+                device.queue.writeBuffer(keysToCheckBufs[slot], 0, new Uint32Array([countLo, countHi]));
                 const dispatchCount = Number((keysThisDispatch + keysPerThread - 1n) / keysPerThread);
                 const workgroups = Math.ceil(dispatchCount / 256);
                 const encoder = device.createCommandEncoder();
                 const pass = encoder.beginComputePass();
                 pass.setPipeline(pipeline);
-                pass.setBindGroup(0, bindGroup);
+                pass.setBindGroup(0, bindGroups[slot]);
                 pass.dispatchWorkgroups(workgroups);
                 pass.end();
-                encoder.copyBufferToBuffer(foundFlagBuf, 0, stagingBuf, 0, 4);
-                encoder.copyBufferToBuffer(resultBuf, 0, stagingBuf, 4, 8);
-                device.queue.submit([encoder.finish()]);
-                await stagingBuf.mapAsync(GPUMapMode.READ);
-                const arrayBuffer = stagingBuf.getMappedRange();
-                const dataView = new DataView(arrayBuffer);
-                const found = dataView.getUint32(0, true);
-                if (found > 0) {
-                    const resLo = dataView.getUint32(4, true);
-                    const resHi = dataView.getUint32(8, true);
-                    const keyBytes = new Uint8Array(8);
-                    keyBytes[0] = (resHi >>> 24) & 0xFF; 
-                    keyBytes[1] = (resHi >>> 16) & 0xFF; 
-                    keyBytes[2] = (resHi >>> 8) & 0xFF; 
-                    keyBytes[3] = (resHi >>> 0) & 0xFF; 
-                    keyBytes[4] = (resLo >>> 24) & 0xFF; 
-                    keyBytes[5] = (resLo >>> 16) & 0xFF; 
-                    keyBytes[6] = (resLo >>> 8) & 0xFF; 
-                    keyBytes[7] = (resLo >>> 0) & 0xFF; 
-                    const keyHex = bytesToHex(keyBytes);
-                    foundKeyDiv.textContent = keyHex;
-                    resultBox.classList.remove('hidden');
-                    stagingBuf.unmap();
-                    keyFound = true;
-                    break;
-                }
-                stagingBuf.unmap();
+                pendingCmds.push(encoder.finish());
                 checkedCount += keysThisDispatch;
                 currentSeed += keysThisDispatch;
                 keysRemainingInBatch -= keysThisDispatch;
+                if (pendingCmds.length >= submitBatchN || keysRemainingInBatch === 0n) {
+                    device.queue.submit(pendingCmds);
+                    pendingCmds.length = 0;
+                    const checkEncoder = device.createCommandEncoder();
+                    checkEncoder.copyBufferToBuffer(foundFlagBuf, 0, stagingBuf, 0, 4);
+                    checkEncoder.copyBufferToBuffer(resultBuf, 0, stagingBuf, 4, 8);
+                    device.queue.submit([checkEncoder.finish()]);
+                    await stagingBuf.mapAsync(GPUMapMode.READ);
+                    const arrayBuffer = stagingBuf.getMappedRange();
+                    const dataView = new DataView(arrayBuffer);
+                    const found = dataView.getUint32(0, true);
+                    if (found > 0) {
+                        const resLo = dataView.getUint32(4, true);
+                        const resHi = dataView.getUint32(8, true);
+                        const keyBytes = new Uint8Array(8);
+                        keyBytes[0] = (resHi >>> 24) & 0xFF;
+                        keyBytes[1] = (resHi >>> 16) & 0xFF;
+                        keyBytes[2] = (resHi >>> 8) & 0xFF;
+                        keyBytes[3] = (resHi >>> 0) & 0xFF;
+                        keyBytes[4] = (resLo >>> 24) & 0xFF;
+                        keyBytes[5] = (resLo >>> 16) & 0xFF;
+                        keyBytes[6] = (resLo >>> 8) & 0xFF;
+                        keyBytes[7] = (resLo >>> 0) & 0xFF;
+                        const keyHex = bytesToHex(keyBytes);
+                        foundKeyDiv.textContent = keyHex;
+                        resultBox.classList.remove('hidden');
+                        stagingBuf.unmap();
+                        keyFound = true;
+                        break;
+                    }
+                    stagingBuf.unmap();
+                }
             }
             if (keyFound)
                 break;
@@ -2126,7 +2145,6 @@ async function startBruteforce() {
                 currentSeedText.textContent = currentSeed.toString(16).toUpperCase();
                 timeText.textContent = `${elapsed.toFixed(2)}s`;
                 lastUpdate = now;
-                await new Promise(r => setTimeout(r, 0));
             }
         }
         if (stopRequested) {
