@@ -542,7 +542,6 @@ var R6 = (u1 >> 8u) & 0xFFu;
 var R7 = (u1 >> 16u) & 0xFFu;
 var R8 = (u1 >> 24u) & 0xFFu;
 var p_curr = p0;
-var p_next = key_permute64_from_table(p_curr);
 for (var group = 0u; group < 7u; group++) {
 let xval = 6u - group;
 let kb7 = (p_curr.x >> 0u) & 0xFFu;
@@ -674,8 +673,7 @@ R1 = R8 ^ sbox_out;
 R8 = next_R8;
 }
 if (group < 6u) {
-p_curr = p_next;
-p_next = key_permute64_from_table(p_curr);
+p_curr = key_permute64_from_table(p_curr);
 }
 }
 let lo = R1 | (R2 << 8u) | (R3 << 16u) | (R4 << 24u);
