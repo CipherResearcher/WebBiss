@@ -557,14 +557,15 @@ let sbox_in = (kb7 ^ xval) ^ R7;
 let entry = get_sbox_entry(sbox_in);
 let sbox_out = entry & 0xFFu;
 let perm_out = (entry >> 8u) & 0xFFu;
+let common_xor = R8 ^ sbox_out;
 let next_R8 = R7;
 R7 = R6 ^ perm_out;
 R6 = R5;
-R5 = R4 ^ R8 ^ sbox_out;
-R4 = R3 ^ R8 ^ sbox_out;
-R3 = R2 ^ R8 ^ sbox_out;
+R5 = R4 ^ common_xor;
+R4 = R3 ^ common_xor;
+R3 = R2 ^ common_xor;
 R2 = R1;
-R1 = R8 ^ sbox_out;
+R1 = common_xor;
 R8 = next_R8;
 }
 {
@@ -572,14 +573,15 @@ let sbox_in = (kb6 ^ xval) ^ R7;
 let entry = get_sbox_entry(sbox_in);
 let sbox_out = entry & 0xFFu;
 let perm_out = (entry >> 8u) & 0xFFu;
+let common_xor = R8 ^ sbox_out;
 let next_R8 = R7;
 R7 = R6 ^ perm_out;
 R6 = R5;
-R5 = R4 ^ R8 ^ sbox_out;
-R4 = R3 ^ R8 ^ sbox_out;
-R3 = R2 ^ R8 ^ sbox_out;
+R5 = R4 ^ common_xor;
+R4 = R3 ^ common_xor;
+R3 = R2 ^ common_xor;
 R2 = R1;
-R1 = R8 ^ sbox_out;
+R1 = common_xor;
 R8 = next_R8;
 }
 {
@@ -587,14 +589,15 @@ let sbox_in = (kb5 ^ xval) ^ R7;
 let entry = get_sbox_entry(sbox_in);
 let sbox_out = entry & 0xFFu;
 let perm_out = (entry >> 8u) & 0xFFu;
+let common_xor = R8 ^ sbox_out;
 let next_R8 = R7;
 R7 = R6 ^ perm_out;
 R6 = R5;
-R5 = R4 ^ R8 ^ sbox_out;
-R4 = R3 ^ R8 ^ sbox_out;
-R3 = R2 ^ R8 ^ sbox_out;
+R5 = R4 ^ common_xor;
+R4 = R3 ^ common_xor;
+R3 = R2 ^ common_xor;
 R2 = R1;
-R1 = R8 ^ sbox_out;
+R1 = common_xor;
 R8 = next_R8;
 }
 {
@@ -602,14 +605,15 @@ let sbox_in = (kb4 ^ xval) ^ R7;
 let entry = get_sbox_entry(sbox_in);
 let sbox_out = entry & 0xFFu;
 let perm_out = (entry >> 8u) & 0xFFu;
+let common_xor = R8 ^ sbox_out;
 let next_R8 = R7;
 R7 = R6 ^ perm_out;
 R6 = R5;
-R5 = R4 ^ R8 ^ sbox_out;
-R4 = R3 ^ R8 ^ sbox_out;
-R3 = R2 ^ R8 ^ sbox_out;
+R5 = R4 ^ common_xor;
+R4 = R3 ^ common_xor;
+R3 = R2 ^ common_xor;
 R2 = R1;
-R1 = R8 ^ sbox_out;
+R1 = common_xor;
 R8 = next_R8;
 }
 {
@@ -617,14 +621,15 @@ let sbox_in = (kb3 ^ xval) ^ R7;
 let entry = get_sbox_entry(sbox_in);
 let sbox_out = entry & 0xFFu;
 let perm_out = (entry >> 8u) & 0xFFu;
+let common_xor = R8 ^ sbox_out;
 let next_R8 = R7;
 R7 = R6 ^ perm_out;
 R6 = R5;
-R5 = R4 ^ R8 ^ sbox_out;
-R4 = R3 ^ R8 ^ sbox_out;
-R3 = R2 ^ R8 ^ sbox_out;
+R5 = R4 ^ common_xor;
+R4 = R3 ^ common_xor;
+R3 = R2 ^ common_xor;
 R2 = R1;
-R1 = R8 ^ sbox_out;
+R1 = common_xor;
 R8 = next_R8;
 }
 {
@@ -632,14 +637,15 @@ let sbox_in = (kb2 ^ xval) ^ R7;
 let entry = get_sbox_entry(sbox_in);
 let sbox_out = entry & 0xFFu;
 let perm_out = (entry >> 8u) & 0xFFu;
+let common_xor = R8 ^ sbox_out;
 let next_R8 = R7;
 R7 = R6 ^ perm_out;
 R6 = R5;
-R5 = R4 ^ R8 ^ sbox_out;
-R4 = R3 ^ R8 ^ sbox_out;
-R3 = R2 ^ R8 ^ sbox_out;
+R5 = R4 ^ common_xor;
+R4 = R3 ^ common_xor;
+R3 = R2 ^ common_xor;
 R2 = R1;
-R1 = R8 ^ sbox_out;
+R1 = common_xor;
 R8 = next_R8;
 }
 {
@@ -647,14 +653,15 @@ let sbox_in = (kb1 ^ xval) ^ R7;
 let entry = get_sbox_entry(sbox_in);
 let sbox_out = entry & 0xFFu;
 let perm_out = (entry >> 8u) & 0xFFu;
+let common_xor = R8 ^ sbox_out;
 let next_R8 = R7;
 R7 = R6 ^ perm_out;
 R6 = R5;
-R5 = R4 ^ R8 ^ sbox_out;
-R4 = R3 ^ R8 ^ sbox_out;
-R3 = R2 ^ R8 ^ sbox_out;
+R5 = R4 ^ common_xor;
+R4 = R3 ^ common_xor;
+R3 = R2 ^ common_xor;
 R2 = R1;
-R1 = R8 ^ sbox_out;
+R1 = common_xor;
 R8 = next_R8;
 }
 {
@@ -662,14 +669,15 @@ let sbox_in = (kb0 ^ xval) ^ R7;
 let entry = get_sbox_entry(sbox_in);
 let sbox_out = entry & 0xFFu;
 let perm_out = (entry >> 8u) & 0xFFu;
+let common_xor = R8 ^ sbox_out;
 let next_R8 = R7;
 R7 = R6 ^ perm_out;
 R6 = R5;
-R5 = R4 ^ R8 ^ sbox_out;
-R4 = R3 ^ R8 ^ sbox_out;
-R3 = R2 ^ R8 ^ sbox_out;
+R5 = R4 ^ common_xor;
+R4 = R3 ^ common_xor;
+R3 = R2 ^ common_xor;
 R2 = R1;
-R1 = R8 ^ sbox_out;
+R1 = common_xor;
 R8 = next_R8;
 }
 if (group < 6u) {
