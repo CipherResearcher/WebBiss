@@ -462,7 +462,7 @@ button {
 @group(0) @binding(5) var<uniform> keys_to_check: vec2<u32>;
 @group(0) @binding(6) var<storage, read> key_perm_byte_storage: array<vec2<u32>>;
 @group(0) @binding(7) var<storage, read> key_perm_table_storage: array<u32>;
-@group(0) @binding(8) var<uniform> sbox_table: array<vec4<u32>, 64>;
+@group(0) @binding(8) var<storage, read> sbox_table_storage: array<u32>;
 const BITS_SLICE_LANES = 32u;
 const MAX_PRELOAD_PACKETS = 64u;
 fn u64_add(a: vec2<u32>, b: vec2<u32>) -> vec2<u32> {
@@ -496,6 +496,9 @@ return (~v) & lane_mask;
 }
 fn get_key_perm_table(idx: u32) -> u32 {
 return key_perm_table_storage[idx];
+}
+fn get_sbox_entry(idx: u32) -> u32 {
+return sbox_table_storage[idx];
 }
 fn u64_or(a: vec2<u32>, b: vec2<u32>) -> vec2<u32> {
 return vec2<u32>(a.x | b.x, a.y | b.y);
@@ -552,7 +555,7 @@ let kb1 = (p_curr.y >> 16u) & 0xFFu;
 let kb0 = (p_curr.y >> 24u) & 0xFFu;
 {
 let sbox_in = (kb7 ^ xval) ^ R7;
-let entry = sbox_table[sbox_in >> 2u][sbox_in & 3u];
+let entry = get_sbox_entry(sbox_in);
 let sbox_out = entry & 0xFFu;
 let perm_out = (entry >> 8u) & 0xFFu;
 let next_R8 = R7;
@@ -567,7 +570,7 @@ R8 = next_R8;
 }
 {
 let sbox_in = (kb6 ^ xval) ^ R7;
-let entry = sbox_table[sbox_in >> 2u][sbox_in & 3u];
+let entry = get_sbox_entry(sbox_in);
 let sbox_out = entry & 0xFFu;
 let perm_out = (entry >> 8u) & 0xFFu;
 let next_R8 = R7;
@@ -582,7 +585,7 @@ R8 = next_R8;
 }
 {
 let sbox_in = (kb5 ^ xval) ^ R7;
-let entry = sbox_table[sbox_in >> 2u][sbox_in & 3u];
+let entry = get_sbox_entry(sbox_in);
 let sbox_out = entry & 0xFFu;
 let perm_out = (entry >> 8u) & 0xFFu;
 let next_R8 = R7;
@@ -597,7 +600,7 @@ R8 = next_R8;
 }
 {
 let sbox_in = (kb4 ^ xval) ^ R7;
-let entry = sbox_table[sbox_in >> 2u][sbox_in & 3u];
+let entry = get_sbox_entry(sbox_in);
 let sbox_out = entry & 0xFFu;
 let perm_out = (entry >> 8u) & 0xFFu;
 let next_R8 = R7;
@@ -612,7 +615,7 @@ R8 = next_R8;
 }
 {
 let sbox_in = (kb3 ^ xval) ^ R7;
-let entry = sbox_table[sbox_in >> 2u][sbox_in & 3u];
+let entry = get_sbox_entry(sbox_in);
 let sbox_out = entry & 0xFFu;
 let perm_out = (entry >> 8u) & 0xFFu;
 let next_R8 = R7;
@@ -627,7 +630,7 @@ R8 = next_R8;
 }
 {
 let sbox_in = (kb2 ^ xval) ^ R7;
-let entry = sbox_table[sbox_in >> 2u][sbox_in & 3u];
+let entry = get_sbox_entry(sbox_in);
 let sbox_out = entry & 0xFFu;
 let perm_out = (entry >> 8u) & 0xFFu;
 let next_R8 = R7;
@@ -642,7 +645,7 @@ R8 = next_R8;
 }
 {
 let sbox_in = (kb1 ^ xval) ^ R7;
-let entry = sbox_table[sbox_in >> 2u][sbox_in & 3u];
+let entry = get_sbox_entry(sbox_in);
 let sbox_out = entry & 0xFFu;
 let perm_out = (entry >> 8u) & 0xFFu;
 let next_R8 = R7;
@@ -657,7 +660,7 @@ R8 = next_R8;
 }
 {
 let sbox_in = (kb0 ^ xval) ^ R7;
-let entry = sbox_table[sbox_in >> 2u][sbox_in & 3u];
+let entry = get_sbox_entry(sbox_in);
 let sbox_out = entry & 0xFFu;
 let perm_out = (entry >> 8u) & 0xFFu;
 let next_R8 = R7;
@@ -2030,7 +2033,7 @@ async function startBruteforce() {
         permMapBuf.unmap();
         const sboxBuf = device.createBuffer({
             size: 1024,
-            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
             mappedAtCreation: true
         });
         const sboxMapped = new Uint32Array(sboxBuf.getMappedRange());
