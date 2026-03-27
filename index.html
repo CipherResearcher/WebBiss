@@ -5,419 +5,810 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebBiss</title>
     <style>:root {
-    --bg-color: #f0f2f5;
-    --card-bg: #ffffff;
-    --primary-color: #007bff;
-    --primary-hover: #0056b3;
-    --danger-color: #dc3545;
-    --danger-hover: #bd2130;
-    --success-color: #28a745;
-    --text-color: #333;
-    --border-color: #ccc;
-    --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+    color-scheme: light dark;
+    --font-body: "SF Pro Text", "Segoe UI Variable Text", "Helvetica Neue", Arial, sans-serif;
+    --font-display: "Avenir Next", "SF Pro Display", "Segoe UI Variable Display", sans-serif;
+    --font-mono: "SFMono-Regular", "IBM Plex Mono", Consolas, monospace;
+    --bg: #f8f3eb;
+    --surface: #fffdf9;
+    --surface-muted: #fff8f0;
+    --surface-soft: #f2f7fb;
+    --text: #1d2c48;
+    --text-muted: rgba(29, 44, 72, 0.68);
+    --line: #274064;
+    --line-soft: rgba(39, 64, 100, 0.18);
+    --accent: #45c55d;
+    --accent-strong: #27a744;
+    --accent-soft: rgba(69, 197, 93, 0.14);
+    --secondary: #8ec7de;
+    --secondary-strong: #74adc8;
+    --danger: #ef8d8d;
+    --danger-strong: #e46e6e;
+    --danger-soft: rgba(239, 141, 141, 0.16);
+    --success: #45c55d;
+    --success-soft: rgba(69, 197, 93, 0.16);
+    --shadow: 0 10px 22px rgba(39, 64, 100, 0.08);
+    --radius-xl: 24px;
+    --radius-lg: 18px;
+    --radius-md: 14px;
+    --border-strong: 2px solid var(--line);
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #121824;
+        --surface: #1a2232;
+        --surface-muted: #202a3d;
+        --surface-soft: #202839;
+        --text: #eef4ff;
+        --text-muted: rgba(238, 244, 255, 0.68);
+        --line: #b5d0ff;
+        --line-soft: rgba(181, 208, 255, 0.16);
+        --accent: #6adf82;
+        --accent-strong: #8aebb0;
+        --accent-soft: rgba(106, 223, 130, 0.16);
+        --secondary: #85c8ea;
+        --secondary-strong: #acdfff;
+        --danger: #ff9d9d;
+        --danger-strong: #ffb8b8;
+        --danger-soft: rgba(255, 157, 157, 0.18);
+        --success: #6adf82;
+        --success-soft: rgba(106, 223, 130, 0.16);
+        --shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
+    }
+}
+html[data-theme="light"] {
+    color-scheme: light;
+    --bg: #f8f3eb;
+    --surface: #fffdf9;
+    --surface-muted: #fff8f0;
+    --surface-soft: #f2f7fb;
+    --text: #1d2c48;
+    --text-muted: rgba(29, 44, 72, 0.68);
+    --line: #274064;
+    --line-soft: rgba(39, 64, 100, 0.18);
+    --accent: #45c55d;
+    --accent-strong: #27a744;
+    --accent-soft: rgba(69, 197, 93, 0.14);
+    --secondary: #8ec7de;
+    --secondary-strong: #74adc8;
+    --danger: #ef8d8d;
+    --danger-strong: #e46e6e;
+    --danger-soft: rgba(239, 141, 141, 0.16);
+    --success: #45c55d;
+    --success-soft: rgba(69, 197, 93, 0.16);
+    --shadow: 0 10px 22px rgba(39, 64, 100, 0.08);
+}
+html[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #121824;
+    --surface: #1a2232;
+    --surface-muted: #202a3d;
+    --surface-soft: #202839;
+    --text: #eef4ff;
+    --text-muted: rgba(238, 244, 255, 0.68);
+    --line: #b5d0ff;
+    --line-soft: rgba(181, 208, 255, 0.16);
+    --accent: #6adf82;
+    --accent-strong: #8aebb0;
+    --accent-soft: rgba(106, 223, 130, 0.16);
+    --secondary: #85c8ea;
+    --secondary-strong: #acdfff;
+    --danger: #ff9d9d;
+    --danger-strong: #ffb8b8;
+    --danger-soft: rgba(255, 157, 157, 0.18);
+    --success: #6adf82;
+    --success-soft: rgba(106, 223, 130, 0.16);
+    --shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
+}
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
 }
 html {
     overflow-y: scroll;
     scrollbar-gutter: stable;
 }
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: var(--bg-color);
-    color: var(--text-color);
     margin: 0;
-    padding: 20px;
-    display: flex;
-    justify-content: center;
+    min-height: 100vh;
+    font-family: var(--font-body);
+    color: var(--text);
+    background: var(--bg);
 }
-.container {
-    max-width: 800px;
+.app-shell {
+    width: min(1100px, calc(100% - 24px));
+    margin: 0 auto;
+    padding: 18px 0 28px;
+}
+.topbar {
+    margin-bottom: 16px;
+}
+.nav-pill,
+.panel,
+.modal-content,
+.toast {
+    background: var(--surface);
+    border: var(--border-strong);
+    box-shadow: var(--shadow);
+}
+.nav-pill {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 12px 14px;
+    border-radius: 20px;
+}
+.brand-lockup {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.brand-mark {
+    width: 42px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: var(--danger-soft);
+    border: var(--border-strong);
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+}
+.brand-copy h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(24px, 4vw, 32px);
+    line-height: 1;
+    letter-spacing: -0.04em;
+}
+.brand-copy .topbar-copy {
+    margin-top: 8px;
+    max-width: none;
     width: 100%;
 }
-h1 {
-    text-align: center;
-    color: var(--text-color);
+.app-kicker,
+.panel-kicker {
+    margin: 0 0 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
 }
-.card {
-    background: var(--card-bg);
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
+.theme-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 0 0 auto;
 }
-h2 {
-    margin-top: 0;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
+.theme-label {
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    font-size: 11px;
+    color: var(--text-muted);
+}
+.theme-select {
+    min-width: 120px;
+    min-height: 40px;
+    padding: 0 12px;
+}
+.topbar-copy,
+.topbar-note,
+.panel-copy,
+.panel-note {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.6;
+}
+.brand-copy .topbar-note {
+    margin-top: 6px;
+}
+.tool-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+    gap: 16px;
+}
+.panel {
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+}
+.panel-head {
+    display: grid;
+    gap: 6px;
+    padding: 18px;
+    border-bottom: var(--border-strong);
+}
+.panel h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(22px, 3vw, 28px);
+    line-height: 1.04;
+    letter-spacing: -0.04em;
+}
+.panel-head .panel-copy {
+    max-width: 32rem;
+}
+.field-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    padding: 18px;
+}
+.form-group-full {
+    grid-column: 1 / -1;
+}
+.segmented-control {
+    display: inline-grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    width: 100%;
+    padding: 6px;
+    border: var(--border-strong);
+    border-radius: 14px;
+    background: var(--surface-soft);
+}
+.segment-button {
+    min-height: 40px;
+    padding: 0 12px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: none;
+}
+.segment-button.is-active {
+    background: var(--secondary);
+}
+.native-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+    pointer-events: none;
 }
 .form-group {
-    margin-bottom: 15px;
+    margin: 0;
 }
 label {
     display: block;
-    margin-bottom: 5px;
-    font-weight: 500;
+    margin-bottom: 7px;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
-input[type="text"], select {
+input[type="text"],
+select {
     width: 100%;
-    padding: 8px;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    box-sizing: border-box;
+    min-height: 44px;
+    padding: 11px 12px;
+    border: var(--border-strong);
+    border-radius: 12px;
+    background: var(--surface-strong, var(--surface));
+    color: var(--text);
     font-size: 14px;
+    outline: none;
+    box-shadow: none;
+}
+input[type="text"]:focus,
+select:focus {
+    box-shadow: 0 0 0 3px var(--accent-soft);
 }
 .font-mono {
     font-family: var(--font-mono);
 }
+.samples-block {
+    padding: 0 18px 18px;
+    display: grid;
+    gap: 10px;
+}
+.label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.label-row label {
+    margin: 0;
+}
 .sample-input {
-    margin-bottom: 5px;
+    min-height: 46px;
+}
+.import-link {
+    color: var(--text);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 700;
+}
+.import-link:hover {
+    color: var(--accent-strong);
+}
+.import-link.disabled {
+    color: var(--text-muted);
+    pointer-events: none;
+}
+.panel-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 18px 18px;
+    border-top: var(--border-strong);
+}
+.action-cluster {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    min-width: 240px;
+    justify-content: flex-end;
 }
 button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    font-size: 16px;
+    min-height: 44px;
+    padding: 0 16px;
+    border: var(--border-strong);
+    border-radius: 12px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 700;
     cursor: pointer;
-    transition: background-color 0.2s;
-    margin-right: 10px;
+    color: var(--text);
+    background: var(--surface-soft);
+}
+.action-cluster button {
+    flex: 1 1 0;
+    min-width: 110px;
+    max-width: 132px;
 }
 #startBtn {
-    background-color: var(--primary-color);
-    color: white;
+    background: var(--accent);
+    color: #fff;
 }
-#startBtn:hover {
-    background-color: var(--primary-hover);
-}
-#startBtn:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
+#startBtn:hover:not(:disabled) {
+    background: var(--accent-strong);
 }
 #stopBtn {
-    background-color: var(--danger-color);
-    color: white;
+    background: var(--danger);
+    color: #fff;
 }
-#stopBtn:hover {
-    background-color: var(--danger-hover);
+#stopBtn:hover:not(:disabled) {
+    background: var(--danger-strong);
 }
-#stopBtn:disabled {
-    background-color: #ccc;
+button:disabled {
+    opacity: 0.45;
     cursor: not-allowed;
 }
+.panel-status {
+    padding-bottom: 18px;
+}
+.status-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 18px 0;
+    color: var(--text-muted);
+    font-size: 14px;
+}
 .progress-bar-bg {
-    background-color: #e9ecef;
-    border-radius: 4px;
-    height: 20px;
+    margin: 12px 18px 0;
+    height: 12px;
+    border: var(--border-strong);
+    border-radius: 999px;
     overflow: hidden;
-    margin: 10px 0;
+    background: var(--surface-soft);
 }
 .progress-bar-fill {
-    background-color: var(--success-color);
-    height: 100%;
+    position: relative;
     width: 0%;
-    transition: width 0.2s;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--success), #84e79a);
+    transition: width 0.2s ease;
+}
+.progress-bar-fill::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.42), transparent);
+    animation: progressSweep 2.4s linear infinite;
 }
 .status-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-    margin-top: 15px;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 16px 18px 0;
 }
 .status-item {
-    text-align: center;
+    padding: 14px;
+    border: var(--border-strong);
+    border-radius: 14px;
+    background: var(--surface-soft);
 }
 .status-item .label {
     display: block;
-    font-size: 12px;
-    color: #666;
+    margin-bottom: 7px;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
 }
 .status-item .value {
     display: block;
-    font-size: 18px;
-    font-weight: bold;
+    font-size: clamp(18px, 2vw, 22px);
+    line-height: 1.1;
+    font-weight: 700;
+}
+.result-box,
+.error-box {
+    margin: 16px 18px 0;
+    padding: 16px;
+    border: var(--border-strong);
+    border-radius: 14px;
 }
 .result-box {
-    margin-top: 20px;
-    padding: 15px;
-    background-color: #d4edda;
-    border: 1px solid #c3e6cb;
-    border-radius: 4px;
-    color: #155724;
-    text-align: center;
+    background: var(--success-soft);
+    color: var(--success);
+}
+.result-kicker {
+    margin: 0 0 6px;
+    color: var(--text-muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+.result-box h3 {
+    margin: 0 0 10px;
+    font-size: 22px;
+}
+.key-display {
+    font-size: 18px;
+    line-height: 1.6;
+    word-break: break-word;
 }
 .error-box {
-    margin-top: 20px;
-    padding: 15px;
-    background-color: #f8d7da;
-    border: 1px solid #f5c6cb;
-    border-radius: 4px;
-    color: #721c24;
-}
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    backdrop-filter: blur(5px);
-}
-.modal-content {
-    background-color: var(--card-bg);
-    padding: 30px;
-    border-radius: 12px;
-    max-width: 600px;
-    width: 90%;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-}
-.modal h2 {
-    color: var(--danger-color);
-    margin-top: 0;
-    border-bottom: 2px solid #eee;
-}
-.modal-body {
-    margin: 20px 0;
-    line-height: 1.6;
-}
-.modal-body ul {
-    margin: 10px 0;
-    padding-left: 20px;
-}
-.modal-warning {
-    margin-top: 20px;
-    padding: 15px;
-    background-color: #fff3cd;
-    border: 1px solid #ffeeba;
-    border-radius: 6px;
-    color: #856404;
-    font-weight: 500;
-}
-#acceptDisclaimerBtn {
-    width: 100%;
-    background-color: var(--success-color);
-    color: white;
-    font-weight: bold;
-    padding: 12px;
-    margin-top: 10px;
-}
-#acceptDisclaimerBtn:hover {
-    background-color: #218838;
+    background: var(--danger-soft);
+    color: var(--danger-strong);
 }
 .hidden {
     display: none !important;
 }
-.label-row {
+.modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
-    margin-bottom: 5px;
+    padding: 24px;
+    background: rgba(9, 14, 24, 0.42);
+    backdrop-filter: blur(8px);
 }
-.label-row label {
-    margin-bottom: 0;
+.modal-content {
+    width: min(720px, 100%);
+    max-height: calc(100svh - 48px);
+    overflow: auto;
+    padding: 22px;
+    border-radius: 20px;
 }
-.small-btn {
-    padding: 4px 8px;
-    font-size: 12px;
-    background-color: var(--primary-color);
-    color: white;
-    border-radius: 4px;
-    border: none;
-    cursor: pointer;
-    margin-right: 0;
+.modal h2 {
+    margin: 0;
+    font-size: 26px;
+    letter-spacing: -0.04em;
 }
-.small-btn:hover {
-    background-color: var(--primary-hover);
+.modal-body {
+    margin: 18px 0;
+    color: var(--text-muted);
+    line-height: 1.7;
 }
-.import-link {
-    font-size: 13px;
-    color: var(--primary-color);
-    text-decoration: none;
-    border-bottom: 1px dashed var(--primary-color);
-    transition: color 0.2s, border-color 0.2s;
+.modal-body strong {
+    color: var(--text);
 }
-.import-link:hover {
-    color: var(--primary-hover);
-    border-bottom-style: solid;
+.modal-body p {
+    margin: 0 0 12px;
 }
-.import-link.disabled {
-    color: #999;
-    border-bottom-color: #ccc;
-    cursor: not-allowed;
-    pointer-events: none;
+.modal-body ul {
+    margin: 0;
+    padding-left: 20px;
+}
+.modal-body p {
+    margin: 0 0 12px;
+}
+.modal-body ul {
+    margin: 0;
+    padding-left: 20px;
+}
+.modal-warning {
+    margin-top: 16px;
+    padding: 14px;
+    border: var(--border-strong);
+    border-radius: 14px;
+    background: var(--surface-soft);
+    color: var(--text);
+}
+#acceptDisclaimerBtn {
+    width: 100%;
 }
 .dropzone {
-    border: 2px dashed var(--border-color);
-    border-radius: 8px;
-    padding: 40px 20px;
+    padding: 28px 16px;
+    border: var(--border-strong);
+    border-radius: 14px;
     text-align: center;
     cursor: pointer;
-    transition: border-color 0.2s, background-color 0.2s;
-    position: relative;
-    margin-bottom: 20px;
+    background: var(--surface-soft);
 }
-.dropzone:hover, .dropzone.drag-over {
-    border-color: var(--primary-color);
-    background-color: rgba(0, 123, 255, 0.05);
+.dropzone:hover,
+.dropzone.drag-over {
+    background: var(--accent-soft);
 }
 .hidden-input {
     display: none;
 }
-.drop-hint {
-    color: #666;
-    font-size: 16px;
+.drop-hint,
+.status-text {
+    color: var(--text-muted);
+    font-size: 14px;
 }
 .file-name {
     margin-top: 10px;
-    font-weight: bold;
-    color: var(--primary-color);
+    color: var(--accent-strong);
+    font-weight: 700;
 }
 .modal-footer {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
-    margin-top: 20px;
-    border-top: 1px solid #eee;
-    padding-top: 20px;
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: var(--border-strong);
 }
 .secondary {
-    background-color: #6c757d;
-    color: white;
-}
-.secondary:hover {
-    background-color: #5a6268;
-}
-.status-text {
-    margin-top: 10px;
-    font-size: 14px;
-    color: #666;
+    background: var(--surface-soft);
+    color: var(--text);
 }
 .toast-container {
     position: fixed;
-    top: 20px;
-    right: 20px;
+    top: 16px;
+    right: 16px;
     z-index: 2000;
 }
 .toast {
-    background-color: #333;
-    color: white;
-    padding: 12px 24px;
-    border-radius: 8px;
+    min-width: 240px;
+    max-width: 360px;
     margin-bottom: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    animation: slideIn 0.3s ease-out forwards;
-    min-width: 250px;
-    max-width: 400px;
-    word-break: break-word;
-}
-.toast.fade-out {
-    animation: fadeOut 0.5s ease-in forwards;
+    padding: 12px 14px;
+    border-radius: 14px;
+    color: var(--text);
+    animation: revealToast 0.2s ease forwards;
 }
 .toast.success {
-    border-left: 4px solid var(--success-color);
+    border-left: 4px solid var(--success);
 }
 .toast.error {
-    border-left: 4px solid var(--danger-color);
+    border-left: 4px solid var(--danger);
 }
-@keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
+.toast.fade-out {
+    animation: fadeOut 0.4s ease forwards;
+}
+@media (max-width: 920px) {
+    .tool-layout,
+    .panel-head {
+        grid-template-columns: 1fr;
+    }
+    .topbar-tools {
+        justify-items: start;
+    }
+}
+@media (max-width: 700px) {
+    .app-shell {
+        width: min(100%, calc(100% - 16px));
+        padding-top: 16px;
+    }
+    .nav-pill,
+    .brand-lockup,
+    .panel-footer,
+    .label-row,
+    .modal-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .theme-control {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 6px;
+        width: 100%;
+        align-items: stretch;
+    }
+    .theme-label {
+        justify-content: flex-start;
+    }
+    .theme-select {
+        width: 100%;
+    }
+    .field-grid {
+        grid-template-columns: 1fr;
+    }
+    .action-cluster {
+        min-width: 0;
+    }
+}
+@keyframes revealToast {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 @keyframes fadeOut {
-    from { opacity: 1; }
-    to { opacity: 0; }
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+@keyframes progressSweep {
+    from {
+        transform: translateX(-120%);
+    }
+    to {
+        transform: translateX(120%);
+    }
 }</style>
 </head>
 <body>
-    <div class="container">
-        <div class="card">
-            <h2>Configuration</h2>
-            <div class="form-group">
-                <label for="kernelSelect">Kernel Mode</label>
-                <select id="kernelSelect">
-                    <option value="streamslice" selected>Stream Slice</option>
-                    <option value="bitslice">Bitslice</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="batchSizeSelect">Batch Size (keys per dispatch)</label>
-                <select id="batchSizeSelect">
-                    <option value="33554432">32M</option>
-                    <option value="67108864">64M</option>
-                    <option value="134217728" selected>128M (default)</option>
-                    <option value="268435456">256M</option>
-                    <option value="536870912">512M</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="submitBatchSelect">Submit Batch (dispatches per check)</label>
-                <select id="submitBatchSelect">
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="5">5</option>
-                    <option value="10" selected>10 (default)</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="startSeed">Start Seed (Hex, 12 chars)</label>
-                <input type="text" id="startSeed" value="181900000000" maxlength="12" class="font-mono">
-            </div>
-            <div class="form-group">
-                <label for="endSeed">End Seed (Hex, 12 chars)</label>
-                <input type="text" id="endSeed" value="18FFFFFFFFFF" maxlength="12" class="font-mono">
-            </div>
-            <div class="form-group">
-                <div class="label-row">
-                    <label>Samples (Hex, 32 chars)</label>
-                    <a href="#" id="importBtn" class="import-link">Import from File</a>
+    <div class="app-shell">
+        <header class="topbar">
+            <div class="nav-pill">
+                <div class="brand-lockup">
+                    <div class="brand-mark">WB</div>
+                    <div class="brand-copy">
+                        <p class="app-kicker">WebGPU Utility</p>
+                        <h1>WebBiss</h1>
+                        <p class="topbar-copy">
+                            Local DVB-CSA1 / BISS benchmarking tool for controlled research, kernel comparison, and runtime throughput testing.
+                        </p>
+                        <p class="topbar-note">
+                            Authorized defensive research only. Live commercial decryption is not the intended use.
+                        </p>
+                    </div>
                 </div>
-                <input type="text" id="sample1" value="47 42 00 93 F5 C5 95 51 DD BA 88 AD A2 51 1D 4C" class="font-mono sample-input">
-                <input type="text" id="sample2" value="47 42 00 98 48 35 19 BF D8 6B 18 6D 5F A2 0E 87" class="font-mono sample-input">
-                <input type="text" id="sample3" value="47 42 00 9F E1 C5 8E 3D 89 D0 87 4F 0F 4E 69 E2" class="font-mono sample-input">
-            </div>
-            <button id="startBtn">Start Bruteforce</button>
-            <button id="stopBtn" disabled>Stop</button>
-        </div>
-        <div class="card status-card">
-            <h2>Status</h2>
-            <div class="status-row">
-                <span>Progress:</span>
-                <span id="progressText">0.00%</span>
-            </div>
-            <div class="progress-bar-bg">
-                <div id="progressBar" class="progress-bar-fill"></div>
-            </div>
-            <div class="status-grid">
-                <div class="status-item">
-                    <span class="label">Speed</span>
-                    <span id="speedText" class="value">0.00 M/s</span>
-                </div>
-                <div class="status-item">
-                    <span class="label">Current Seed</span>
-                    <span id="currentSeedText" class="value font-mono">-</span>
-                </div>
-                <div class="status-item">
-                    <span class="label">Time Elapsed</span>
-                    <span id="timeText" class="value">0.00s</span>
+                <div class="theme-control">
+                    <label for="themeSelect" class="theme-label">Theme</label>
+                    <select id="themeSelect" class="theme-select" aria-label="Color theme">
+                        <option value="system" selected>System</option>
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                    </select>
                 </div>
             </div>
-            <div id="resultBox" class="result-box hidden">
-                <h3>Key Found!</h3>
-                <div id="foundKey" class="key-display font-mono"></div>
-            </div>
-            <div id="errorBox" class="error-box hidden"></div>
-        </div>
+        </header>
+        <main class="tool-layout">
+            <section class="panel panel-config" id="controlSurface">
+                <div class="panel-head">
+                    <p class="panel-kicker">Configuration</p>
+                    <h2>Search Setup</h2>
+                    <p class="panel-copy">Set kernel mode, dispatch sizing, search window, and sample payloads.</p>
+                </div>
+                <div class="field-grid">
+                    <div class="form-group form-group-full">
+                        <label for="kernelSelect">Kernel Mode</label>
+                        <div class="segmented-control" role="radiogroup" aria-label="Kernel mode">
+                            <button type="button" class="segment-button is-active" data-kernel-option="streamslice" role="radio" aria-checked="true">Stream Slice</button>
+                            <button type="button" class="segment-button" data-kernel-option="bitslice" role="radio" aria-checked="false">Bitslice</button>
+                        </div>
+                        <select id="kernelSelect" class="native-hidden">
+                            <option value="streamslice" selected>Stream Slice</option>
+                            <option value="bitslice">Bitslice</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="batchSizeSelect">Batch Size (keys per dispatch)</label>
+                        <select id="batchSizeSelect">
+                            <option value="33554432">32M</option>
+                            <option value="67108864">64M</option>
+                            <option value="134217728" selected>128M (default)</option>
+                            <option value="268435456">256M</option>
+                            <option value="536870912">512M</option>
+                            <option value="1073741824">1024M</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="submitBatchSelect">Submit Batch (dispatches per check)</label>
+                        <select id="submitBatchSelect">
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="5">5</option>
+                            <option value="10" selected>10 (default)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="startSeed">Start Seed (Hex, 12 chars)</label>
+                        <input type="text" id="startSeed" value="181900000000" maxlength="12" class="font-mono" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="endSeed">End Seed (Hex, 12 chars)</label>
+                        <input type="text" id="endSeed" value="18FFFFFFFFFF" maxlength="12" class="font-mono" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off">
+                    </div>
+                </div>
+                <div class="samples-block">
+                    <div class="label-row">
+                        <label>Sample Windows (Hex, 16 bytes each)</label>
+                        <a href="#" id="importBtn" class="import-link">Import from TS File</a>
+                    </div>
+                    <input type="text" id="sample1" value="47 42 00 93 F5 C5 95 51 DD BA 88 AD A2 51 1D 4C" class="font-mono sample-input" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off">
+                    <input type="text" id="sample2" value="47 42 00 98 48 35 19 BF D8 6B 18 6D 5F A2 0E 87" class="font-mono sample-input" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off">
+                    <input type="text" id="sample3" value="47 42 00 9F E1 C5 8E 3D 89 D0 87 4F 0F 4E 69 E2" class="font-mono sample-input" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off">
+                </div>
+                <div class="panel-footer">
+                    <p class="panel-note">Keep all three samples populated for reproducible runs and kernel comparisons.</p>
+                    <div class="action-cluster">
+                        <button id="startBtn">Start Bruteforce</button>
+                        <button id="stopBtn" disabled>Stop</button>
+                    </div>
+                </div>
+            </section>
+            <section class="panel panel-status" id="statusSurface">
+                <div class="panel-head">
+                    <p class="panel-kicker">Runtime</p>
+                    <h2>Status</h2>
+                    <p class="panel-copy">Observe throughput, current seed, elapsed time, and final match state.</p>
+                </div>
+                <div class="status-row">
+                    <span>Progress</span>
+                    <span id="progressText">0.00%</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div id="progressBar" class="progress-bar-fill"></div>
+                </div>
+                <div class="status-grid">
+                    <div class="status-item">
+                        <span class="label">Speed</span>
+                        <span id="speedText" class="value">0.00 M/s</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="label">Current Seed</span>
+                        <span id="currentSeedText" class="value font-mono">-</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="label">Time Elapsed</span>
+                        <span id="timeText" class="value">0.00s</span>
+                    </div>
+                </div>
+                <div id="resultBox" class="result-box hidden">
+                    <p class="result-kicker">Resolved Match</p>
+                    <h3>Key Found</h3>
+                    <div id="foundKey" class="key-display font-mono"></div>
+                </div>
+                <div id="errorBox" class="error-box hidden"></div>
+            </section>
+        </main>
     </div>
     <div id="disclaimerModal" class="modal hidden">
         <div class="modal-content">
             <h2>Disclaimer</h2>
             <div class="modal-body">
                 <p><strong>Practical Non-Applicability to Live TV</strong></p>
-                <p>This project has no practical value for live decryption of commercial pay-TV channels. Control words (CW) in live systems rotate every few seconds or minutes, while brute-forcing a single key takes significantly longer. This tool is purely for:</p>
+                <p>This project has no practical value for live decryption of commercial pay-TV channels. Control words (CW) in live systems rotate every few seconds or minutes, while brute-forcing a single key takes significantly longer.</p>
+                <p>This tool is purely for:</p>
                 <ul>
                     <li>Academic discussion of legacy cipher security margins</li>
                     <li>GPU compute and memory benchmarking</li>
@@ -1489,6 +1880,8 @@ const batchSizeSelect = document.getElementById('batchSizeSelect');
 const submitBatchSelect = document.getElementById('submitBatchSelect');
 const disclaimerModal = document.getElementById('disclaimerModal');
 const acceptDisclaimerBtn = document.getElementById('acceptDisclaimerBtn');
+const themeSelect = document.getElementById('themeSelect');
+const kernelOptionButtons = Array.from(document.querySelectorAll('[data-kernel-option]'));
 const importBtn = document.getElementById('importBtn');
 const cancelImportBtn = document.getElementById('cancelImportBtn');
 const importModal = document.getElementById('importModal');
@@ -1507,6 +1900,7 @@ const KERNEL_STORAGE_KEY = 'webbiss.kernel';
 const BATCH_SIZE_STORAGE_KEY = 'webbiss.batchSize';
 const SUBMIT_BATCH_STORAGE_KEY = 'webbiss.submitBatch';
 const DISCLAIMER_STORAGE_KEY = 'webbiss.disclaimerAccepted';
+const THEME_STORAGE_KEY = 'webbiss.themeMode';
 function checkDisclaimer() {
     try {
         const accepted = localStorage.getItem(DISCLAIMER_STORAGE_KEY);
@@ -1583,13 +1977,42 @@ function showToast(message, type = 'success', duration = 3000) {
         }, 500); 
     }, duration);
 }
+function getStoredThemeMode() {
+    try {
+        const value = localStorage.getItem(THEME_STORAGE_KEY);
+        if (value === 'light' || value === 'dark' || value === 'system') {
+            return value;
+        }
+    }
+    catch {
+    }
+    return 'system';
+}
+function setStoredThemeMode(mode) {
+    try {
+        localStorage.setItem(THEME_STORAGE_KEY, mode);
+    }
+    catch {
+    }
+}
+function applyThemeMode(mode) {
+    const root = document.documentElement;
+    if (mode === 'system') {
+        root.removeAttribute('data-theme');
+    }
+    else {
+        root.setAttribute('data-theme', mode);
+    }
+    themeSelect.value = mode;
+}
 function applyBatchSizeToUI(batchSize) {
     const allowed = new Set([
         '33554432',
         '67108864',
         '134217728',
         '268435456',
-        '536870912'
+        '536870912',
+        '1073741824'
     ]);
     const v = allowed.has(batchSize) ? batchSize : '134217728';
     batchSizeSelect.value = v;
@@ -1603,6 +2026,11 @@ function applyKernelToUI(kernel) {
     if (kernel === 'streamslice' || kernel === 'bitslice') {
         kernelSelect.value = kernel;
         currentKernel = kernel;
+        kernelOptionButtons.forEach((button) => {
+            const active = button.dataset.kernelOption === kernel;
+            button.classList.toggle('is-active', active);
+            button.setAttribute('aria-checked', active ? 'true' : 'false');
+        });
     }
 }
 function setUIEnabled(enabled) {
@@ -1671,6 +2099,7 @@ async function init() {
     startBtn.textContent = 'Compiling shader...';
     setupEventListeners();
     checkDisclaimer();
+    applyThemeMode(getStoredThemeMode());
     if (!navigator.gpu) {
         showToast('WebGPU is not supported or disabled. Note: WebGPU requires a secure context (HTTPS or localhost) and a compatible browser (Chrome 113+, Edge 113+).', 'error', 8000);
         startBtn.textContent = startBtnText;
@@ -1807,6 +2236,26 @@ function setupEventListeners() {
     });
     acceptDisclaimerBtn.addEventListener('click', () => {
         acceptDisclaimer();
+    });
+    themeSelect.addEventListener('change', () => {
+        const nextMode = (themeSelect.value === 'light' || themeSelect.value === 'dark' || themeSelect.value === 'system')
+            ? themeSelect.value
+            : 'system';
+        applyThemeMode(nextMode);
+        setStoredThemeMode(nextMode);
+    });
+    kernelOptionButtons.forEach((button) => {
+        button.addEventListener('click', async () => {
+            if (isRunning) {
+                showToast('Cannot switch kernel mode while running. Please stop first.', 'error', 4000);
+                applyKernelToUI(currentKernel);
+                return;
+            }
+            const nextKernel = button.dataset.kernelOption;
+            if (nextKernel !== 'streamslice' && nextKernel !== 'bitslice')
+                return;
+            await reinitializeWithKernel(nextKernel);
+        });
     });
     importBtn.addEventListener('click', (e) => {
         e.preventDefault();
