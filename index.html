@@ -35,25 +35,26 @@
 }
 @media (prefers-color-scheme: dark) {
     :root {
-        --bg: #121824;
-        --surface: #1a2232;
-        --surface-muted: #202a3d;
-        --surface-soft: #202839;
-        --text: #eef4ff;
-        --text-muted: rgba(238, 244, 255, 0.68);
-        --line: #b5d0ff;
-        --line-soft: rgba(181, 208, 255, 0.16);
-        --accent: #6adf82;
-        --accent-strong: #8aebb0;
-        --accent-soft: rgba(106, 223, 130, 0.16);
-        --secondary: #85c8ea;
-        --secondary-strong: #acdfff;
-        --danger: #ff9d9d;
-        --danger-strong: #ffb8b8;
-        --danger-soft: rgba(255, 157, 157, 0.18);
-        --success: #6adf82;
-        --success-soft: rgba(106, 223, 130, 0.16);
-        --shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
+        --bg: #171b23;
+        --surface: #202633;
+        --surface-muted: #252d3a;
+        --surface-soft: #293140;
+        --text: #edf2fa;
+        --text-muted: rgba(237, 242, 250, 0.7);
+        --line: #7f93b3;
+        --line-soft: rgba(127, 147, 179, 0.18);
+        --accent: #69d687;
+        --accent-strong: #7ce29a;
+        --accent-soft: rgba(105, 214, 135, 0.14);
+        --secondary: #7eaec6;
+        --secondary-strong: #95bfd4;
+        --danger: #db8b92;
+        --danger-strong: #e7a2aa;
+        --danger-soft: rgba(219, 139, 146, 0.16);
+        --success: #69d687;
+        --success-soft: rgba(105, 214, 135, 0.14);
+        --shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+        --border-strong: 1.5px solid var(--line);
     }
 }
 html[data-theme="light"] {
@@ -80,25 +81,26 @@ html[data-theme="light"] {
 }
 html[data-theme="dark"] {
     color-scheme: dark;
-    --bg: #121824;
-    --surface: #1a2232;
-    --surface-muted: #202a3d;
-    --surface-soft: #202839;
-    --text: #eef4ff;
-    --text-muted: rgba(238, 244, 255, 0.68);
-    --line: #b5d0ff;
-    --line-soft: rgba(181, 208, 255, 0.16);
-    --accent: #6adf82;
-    --accent-strong: #8aebb0;
-    --accent-soft: rgba(106, 223, 130, 0.16);
-    --secondary: #85c8ea;
-    --secondary-strong: #acdfff;
-    --danger: #ff9d9d;
-    --danger-strong: #ffb8b8;
-    --danger-soft: rgba(255, 157, 157, 0.18);
-    --success: #6adf82;
-    --success-soft: rgba(106, 223, 130, 0.16);
-    --shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
+    --bg: #171b23;
+    --surface: #202633;
+    --surface-muted: #252d3a;
+    --surface-soft: #293140;
+    --text: #edf2fa;
+    --text-muted: rgba(237, 242, 250, 0.7);
+    --line: #7f93b3;
+    --line-soft: rgba(127, 147, 179, 0.18);
+    --accent: #69d687;
+    --accent-strong: #7ce29a;
+    --accent-soft: rgba(105, 214, 135, 0.14);
+    --secondary: #7eaec6;
+    --secondary-strong: #95bfd4;
+    --danger: #db8b92;
+    --danger-strong: #e7a2aa;
+    --danger-soft: rgba(219, 139, 146, 0.16);
+    --success: #69d687;
+    --success-soft: rgba(105, 214, 135, 0.14);
+    --shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+    --border-strong: 1.5px solid var(--line);
 }
 *,
 *::before,
@@ -283,6 +285,12 @@ body {
 }
 .form-group {
     margin: 0;
+}
+.field-hint {
+    margin: 8px 0 0;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.5;
 }
 label {
     display: block;
@@ -686,9 +694,6 @@ button:disabled {
                         <p class="topbar-copy">
                             Local DVB-CSA1 / BISS benchmarking tool for controlled research, kernel comparison, and runtime throughput testing.
                         </p>
-                        <p class="topbar-note">
-                            Authorized defensive research only. Live commercial decryption is not the intended use.
-                        </p>
                     </div>
                 </div>
                 <div class="theme-control">
@@ -715,6 +720,7 @@ button:disabled {
                             <button type="button" class="segment-button is-active" data-kernel-option="streamslice" role="radio" aria-checked="true">Stream Slice</button>
                             <button type="button" class="segment-button" data-kernel-option="bitslice" role="radio" aria-checked="false">Bitslice</button>
                         </div>
+                        <p class="field-hint">Recommended: Apple Silicon usually favors Stream Slice, while NVIDIA GPUs often favor Bitslice.</p>
                         <select id="kernelSelect" class="native-hidden">
                             <option value="streamslice" selected>Stream Slice</option>
                             <option value="bitslice">Bitslice</option>
