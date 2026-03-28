@@ -303,6 +303,32 @@ body {
 .panel-head .panel-copy {
     max-width: 32rem;
 }
+.runtime-device {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 4px;
+    padding: 10px 12px;
+    border: var(--border-strong);
+    border-radius: 12px;
+    background: var(--surface-soft);
+}
+.runtime-device-label {
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+.runtime-device-value {
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.4;
+    text-align: right;
+    word-break: break-word;
+}
 .field-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -716,6 +742,13 @@ button:disabled {
     .field-grid {
         grid-template-columns: 1fr;
     }
+    .runtime-device {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+    .runtime-device-value {
+        text-align: left;
+    }
     .action-cluster {
         min-width: 0;
     }
@@ -842,6 +875,10 @@ button:disabled {
                     <p class="panel-kicker">Runtime</p>
                     <h2>Status</h2>
                     <p class="panel-copy">Observe throughput, current seed, elapsed time, and final match state.</p>
+                    <div class="runtime-device">
+                        <span class="runtime-device-label">Runtime Device</span>
+                        <span id="gpuInfoText" class="runtime-device-value">Detecting...</span>
+                    </div>
                 </div>
                 <div class="status-row">
                     <span>Progress</span>
@@ -927,6 +964,9 @@ button:disabled {
 @group(0) @binding(8) var<storage, read> sbox_table_storage: array<u32>;
 const BITS_SLICE_LANES = 32u;
 const MAX_PRELOAD_PACKETS = 64u;
+const BLOCK_PERM_OUT_TO_IN = array<u32, 8>(6u, 0u, 4u, 7u, 3u, 2u, 5u, 1u);
+const STREAMSLICE_WORKGROUP_SIZE = 256u;
+const BITSLICE_WORKGROUP_SIZE = 128u;
 fn u64_add(a: vec2<u32>, b: vec2<u32>) -> vec2<u32> {
 let lo = a.x + b.x;
 let carry = select(0u, 1u, lo < a.x);
@@ -991,8 +1031,7 @@ let b1 = u64_or(a2, a3);
 return u64_or(b0, b1);
 }
 fn get_block_perm_out_to_in(bit: u32) -> u32 {
-let lut = array<u32, 8>(6u, 0u, 4u, 7u, 3u, 2u, 5u, 1u);
-return lut[bit];
+return BLOCK_PERM_OUT_TO_IN[bit];
 }
 fn block_decypher3_from_p0_jit(u0: u32, u1: u32, p0: vec2<u32>) -> vec2<u32> {
 var R1 = (u0 >> 0u) & 0xFFu;
@@ -1214,48 +1253,51 @@ let sa = tmp0 ^ (fe & tmp1);
 let sb = tmp2 ^ (fe & tmp3);
 return vec2<u32>(sa, sb);
 }
-fn bs_block_sbox(in8: array<u32, 8>, lane_mask: u32) -> array<u32, 8> {
-let x0 = in8[7]; let x1 = in8[6]; let x2 = in8[5]; let x3 = in8[4];
-let x4 = in8[3]; let x5 = in8[2]; let x6 = in8[1]; let x7 = in8[0];
-var out8: array<u32, 8>;
+fn bs_block_sbox(
+i0: u32, i1: u32, i2: u32, i3: u32,
+i4: u32, i5: u32, i6: u32, i7: u32,
+lane_mask: u32
+) -> array<u32, 8> {
+let x0 = i7; let x1 = i6; let x2 = i5; let x3 = i4;
+let x4 = i3; let x5 = i2; let x6 = i1; let x7 = i0;
 let y0 = ((x0 & x3 & x6 & x7 & ~x5) | (x0 & x3 & x7 & ~x1 & ~x5) | (x0 & x1 & x2 & x4 & x7 & ~x5) | (x2 & x4 & x5 & x6 & x7 & ~x3) | (x2 & x6 & ~x1 & ~x3 & ~x4) | (x3 & x7 & ~x2 & ~x4 & ~x5) | (x0 & x1 & x2 & x5 & ~x3 & ~x7) | (x0 & x2 & x3 & x6 & ~x4 & ~x5) | (x0 & x3 & x4 & x6 & ~x2 & ~x5) | (x1 & x2 & x6 & x7 & ~x0 & ~x5) | (x0 & x1 & x2 & x3 & x4 & x7 & ~x6) | (x0 & x1 & x3 & x4 & x5 & x7 & ~x2) | (x0 & x2 & x4 & x5 & x6 & x7 & ~x1) | (x1 & x2 & x3 & x4 & x5 & x6 & ~x7) | (x0 & x2 & x6 & ~x1 & ~x3 & ~x7) | (x0 & x5 & x6 & ~x1 & ~x4 & ~x7) | (x0 & x5 & x7 & ~x2 & ~x3 & ~x4) | (x1 & x3 & x4 & ~x2 & ~x6 & ~x7) | (x3 & x5 & x6 & ~x2 & ~x4 & ~x7) | (x1 & x2 & x4 & x5 & x7 & ~x0 & ~x3) | (x0 & x4 & ~x2 & ~x3 & ~x5 & ~x6) | (x1 & x3 & ~x0 & ~x2 & ~x5 & ~x7) | (x2 & x3 & ~x0 & ~x1 & ~x4 & ~x5) | (x2 & x5 & ~x0 & ~x3 & ~x6 & ~x7) | (x3 & x6 & ~x0 & ~x2 & ~x4 & ~x5) | (x4 & x6 & ~x1 & ~x3 & ~x5 & ~x7) | (x4 & x7 & ~x0 & ~x1 & ~x3 & ~x5) | (x5 & x7 & ~x1 & ~x3 & ~x4 & ~x6) | (x0 & x1 & x4 & x7 & ~x2 & ~x3 & ~x6) | (x0 & x2 & x4 & x7 & ~x1 & ~x3 & ~x6) | (x1 & x3 & x4 & x7 & ~x0 & ~x5 & ~x6) | (x3 & x4 & x5 & x7 & ~x0 & ~x1 & ~x2) | (x3 & x4 & x5 & x7 & ~x0 & ~x1 & ~x6) | (x0 & ~x1 & ~x2 & ~x3 & ~x6 & ~x7) | (x0 & ~x1 & ~x2 & ~x4 & ~x5 & ~x6) | (x0 & ~x1 & ~x3 & ~x4 & ~x5 & ~x7) | (x4 & ~x0 & ~x2 & ~x3 & ~x5 & ~x7) | (x5 & ~x2 & ~x3 & ~x4 & ~x6 & ~x7) | (x0 & x1 & x2 & ~x3 & ~x4 & ~x5 & ~x6) | (x0 & x1 & x3 & ~x4 & ~x5 & ~x6 & ~x7) | (x0 & x1 & x6 & ~x2 & ~x3 & ~x4 & ~x5) | (x1 & x5 & x6 & ~x0 & ~x2 & ~x3 & ~x7) | (x2 & x3 & x4 & ~x1 & ~x5 & ~x6 & ~x7) | (x3 & x4 & x5 & ~x0 & ~x2 & ~x6 & ~x7) | (x1 & x2 & x3 & x5 & x7 & ~x0 & ~x4 & ~x6) | (x1 & x7 & ~x0 & ~x3 & ~x4 & ~x5 & ~x6));
-out8[0] = y0 & lane_mask;
 let y1 = ((x0 & x4 & x7 & ~x2 & ~x6) | (x0 & x2 & x4 & x5 & x6 & ~x7) | (x1 & x2 & x3 & x4 & x6 & ~x7) | (x2 & x3 & ~x0 & ~x4 & ~x7) | (x0 & x1 & x2 & x7 & ~x4 & ~x5) | (x0 & x1 & x3 & x7 & ~x4 & ~x6) | (x1 & x3 & x4 & x6 & ~x2 & ~x5) | (x1 & x3 & x6 & x7 & ~x0 & ~x4) | (x1 & x4 & x5 & x6 & ~x0 & ~x3) | (x0 & x1 & x2 & x3 & x4 & x5 & ~x7) | (x0 & x2 & x3 & x5 & x6 & x7 & ~x4) | (x2 & x3 & x4 & x5 & x6 & x7 & ~x1) | (x4 & ~x0 & ~x1 & ~x2 & ~x6) | (x0 & x1 & x2 & ~x3 & ~x4 & ~x6) | (x0 & x2 & x4 & ~x1 & ~x3 & ~x6) | (x0 & x5 & x7 & ~x1 & ~x2 & ~x3) | (x1 & x2 & x3 & ~x0 & ~x5 & ~x6) | (x1 & x2 & x4 & ~x0 & ~x3 & ~x7) | (x1 & x2 & x6 & ~x3 & ~x4 & ~x7) | (x1 & x5 & x6 & ~x3 & ~x4 & ~x7) | (x2 & x3 & x6 & ~x4 & ~x5 & ~x7) | (x2 & x5 & x6 & ~x0 & ~x3 & ~x4) | (x2 & x5 & x6 & ~x1 & ~x3 & ~x4) | (x0 & x1 & x3 & x5 & x6 & ~x2 & ~x7) | (x0 & x2 & x3 & x4 & x7 & ~x1 & ~x5) | (x0 & x6 & ~x1 & ~x2 & ~x3 & ~x4) | (x2 & x3 & ~x1 & ~x5 & ~x6 & ~x7) | (x2 & x7 & ~x1 & ~x3 & ~x5 & ~x6) | (x3 & x4 & ~x0 & ~x1 & ~x2 & ~x7) | (x3 & x7 & ~x0 & ~x1 & ~x2 & ~x6) | (x6 & x7 & ~x0 & ~x1 & ~x2 & ~x3) | (x0 & x1 & x4 & x5 & ~x2 & ~x3 & ~x6) | (x4 & ~x0 & ~x2 & ~x5 & ~x6 & ~x7) | (x0 & x2 & x5 & ~x1 & ~x4 & ~x6 & ~x7) | (x0 & x4 & x6 & ~x1 & ~x2 & ~x5 & ~x7) | (x1 & x3 & x5 & ~x0 & ~x2 & ~x4 & ~x6) | (x1 & x5 & x7 & ~x0 & ~x3 & ~x4 & ~x6) | (x2 & x4 & x6 & ~x0 & ~x3 & ~x5 & ~x7) | (x2 & x6 & x7 & ~x0 & ~x1 & ~x4 & ~x5) | (~x0 & ~x1 & ~x3 & ~x4 & ~x5 & ~x6) | (~x0 & ~x2 & ~x3 & ~x4 & ~x5 & ~x6) | (x0 & x3 & ~x1 & ~x2 & ~x4 & ~x5 & ~x6) | (x5 & ~x1 & ~x2 & ~x3 & ~x4 & ~x6 & ~x7));
-out8[1] = y1 & lane_mask;
 let y2 = ((x2 & x4 & x6 & x7 & ~x5) | (x3 & x4 & x7 & ~x1 & ~x5) | (x2 & x3 & x5 & x6 & x7 & ~x1) | (x0 & x4 & ~x2 & ~x5 & ~x6) | (x3 & x5 & ~x0 & ~x2 & ~x7) | (x6 & x7 & ~x0 & ~x2 & ~x5) | (x0 & x1 & x3 & x7 & ~x4 & ~x5) | (x0 & x2 & x3 & x4 & ~x5 & ~x7) | (x0 & x2 & x4 & x5 & ~x3 & ~x6) | (x0 & x2 & x5 & x6 & ~x3 & ~x4) | (x0 & x2 & x5 & x6 & ~x4 & ~x7) | (x0 & x2 & x5 & x7 & ~x1 & ~x3) | (x0 & x4 & x5 & x7 & ~x1 & ~x3) | (x1 & x2 & x5 & x7 & ~x0 & ~x4) | (x2 & x3 & x4 & x5 & ~x0 & ~x1) | (x2 & x3 & x4 & x7 & ~x0 & ~x5) | (x0 & x2 & x7 & ~x1 & ~x5 & ~x6) | (x0 & x3 & x6 & ~x1 & ~x2 & ~x4) | (x1 & x4 & x6 & ~x0 & ~x3 & ~x5) | (x1 & x4 & x7 & ~x0 & ~x3 & ~x6) | (x1 & x5 & x6 & ~x3 & ~x4 & ~x7) | (x1 & x6 & x7 & ~x0 & ~x2 & ~x4) | (x3 & x4 & x5 & ~x0 & ~x6 & ~x7) | (x1 & x3 & x4 & x5 & x6 & ~x2 & ~x7) | (x1 & x3 & x4 & x5 & x7 & ~x2 & ~x6) | (x0 & x4 & ~x1 & ~x2 & ~x3 & ~x7) | (x0 & x6 & ~x1 & ~x4 & ~x5 & ~x7) | (x0 & x7 & ~x2 & ~x3 & ~x5 & ~x6) | (x2 & x3 & ~x0 & ~x1 & ~x6 & ~x7) | (x2 & x3 & ~x4 & ~x5 & ~x6 & ~x7) | (x2 & x4 & ~x1 & ~x3 & ~x6 & ~x7) | (x2 & x6 & ~x0 & ~x1 & ~x3 & ~x5) | (x2 & x6 & ~x1 & ~x3 & ~x4 & ~x7) | (x4 & x7 & ~x0 & ~x1 & ~x2 & ~x5) | (x0 & x1 & x2 & x6 & ~x3 & ~x5 & ~x7) | (x0 & x3 & x5 & x7 & ~x1 & ~x2 & ~x6) | (x1 & x2 & x4 & x6 & ~x0 & ~x3 & ~x7) | (x2 & ~x0 & ~x1 & ~x4 & ~x5 & ~x7) | (x0 & x5 & ~x1 & ~x2 & ~x3 & ~x6 & ~x7) | (x1 & x2 & ~x0 & ~x3 & ~x4 & ~x6 & ~x7) | (x3 & x7 & ~x0 & ~x1 & ~x2 & ~x4 & ~x6) | (x1 & ~x0 & ~x2 & ~x3 & ~x4 & ~x5 & ~x7));
-out8[2] = y2 & lane_mask;
 let y3 = ((x0 & x3 & x4 & x6 & x7 & ~x5) | (x1 & x2 & x3 & x4 & x7 & ~x6) | (x1 & x2 & x4 & x5 & x6 & ~x3) | (x0 & x2 & ~x1 & ~x3 & ~x4) | (x1 & x2 & ~x0 & ~x4 & ~x6) | (x1 & x2 & ~x5 & ~x6 & ~x7) | (x2 & x3 & ~x0 & ~x6 & ~x7) | (x0 & x1 & x4 & x6 & ~x2 & ~x7) | (x0 & x4 & x5 & x6 & ~x3 & ~x7) | (x3 & x4 & x6 & x7 & ~x0 & ~x2) | (x0 & x1 & x2 & x3 & x5 & x6 & ~x7) | (x1 & x2 & x3 & x5 & x6 & x7 & ~x4) | (x2 & ~x0 & ~x3 & ~x5 & ~x6) | (x2 & ~x3 & ~x5 & ~x6 & ~x7) | (x6 & ~x0 & ~x2 & ~x3 & ~x4) | (x0 & x5 & x6 & ~x1 & ~x2 & ~x3) | (x1 & x2 & x3 & ~x4 & ~x5 & ~x7) | (x1 & x5 & x7 & ~x0 & ~x4 & ~x6) | (x2 & x3 & x7 & ~x1 & ~x4 & ~x6) | (x2 & x4 & x7 & ~x0 & ~x1 & ~x3) | (x2 & x5 & x6 & ~x0 & ~x1 & ~x7) | (x0 & x1 & x2 & x6 & x7 & ~x4 & ~x5) | (x0 & x3 & x4 & x5 & x7 & ~x2 & ~x6) | (~x1 & ~x4 & ~x5 & ~x6 & ~x7) | (x1 & x4 & ~x3 & ~x5 & ~x6 & ~x7) | (x1 & x6 & ~x0 & ~x2 & ~x4 & ~x5) | (x1 & x7 & ~x0 & ~x3 & ~x4 & ~x5) | (x1 & x7 & ~x2 & ~x3 & ~x4 & ~x5) | (x2 & x6 & ~x0 & ~x1 & ~x4 & ~x7) | (x3 & x5 & ~x2 & ~x4 & ~x6 & ~x7) | (x4 & x5 & ~x0 & ~x1 & ~x3 & ~x7) | (x0 & x1 & x2 & x4 & ~x3 & ~x6 & ~x7) | (x0 & x1 & x3 & x5 & ~x2 & ~x6 & ~x7) | (x0 & x1 & x4 & x7 & ~x2 & ~x3 & ~x6) | (x0 & x3 & x6 & x7 & ~x1 & ~x2 & ~x5) | (x1 & x3 & x4 & x7 & ~x0 & ~x2 & ~x5) | (x2 & x4 & x5 & x7 & ~x1 & ~x3 & ~x6) | (x0 & ~x2 & ~x3 & ~x4 & ~x5 & ~x6) | (x7 & ~x0 & ~x1 & ~x2 & ~x3 & ~x5) | (x7 & ~x1 & ~x2 & ~x3 & ~x4 & ~x6) | (x0 & x3 & x4 & ~x2 & ~x5 & ~x6 & ~x7) | (x1 & x2 & x4 & ~x0 & ~x3 & ~x5 & ~x7));
-out8[3] = y3 & lane_mask;
 let y4 = ((x0 & x2 & x7 & ~x1 & ~x5) | (x2 & x3 & x4 & ~x0 & ~x7) | (x2 & x4 & x7 & ~x1 & ~x6) | (x0 & x1 & x2 & x5 & x7 & ~x3) | (x0 & x2 & x3 & x6 & x7 & ~x1) | (x0 & x2 & x4 & x6 & x7 & ~x5) | (x1 & x2 & x3 & x4 & x5 & ~x7) | (x1 & x2 & x3 & x5 & x7 & ~x4) | (x1 & x2 & x3 & x6 & x7 & ~x0) | (x1 & x3 & x5 & x6 & x7 & ~x0) | (x0 & x1 & ~x2 & ~x6 & ~x7) | (x0 & x2 & x3 & x6 & ~x1 & ~x4) | (x1 & x2 & x5 & x6 & ~x0 & ~x3) | (x1 & x5 & x6 & x7 & ~x3 & ~x4) | (x2 & x5 & x6 & x7 & ~x3 & ~x4) | (x0 & x1 & x3 & x4 & x5 & x7 & ~x2) | (x0 & x1 & x2 & ~x3 & ~x5 & ~x7) | (x0 & x1 & x5 & ~x2 & ~x4 & ~x7) | (x0 & x3 & x4 & ~x2 & ~x6 & ~x7) | (x0 & x3 & x5 & ~x1 & ~x6 & ~x7) | (x0 & x4 & x5 & ~x1 & ~x2 & ~x7) | (x0 & x4 & x5 & ~x2 & ~x3 & ~x7) | (x1 & x4 & x6 & ~x0 & ~x5 & ~x7) | (x2 & x4 & x7 & ~x1 & ~x3 & ~x5) | (x0 & x1 & x3 & x4 & x6 & ~x2 & ~x5) | (x0 & x2 & ~x1 & ~x3 & ~x5 & ~x6) | (x0 & x7 & ~x1 & ~x3 & ~x4 & ~x5) | (x0 & x7 & ~x1 & ~x3 & ~x5 & ~x6) | (x0 & x7 & ~x3 & ~x4 & ~x5 & ~x6) | (x1 & x3 & ~x0 & ~x4 & ~x5 & ~x7) | (x1 & x4 & ~x0 & ~x2 & ~x3 & ~x5) | (x1 & x5 & ~x0 & ~x3 & ~x6 & ~x7) | (x2 & x7 & ~x0 & ~x1 & ~x3 & ~x6) | (x4 & x5 & ~x1 & ~x2 & ~x6 & ~x7) | (x6 & x7 & ~x0 & ~x1 & ~x2 & ~x3) | (x6 & x7 & ~x0 & ~x1 & ~x2 & ~x5) | (x0 & x1 & x3 & x7 & ~x2 & ~x4 & ~x5) | (x1 & x3 & x4 & x7 & ~x0 & ~x5 & ~x6) | (x0 & x2 & x5 & ~x1 & ~x4 & ~x6 & ~x7) | (x0 & x3 & x6 & ~x1 & ~x4 & ~x5 & ~x7) | (x0 & x4 & x6 & ~x1 & ~x2 & ~x3 & ~x7) | (x1 & x2 & x7 & ~x0 & ~x3 & ~x4 & ~x5) | (x3 & x5 & x7 & ~x0 & ~x1 & ~x2 & ~x4) | (x4 & x5 & x6 & ~x0 & ~x1 & ~x2 & ~x3) | (~x0 & ~x2 & ~x3 & ~x4 & ~x6 & ~x7) | (x0 & x7 & ~x1 & ~x2 & ~x3 & ~x4 & ~x6) | (x2 & ~x0 & ~x1 & ~x4 & ~x5 & ~x6 & ~x7));
-out8[4] = y4 & lane_mask;
 let y5 = ((x0 & x3 & x6 & ~x2 & ~x4) | (x0 & x1 & x3 & x6 & x7 & ~x4) | (x0 & x1 & x4 & x6 & x7 & ~x2) | (x0 & x2 & x3 & x4 & x5 & ~x6) | (x0 & x2 & x3 & x4 & x7 & ~x1) | (x1 & x2 & x3 & x4 & x6 & ~x0) | (x1 & x2 & x3 & x4 & x6 & ~x5) | (x1 & x4 & x5 & x6 & x7 & ~x3) | (x1 & x3 & ~x0 & ~x2 & ~x6) | (x0 & x1 & x5 & x6 & ~x2 & ~x7) | (x0 & x3 & x5 & x6 & ~x4 & ~x7) | (x1 & x2 & x5 & x7 & ~x3 & ~x4) | (x3 & x4 & x5 & x7 & ~x0 & ~x6) | (x7 & ~x0 & ~x2 & ~x4 & ~x6) | (x0 & x3 & x6 & ~x1 & ~x5 & ~x7) | (x0 & x5 & x6 & ~x1 & ~x3 & ~x7) | (x1 & x3 & x7 & ~x2 & ~x4 & ~x6) | (x1 & x3 & x7 & ~x2 & ~x5 & ~x6) | (x2 & x3 & x4 & ~x1 & ~x5 & ~x6) | (x2 & x4 & x6 & ~x1 & ~x3 & ~x5) | (x3 & x5 & x6 & ~x1 & ~x2 & ~x4) | (x4 & x5 & x6 & ~x0 & ~x2 & ~x7) | (x4 & x5 & x7 & ~x1 & ~x2 & ~x6) | (x0 & x2 & x3 & x5 & x7 & ~x1 & ~x6) | (~x0 & ~x1 & ~x4 & ~x5 & ~x6) | (~x0 & ~x1 & ~x4 & ~x5 & ~x7) | (~x1 & ~x2 & ~x4 & ~x5 & ~x7) | (x0 & x1 & ~x2 & ~x3 & ~x6 & ~x7) | (x0 & x3 & ~x1 & ~x2 & ~x4 & ~x7) | (x1 & x2 & ~x4 & ~x5 & ~x6 & ~x7) | (x1 & x3 & ~x0 & ~x4 & ~x6 & ~x7) | (x1 & x5 & ~x0 & ~x2 & ~x3 & ~x4) | (x1 & x2 & x6 & x7 & ~x0 & ~x3 & ~x4) | (x2 & x5 & x6 & x7 & ~x0 & ~x3 & ~x4) | (x3 & x4 & x6 & x7 & ~x1 & ~x2 & ~x5) | (x3 & ~x0 & ~x1 & ~x5 & ~x6 & ~x7) | (x5 & ~x0 & ~x1 & ~x2 & ~x3 & ~x6) | (x6 & ~x0 & ~x1 & ~x2 & ~x3 & ~x5) | (x6 & ~x0 & ~x2 & ~x4 & ~x5 & ~x7) | (x7 & ~x2 & ~x3 & ~x4 & ~x5 & ~x6) | (x0 & x1 & x2 & ~x3 & ~x4 & ~x5 & ~x7) | (x0 & x4 & ~x1 & ~x3 & ~x5 & ~x6 & ~x7) | (x1 & x4 & ~x2 & ~x3 & ~x5 & ~x6 & ~x7) | (x1 & x2 & x4 & x7 & ~x0 & ~x3 & ~x5 & ~x6));
-out8[5] = y5 & lane_mask;
 let y6 = ((x1 & x4 & x5 & ~x0 & ~x2) | (x1 & x4 & x5 & ~x2 & ~x3) | (x2 & x6 & x7 & ~x3 & ~x4) | (x0 & x1 & x3 & x4 & x6 & ~x5) | (x0 & x1 & x2 & x3 & x5 & x6 & x7) | (x1 & x5 & ~x0 & ~x3 & ~x6) | (x0 & x1 & x2 & x7 & ~x4 & ~x6) | (x0 & x2 & x4 & x7 & ~x3 & ~x5) | (x0 & x2 & x5 & x6 & ~x1 & ~x4) | (x0 & x4 & x5 & x7 & ~x3 & ~x6) | (x1 & x3 & x5 & x6 & ~x0 & ~x4) | (x1 & x3 & x6 & x7 & ~x0 & ~x2) | (x1 & x4 & x5 & x6 & ~x0 & ~x7) | (x2 & x3 & x4 & x5 & ~x0 & ~x1) | (x3 & x5 & x6 & x7 & ~x0 & ~x2) | (x0 & x3 & x7 & ~x1 & ~x2 & ~x6) | (x0 & x3 & x7 & ~x1 & ~x5 & ~x6) | (x1 & x4 & x5 & ~x2 & ~x6 & ~x7) | (x1 & x4 & x6 & ~x2 & ~x3 & ~x7) | (x2 & x3 & x5 & ~x1 & ~x6 & ~x7) | (x4 & x6 & x7 & ~x1 & ~x2 & ~x5) | (x2 & x4 & x5 & x6 & x7 & ~x0 & ~x1) | (x0 & x1 & ~x2 & ~x4 & ~x5 & ~x6) | (x0 & x1 & ~x3 & ~x5 & ~x6 & ~x7) | (x1 & x3 & ~x0 & ~x5 & ~x6 & ~x7) | (x1 & x3 & ~x2 & ~x4 & ~x5 & ~x7) | (x2 & x3 & ~x0 & ~x1 & ~x4 & ~x6) | (x2 & x5 & ~x3 & ~x4 & ~x6 & ~x7) | (x3 & x6 & ~x0 & ~x1 & ~x4 & ~x7) | (x4 & x7 & ~x0 & ~x3 & ~x5 & ~x6) | (x4 & x7 & ~x1 & ~x2 & ~x3 & ~x6) | (x6 & x7 & ~x0 & ~x3 & ~x4 & ~x5) | (x0 & x1 & x5 & x6 & ~x2 & ~x3 & ~x7) | (x0 & x2 & x5 & x6 & ~x1 & ~x3 & ~x7) | (x0 & x5 & x6 & x7 & ~x1 & ~x3 & ~x4) | (x3 & ~x2 & ~x4 & ~x5 & ~x6 & ~x7) | (x6 & ~x0 & ~x1 & ~x3 & ~x5 & ~x7) | (x6 & ~x1 & ~x3 & ~x4 & ~x5 & ~x7) | (x7 & ~x0 & ~x1 & ~x3 & ~x4 & ~x6) | (x0 & x3 & x4 & x5 & x6 & ~x1 & ~x2 & ~x7) | (x1 & x2 & ~x0 & ~x3 & ~x4 & ~x5 & ~x7) | (x2 & x4 & ~x0 & ~x1 & ~x3 & ~x6 & ~x7));
-out8[6] = y6 & lane_mask;
 let y7 = ((x2 & x3 & x4 & x5 & ~x6) | (x0 & x1 & x2 & x3 & x6 & x7) | (x0 & x1 & x2 & x4 & x5 & x6) | (x0 & x2 & x3 & ~x6 & ~x7) | (x1 & x3 & x6 & ~x2 & ~x7) | (x0 & x1 & x3 & x4 & x7 & ~x6) | (x2 & x3 & x5 & x6 & x7 & ~x1) | (x1 & x6 & ~x2 & ~x5 & ~x7) | (x1 & x2 & x5 & x6 & ~x0 & ~x3) | (x2 & x4 & x6 & x7 & ~x0 & ~x3) | (x0 & x1 & x3 & ~x2 & ~x4 & ~x5) | (x0 & x2 & x7 & ~x1 & ~x3 & ~x6) | (x0 & x2 & x7 & ~x3 & ~x4 & ~x5) | (x0 & x3 & x5 & ~x1 & ~x6 & ~x7) | (x0 & x3 & x7 & ~x2 & ~x5 & ~x6) | (x1 & x2 & x5 & ~x0 & ~x3 & ~x4) | (x1 & x3 & x6 & ~x0 & ~x4 & ~x7) | (x1 & x4 & x6 & ~x0 & ~x2 & ~x5) | (x1 & x4 & x6 & ~x2 & ~x3 & ~x5) | (x1 & x4 & x7 & ~x0 & ~x3 & ~x5) | (x2 & x5 & x6 & ~x0 & ~x3 & ~x4) | (x4 & x5 & x7 & ~x2 & ~x3 & ~x6) | (x0 & x1 & x5 & x6 & x7 & ~x3 & ~x4) | (x0 & x3 & x4 & x6 & x7 & ~x1 & ~x5) | (x0 & x3 & x5 & x6 & x7 & ~x1 & ~x4) | (x0 & x1 & ~x3 & ~x4 & ~x5 & ~x7) | (x0 & x5 & ~x2 & ~x4 & ~x6 & ~x7) | (x1 & x5 & ~x2 & ~x3 & ~x6 & ~x7) | (x1 & x7 & ~x2 & ~x4 & ~x5 & ~x6) | (x2 & x5 & ~x1 & ~x3 & ~x6 & ~x7) | (x3 & x4 & ~x0 & ~x2 & ~x5 & ~x7) | (x1 & x3 & x5 & x7 & ~x0 & ~x4 & ~x6) | (x2 & x3 & x4 & x7 & ~x0 & ~x1 & ~x6) | (x2 & ~x1 & ~x3 & ~x4 & ~x6 & ~x7) | (x3 & ~x1 & ~x4 & ~x5 & ~x6 & ~x7) | (x4 & ~x0 & ~x1 & ~x3 & ~x6 & ~x7) | (x4 & ~x1 & ~x2 & ~x3 & ~x5 & ~x7) | (x7 & ~x0 & ~x1 & ~x2 & ~x3 & ~x6) | (x0 & x4 & x6 & ~x1 & ~x2 & ~x3 & ~x7) | (x1 & x2 & x4 & ~x3 & ~x5 & ~x6 & ~x7) | (x2 & x3 & x6 & ~x0 & ~x4 & ~x5 & ~x7) | (x4 & x5 & x7 & ~x0 & ~x1 & ~x2 & ~x6) | (x0 & x6 & ~x1 & ~x2 & ~x3 & ~x4 & ~x5) | (x5 & x6 & ~x0 & ~x1 & ~x2 & ~x4 & ~x7) | (x6 & x7 & ~x0 & ~x1 & ~x2 & ~x4 & ~x5));
+var out8: array<u32, 8>;
+out8[0] = y0 & lane_mask;
+out8[1] = y1 & lane_mask;
+out8[2] = y2 & lane_mask;
+out8[3] = y3 & lane_mask;
+out8[4] = y4 & lane_mask;
+out8[5] = y5 & lane_mask;
+out8[6] = y6 & lane_mask;
 out8[7] = y7 & lane_mask;
 return out8;
 }
-fn bs_plane_const_byte(v: u32, lane_mask: u32, bit: u32) -> u32 {
-if (((v >> bit) & 1u) != 0u) { return lane_mask; } else { return 0u; }
-}
 fn bs_byte_to_planes(v: u32, lane_mask: u32) -> array<u32, 8> {
-var out8: array<u32, 8>;
-for (var b = 0u; b < 8u; b++) {
-out8[b] = bs_plane_const_byte(v, lane_mask, b);
+return array<u32, 8>(
+select(0u, lane_mask, ((v >> 0u) & 1u) != 0u),
+select(0u, lane_mask, ((v >> 1u) & 1u) != 0u),
+select(0u, lane_mask, ((v >> 2u) & 1u) != 0u),
+select(0u, lane_mask, ((v >> 3u) & 1u) != 0u),
+select(0u, lane_mask, ((v >> 4u) & 1u) != 0u),
+select(0u, lane_mask, ((v >> 5u) & 1u) != 0u),
+select(0u, lane_mask, ((v >> 6u) & 1u) != 0u),
+select(0u, lane_mask, ((v >> 7u) & 1u) != 0u)
+);
 }
-return out8;
-}
-fn bs_reduce_or8(v8: array<u32, 8>) -> u32 {
-var m = 0u;
-for (var i = 0u; i < 8u; i++) {
-m |= v8[i];
-}
-return m;
-}
-fn bs_idx10(base: u32, add: u32) -> u32 {
-let x = base + add;
-if (x < 10u) { return x; } else { return x - 10u; }
+fn bs_nibble_to_vec4(v: u32, lane_mask: u32) -> vec4<u32> {
+return vec4<u32>(
+select(0u, lane_mask, ((v >> 0u) & 1u) != 0u),
+select(0u, lane_mask, ((v >> 1u) & 1u) != 0u),
+select(0u, lane_mask, ((v >> 2u) & 1u) != 0u),
+select(0u, lane_mask, ((v >> 3u) & 1u) != 0u)
+);
 }
 fn bs_stream_check3_from_packet(
 lane_mask_in: u32,
@@ -1266,215 +1308,227 @@ block2: array<u32, 8>,
 u0: u32, u1: u32, u2: u32
 ) -> u32 {
 var lane_mask = lane_mask_in;
-var A: array<array<u32, 4>, 10>;
-var B: array<array<u32, 4>, 10>;
-var head = 0u;
-for (var b = 0u; b < 4u; b++) {
-A[0][b] = cw_byte_planes[0][b + 0u];
-A[1][b] = cw_byte_planes[0][b + 4u];
-A[2][b] = cw_byte_planes[1][b + 0u];
-A[3][b] = cw_byte_planes[1][b + 4u];
-A[4][b] = cw_byte_planes[2][b + 0u];
-A[5][b] = cw_byte_planes[2][b + 4u];
-A[6][b] = cw_byte_planes[3][b + 0u];
-A[7][b] = cw_byte_planes[3][b + 4u];
-A[8][b] = 0u;
-A[9][b] = 0u;
-B[0][b] = cw_byte_planes[4][b + 0u];
-B[1][b] = cw_byte_planes[4][b + 4u];
-B[2][b] = cw_byte_planes[5][b + 0u];
-B[3][b] = cw_byte_planes[5][b + 4u];
-B[4][b] = cw_byte_planes[6][b + 0u];
-B[5][b] = cw_byte_planes[6][b + 4u];
-B[6][b] = cw_byte_planes[7][b + 0u];
-B[7][b] = cw_byte_planes[7][b + 4u];
-B[8][b] = 0u;
-B[9][b] = 0u;
-}
-var X = array<u32, 4>(0u, 0u, 0u, 0u);
-var Y = array<u32, 4>(0u, 0u, 0u, 0u);
-var Z = array<u32, 4>(0u, 0u, 0u, 0u);
-var D = array<u32, 4>(0u, 0u, 0u, 0u);
-var E = array<u32, 4>(0u, 0u, 0u, 0u);
-var F = array<u32, 4>(0u, 0u, 0u, 0u);
+var A0 = vec4<u32>(cw_byte_planes[0][0u], cw_byte_planes[0][1u], cw_byte_planes[0][2u], cw_byte_planes[0][3u]);
+var A1 = vec4<u32>(cw_byte_planes[0][4u], cw_byte_planes[0][5u], cw_byte_planes[0][6u], cw_byte_planes[0][7u]);
+var A2 = vec4<u32>(cw_byte_planes[1][0u], cw_byte_planes[1][1u], cw_byte_planes[1][2u], cw_byte_planes[1][3u]);
+var A3 = vec4<u32>(cw_byte_planes[1][4u], cw_byte_planes[1][5u], cw_byte_planes[1][6u], cw_byte_planes[1][7u]);
+var A4 = vec4<u32>(cw_byte_planes[2][0u], cw_byte_planes[2][1u], cw_byte_planes[2][2u], cw_byte_planes[2][3u]);
+var A5 = vec4<u32>(cw_byte_planes[2][4u], cw_byte_planes[2][5u], cw_byte_planes[2][6u], cw_byte_planes[2][7u]);
+var A6 = vec4<u32>(cw_byte_planes[3][0u], cw_byte_planes[3][1u], cw_byte_planes[3][2u], cw_byte_planes[3][3u]);
+var A7 = vec4<u32>(cw_byte_planes[3][4u], cw_byte_planes[3][5u], cw_byte_planes[3][6u], cw_byte_planes[3][7u]);
+var A8 = vec4<u32>(0u);
+var A9 = vec4<u32>(0u);
+var B0 = vec4<u32>(cw_byte_planes[4][0u], cw_byte_planes[4][1u], cw_byte_planes[4][2u], cw_byte_planes[4][3u]);
+var B1 = vec4<u32>(cw_byte_planes[4][4u], cw_byte_planes[4][5u], cw_byte_planes[4][6u], cw_byte_planes[4][7u]);
+var B2 = vec4<u32>(cw_byte_planes[5][0u], cw_byte_planes[5][1u], cw_byte_planes[5][2u], cw_byte_planes[5][3u]);
+var B3 = vec4<u32>(cw_byte_planes[5][4u], cw_byte_planes[5][5u], cw_byte_planes[5][6u], cw_byte_planes[5][7u]);
+var B4 = vec4<u32>(cw_byte_planes[6][0u], cw_byte_planes[6][1u], cw_byte_planes[6][2u], cw_byte_planes[6][3u]);
+var B5 = vec4<u32>(cw_byte_planes[6][4u], cw_byte_planes[6][5u], cw_byte_planes[6][6u], cw_byte_planes[6][7u]);
+var B6 = vec4<u32>(cw_byte_planes[7][0u], cw_byte_planes[7][1u], cw_byte_planes[7][2u], cw_byte_planes[7][3u]);
+var B7 = vec4<u32>(cw_byte_planes[7][4u], cw_byte_planes[7][5u], cw_byte_planes[7][6u], cw_byte_planes[7][7u]);
+var B8 = vec4<u32>(0u);
+var B9 = vec4<u32>(0u);
+var X = vec4<u32>(0u);
+var Y = vec4<u32>(0u);
+var Z = vec4<u32>(0u);
+var D = vec4<u32>(0u);
+var E = vec4<u32>(0u);
+var F = vec4<u32>(0u);
 var p = 0u;
 var q = 0u;
 var r = 0u;
-var iv: array<u32, 8>;
-iv[0] = (u0 >> 0u) & 0xFFu;
-iv[1] = (u0 >> 8u) & 0xFFu;
-iv[2] = (u0 >> 16u) & 0xFFu;
-iv[3] = (u0 >> 24u) & 0xFFu;
-iv[4] = (u1 >> 0u) & 0xFFu;
-iv[5] = (u1 >> 8u) & 0xFFu;
-iv[6] = (u1 >> 16u) & 0xFFu;
-iv[7] = (u1 >> 24u) & 0xFFu;
+let iv0 = (u0 >> 0u) & 0xFFu;
+let iv1 = (u0 >> 8u) & 0xFFu;
+let iv2 = (u0 >> 16u) & 0xFFu;
+let iv3 = (u0 >> 24u) & 0xFFu;
+let iv4 = (u1 >> 0u) & 0xFFu;
+let iv5 = (u1 >> 8u) & 0xFFu;
+let iv6 = (u1 >> 16u) & 0xFFu;
+let iv7 = (u1 >> 24u) & 0xFFu;
 for (var i = 0u; i < 8u; i++) {
-let in1v = (iv[i] >> 4u) & 0x0Fu;
-let in2v = (iv[i] >> 0u) & 0x0Fu;
-var in1p: array<u32, 4>;
-var in2p: array<u32, 4>;
-for (var b = 0u; b < 4u; b++) {
-if (((in1v >> b) & 1u) != 0u) { in1p[b] = lane_mask; } else { in1p[b] = 0u; }
-if (((in2v >> b) & 1u) != 0u) { in2p[b] = lane_mask; } else { in2p[b] = 0u; }
-}
+let iv = select(
+select(select(iv0, iv1, i == 1u), select(iv2, iv3, i == 3u), i >= 2u),
+select(select(iv4, iv5, i == 5u), select(iv6, iv7, i == 7u), i >= 6u),
+i >= 4u
+);
+let in1p = bs_nibble_to_vec4((iv >> 4u) & 0x0Fu, lane_mask);
+let in2p = bs_nibble_to_vec4((iv >> 0u) & 0x0Fu, lane_mask);
 for (var j = 0u; j < 4u; j++) {
-var extra: array<u32, 4>;
-extra[3] = B[bs_idx10(head, 2u)][0] ^ B[bs_idx10(head, 5u)][1] ^ B[bs_idx10(head, 6u)][2] ^ B[bs_idx10(head, 8u)][3];
-extra[2] = B[bs_idx10(head, 5u)][0] ^ B[bs_idx10(head, 7u)][1] ^ B[bs_idx10(head, 2u)][3] ^ B[bs_idx10(head, 3u)][2];
-extra[1] = B[bs_idx10(head, 4u)][3] ^ B[bs_idx10(head, 7u)][2] ^ B[bs_idx10(head, 3u)][0] ^ B[bs_idx10(head, 4u)][1];
-extra[0] = B[bs_idx10(head, 8u)][2] ^ B[bs_idx10(head, 5u)][3] ^ B[bs_idx10(head, 2u)][1] ^ B[bs_idx10(head, 7u)][0];
-var ain: array<u32, 4>;
-var bin: array<u32, 4>;
-if ((j & 1u) != 0u) { ain = in2p; bin = in1p; } else { ain = in1p; bin = in2p; }
-var nextA: array<u32, 4>;
-var nextB: array<u32, 4>;
-for (var b = 0u; b < 4u; b++) {
-nextA[b] = A[bs_idx10(head, 9u)][b] ^ X[b] ^ D[b] ^ ain[b];
-nextB[b] = B[bs_idx10(head, 6u)][b] ^ B[bs_idx10(head, 9u)][b] ^ Y[b] ^ bin[b];
-}
+let extra = vec4<u32>(
+B8.z ^ B5.w ^ B2.y ^ B7.x,
+B4.w ^ B7.z ^ B3.x ^ B4.y,
+B5.x ^ B7.y ^ B2.w ^ B3.z,
+B2.x ^ B5.y ^ B6.z ^ B8.w
+);
+let odd = (j & 1u) != 0u;
+let ain = select(in1p, in2p, odd);
+let bin = select(in2p, in1p, odd);
+var nextA = A9 ^ X ^ D ^ ain;
+var nextB = B6 ^ B9 ^ Y ^ bin;
 {
-let tmp3 = nextB[3];
-let tmp2 = nextB[2];
-let tmp4 = p;
-let tmp1 = nextB[1];
-let tmp0 = nextB[0];
-nextB[3] = tmp3 ^ ((tmp3 ^ tmp2) & tmp4);
-nextB[2] = tmp2 ^ ((tmp2 ^ tmp1) & tmp4);
-nextB[1] = tmp1 ^ ((tmp1 ^ tmp0) & tmp4);
-nextB[0] = tmp0 ^ ((tmp0 ^ tmp3) & tmp4);
+let tmp3 = nextB.w;
+let tmp2 = nextB.z;
+let tmp1 = nextB.y;
+let tmp0 = nextB.x;
+nextB = vec4<u32>(
+tmp0 ^ ((tmp0 ^ tmp3) & p),
+tmp1 ^ ((tmp1 ^ tmp0) & p),
+tmp2 ^ ((tmp2 ^ tmp1) & p),
+tmp3 ^ ((tmp3 ^ tmp2) & p)
+);
 }
 {
 var carry = r;
-for (var b = 0u; b < 4u; b++) {
-let zx = Z[b] ^ E[b];
-let ze = Z[b] & E[b];
-let oldF = F[b];
-F[b] = E[b] ^ (q & (Z[b] ^ carry));
-D[b] = extra[b] ^ zx;
-let tmp3 = zx & carry;
-E[b] = oldF;
-carry = ze | tmp3;
-}
+let zx0 = Z.x ^ E.x;
+let ze0 = Z.x & E.x;
+let oldF0 = F.x;
+let f0 = E.x ^ (q & (Z.x ^ carry));
+let d0 = extra.x ^ zx0;
+carry = ze0 | (zx0 & carry);
+let zx1 = Z.y ^ E.y;
+let ze1 = Z.y & E.y;
+let oldF1 = F.y;
+let f1 = E.y ^ (q & (Z.y ^ carry));
+let d1 = extra.y ^ zx1;
+carry = ze1 | (zx1 & carry);
+let zx2 = Z.z ^ E.z;
+let ze2 = Z.z & E.z;
+let oldF2 = F.z;
+let f2 = E.z ^ (q & (Z.z ^ carry));
+let d2 = extra.z ^ zx2;
+carry = ze2 | (zx2 & carry);
+let zx3 = Z.w ^ E.w;
+let ze3 = Z.w & E.w;
+let oldF3 = F.w;
+let f3 = E.w ^ (q & (Z.w ^ carry));
+let d3 = extra.w ^ zx3;
+carry = ze3 | (zx3 & carry);
+F = vec4<u32>(f0, f1, f2, f3);
+D = vec4<u32>(d0, d1, d2, d3);
+E = vec4<u32>(oldF0, oldF1, oldF2, oldF3);
 r = r ^ (q & (carry ^ r));
 }
-let s1 = bs_stream_sbox1(A[bs_idx10(head, 0u)][2], A[bs_idx10(head, 5u)][1], A[bs_idx10(head, 6u)][3], A[bs_idx10(head, 8u)][0], A[bs_idx10(head, 3u)][0], lane_mask);
-let s2 = bs_stream_sbox2(A[bs_idx10(head, 2u)][2], A[bs_idx10(head, 5u)][3], A[bs_idx10(head, 6u)][0], A[bs_idx10(head, 8u)][1], A[bs_idx10(head, 1u)][1], lane_mask);
-let s3 = bs_stream_sbox3(A[bs_idx10(head, 1u)][0], A[bs_idx10(head, 4u)][1], A[bs_idx10(head, 4u)][3], A[bs_idx10(head, 5u)][2], A[bs_idx10(head, 0u)][3], lane_mask);
-let s4 = bs_stream_sbox4(A[bs_idx10(head, 0u)][1], A[bs_idx10(head, 1u)][3], A[bs_idx10(head, 3u)][2], A[bs_idx10(head, 7u)][0], A[bs_idx10(head, 2u)][3], lane_mask);
-let s5 = bs_stream_sbox5(A[bs_idx10(head, 3u)][3], A[bs_idx10(head, 5u)][0], A[bs_idx10(head, 7u)][1], A[bs_idx10(head, 8u)][2], A[bs_idx10(head, 4u)][2], lane_mask);
-let s6 = bs_stream_sbox6(A[bs_idx10(head, 3u)][1], A[bs_idx10(head, 4u)][0], A[bs_idx10(head, 6u)][2], A[bs_idx10(head, 8u)][3], A[bs_idx10(head, 2u)][1], lane_mask);
-let s7 = bs_stream_sbox7(A[bs_idx10(head, 2u)][0], A[bs_idx10(head, 6u)][1], A[bs_idx10(head, 7u)][2], A[bs_idx10(head, 7u)][3], A[bs_idx10(head, 1u)][2], lane_mask);
-X[0] = s1.x; X[1] = s2.x; X[2] = s3.y; X[3] = s4.y;
-Y[0] = s3.x; Y[1] = s4.x; Y[2] = s5.y; Y[3] = s6.y;
-Z[0] = s5.x; Z[1] = s6.x; Z[2] = s1.y; Z[3] = s2.y;
+let s1 = bs_stream_sbox1(A0.z, A5.y, A6.w, A8.x, A3.x, lane_mask);
+let s2 = bs_stream_sbox2(A2.z, A5.w, A6.x, A8.y, A1.y, lane_mask);
+let s3 = bs_stream_sbox3(A1.x, A4.y, A4.w, A5.z, A0.w, lane_mask);
+let s4 = bs_stream_sbox4(A0.y, A1.w, A3.z, A7.x, A2.w, lane_mask);
+let s5 = bs_stream_sbox5(A3.w, A5.x, A7.y, A8.z, A4.z, lane_mask);
+let s6 = bs_stream_sbox6(A3.y, A4.x, A6.z, A8.w, A2.y, lane_mask);
+let s7 = bs_stream_sbox7(A2.x, A6.y, A7.z, A7.w, A1.z, lane_mask);
+X = vec4<u32>(s1.x, s2.x, s3.y, s4.y);
+Y = vec4<u32>(s3.x, s4.x, s5.y, s6.y);
+Z = vec4<u32>(s5.x, s6.x, s1.y, s2.y);
 p = s7.x;
 q = s7.y;
-head = head + 9u;
-if (head >= 10u) { head -= 10u; }
-for (var b = 0u; b < 4u; b++) {
-A[head][b] = nextA[b];
-B[head][b] = nextB[b];
-}
+A9 = A8; A8 = A7; A7 = A6; A6 = A5; A5 = A4;
+A4 = A3; A3 = A2; A2 = A1; A1 = A0; A0 = nextA;
+B9 = B8; B8 = B7; B7 = B6; B6 = B5; B5 = B4;
+B4 = B3; B3 = B2; B2 = B1; B1 = B0; B0 = nextB;
 }
 }
 let c8v = (u2 >> 0u) & 0xFFu;
 let c9v = (u2 >> 8u) & 0xFFu;
 let c10v = (u2 >> 16u) & 0xFFu;
-var c8p: array<u32, 8>;
-var c9p: array<u32, 8>;
-var c10p: array<u32, 8>;
+let c8p = bs_byte_to_planes(c8v, lane_mask);
+let c9p = bs_byte_to_planes(c9v, lane_mask);
+let c10p = bs_byte_to_planes(c10v, lane_mask);
 for (var out_i = 0u; out_i < 3u; out_i++) {
 var op = array<u32, 8>(0u,0u,0u,0u,0u,0u,0u,0u);
 for (var j = 0u; j < 4u; j++) {
-var extra: array<u32, 4>;
-extra[3] = B[bs_idx10(head, 2u)][0] ^ B[bs_idx10(head, 5u)][1] ^ B[bs_idx10(head, 6u)][2] ^ B[bs_idx10(head, 8u)][3];
-extra[2] = B[bs_idx10(head, 5u)][0] ^ B[bs_idx10(head, 7u)][1] ^ B[bs_idx10(head, 2u)][3] ^ B[bs_idx10(head, 3u)][2];
-extra[1] = B[bs_idx10(head, 4u)][3] ^ B[bs_idx10(head, 7u)][2] ^ B[bs_idx10(head, 3u)][0] ^ B[bs_idx10(head, 4u)][1];
-extra[0] = B[bs_idx10(head, 8u)][2] ^ B[bs_idx10(head, 5u)][3] ^ B[bs_idx10(head, 2u)][1] ^ B[bs_idx10(head, 7u)][0];
-var nextA: array<u32, 4>;
-var nextB: array<u32, 4>;
-for (var b = 0u; b < 4u; b++) {
-nextA[b] = A[bs_idx10(head, 9u)][b] ^ X[b];
-nextB[b] = B[bs_idx10(head, 6u)][b] ^ B[bs_idx10(head, 9u)][b] ^ Y[b];
-}
+let extra = vec4<u32>(
+B8.z ^ B5.w ^ B2.y ^ B7.x,
+B4.w ^ B7.z ^ B3.x ^ B4.y,
+B5.x ^ B7.y ^ B2.w ^ B3.z,
+B2.x ^ B5.y ^ B6.z ^ B8.w
+);
+var nextA = A9 ^ X;
+var nextB = B6 ^ B9 ^ Y;
 {
-let tmp3 = nextB[3];
-let tmp2 = nextB[2];
-let tmp4 = p;
-let tmp1 = nextB[1];
-let tmp0 = nextB[0];
-nextB[3] = tmp3 ^ ((tmp3 ^ tmp2) & tmp4);
-nextB[2] = tmp2 ^ ((tmp2 ^ tmp1) & tmp4);
-nextB[1] = tmp1 ^ ((tmp1 ^ tmp0) & tmp4);
-nextB[0] = tmp0 ^ ((tmp0 ^ tmp3) & tmp4);
+let tmp3 = nextB.w;
+let tmp2 = nextB.z;
+let tmp1 = nextB.y;
+let tmp0 = nextB.x;
+nextB = vec4<u32>(
+tmp0 ^ ((tmp0 ^ tmp3) & p),
+tmp1 ^ ((tmp1 ^ tmp0) & p),
+tmp2 ^ ((tmp2 ^ tmp1) & p),
+tmp3 ^ ((tmp3 ^ tmp2) & p)
+);
 }
 {
 var carry = r;
-for (var b = 0u; b < 4u; b++) {
-let zx = Z[b] ^ E[b];
-let ze = Z[b] & E[b];
-let oldF = F[b];
-F[b] = E[b] ^ (q & (Z[b] ^ carry));
-D[b] = extra[b] ^ zx;
-let tmp3 = zx & carry;
-E[b] = oldF;
-carry = ze | tmp3;
-}
+let zx0 = Z.x ^ E.x;
+let ze0 = Z.x & E.x;
+let oldF0 = F.x;
+let f0 = E.x ^ (q & (Z.x ^ carry));
+let d0 = extra.x ^ zx0;
+carry = ze0 | (zx0 & carry);
+let zx1 = Z.y ^ E.y;
+let ze1 = Z.y & E.y;
+let oldF1 = F.y;
+let f1 = E.y ^ (q & (Z.y ^ carry));
+let d1 = extra.y ^ zx1;
+carry = ze1 | (zx1 & carry);
+let zx2 = Z.z ^ E.z;
+let ze2 = Z.z & E.z;
+let oldF2 = F.z;
+let f2 = E.z ^ (q & (Z.z ^ carry));
+let d2 = extra.z ^ zx2;
+carry = ze2 | (zx2 & carry);
+let zx3 = Z.w ^ E.w;
+let ze3 = Z.w & E.w;
+let oldF3 = F.w;
+let f3 = E.w ^ (q & (Z.w ^ carry));
+let d3 = extra.w ^ zx3;
+carry = ze3 | (zx3 & carry);
+F = vec4<u32>(f0, f1, f2, f3);
+D = vec4<u32>(d0, d1, d2, d3);
+E = vec4<u32>(oldF0, oldF1, oldF2, oldF3);
 r = r ^ (q & (carry ^ r));
 }
-let s1 = bs_stream_sbox1(A[bs_idx10(head, 0u)][2], A[bs_idx10(head, 5u)][1], A[bs_idx10(head, 6u)][3], A[bs_idx10(head, 8u)][0], A[bs_idx10(head, 3u)][0], lane_mask);
-let s2 = bs_stream_sbox2(A[bs_idx10(head, 2u)][2], A[bs_idx10(head, 5u)][3], A[bs_idx10(head, 6u)][0], A[bs_idx10(head, 8u)][1], A[bs_idx10(head, 1u)][1], lane_mask);
-let s3 = bs_stream_sbox3(A[bs_idx10(head, 1u)][0], A[bs_idx10(head, 4u)][1], A[bs_idx10(head, 4u)][3], A[bs_idx10(head, 5u)][2], A[bs_idx10(head, 0u)][3], lane_mask);
-let s4 = bs_stream_sbox4(A[bs_idx10(head, 0u)][1], A[bs_idx10(head, 1u)][3], A[bs_idx10(head, 3u)][2], A[bs_idx10(head, 7u)][0], A[bs_idx10(head, 2u)][3], lane_mask);
-let s5 = bs_stream_sbox5(A[bs_idx10(head, 3u)][3], A[bs_idx10(head, 5u)][0], A[bs_idx10(head, 7u)][1], A[bs_idx10(head, 8u)][2], A[bs_idx10(head, 4u)][2], lane_mask);
-let s6 = bs_stream_sbox6(A[bs_idx10(head, 3u)][1], A[bs_idx10(head, 4u)][0], A[bs_idx10(head, 6u)][2], A[bs_idx10(head, 8u)][3], A[bs_idx10(head, 2u)][1], lane_mask);
-let s7 = bs_stream_sbox7(A[bs_idx10(head, 2u)][0], A[bs_idx10(head, 6u)][1], A[bs_idx10(head, 7u)][2], A[bs_idx10(head, 7u)][3], A[bs_idx10(head, 1u)][2], lane_mask);
-X[0] = s1.x; X[1] = s2.x; X[2] = s3.y; X[3] = s4.y;
-Y[0] = s3.x; Y[1] = s4.x; Y[2] = s5.y; Y[3] = s6.y;
-Z[0] = s5.x; Z[1] = s6.x; Z[2] = s1.y; Z[3] = s2.y;
+let s1 = bs_stream_sbox1(A0.z, A5.y, A6.w, A8.x, A3.x, lane_mask);
+let s2 = bs_stream_sbox2(A2.z, A5.w, A6.x, A8.y, A1.y, lane_mask);
+let s3 = bs_stream_sbox3(A1.x, A4.y, A4.w, A5.z, A0.w, lane_mask);
+let s4 = bs_stream_sbox4(A0.y, A1.w, A3.z, A7.x, A2.w, lane_mask);
+let s5 = bs_stream_sbox5(A3.w, A5.x, A7.y, A8.z, A4.z, lane_mask);
+let s6 = bs_stream_sbox6(A3.y, A4.x, A6.z, A8.w, A2.y, lane_mask);
+let s7 = bs_stream_sbox7(A2.x, A6.y, A7.z, A7.w, A1.z, lane_mask);
+X = vec4<u32>(s1.x, s2.x, s3.y, s4.y);
+Y = vec4<u32>(s3.x, s4.x, s5.y, s6.y);
+Z = vec4<u32>(s5.x, s6.x, s1.y, s2.y);
 p = s7.x;
 q = s7.y;
-let t0 = D[0] ^ D[1];
-let t1 = D[2] ^ D[3];
+let t0 = D.x ^ D.y;
+let t1 = D.z ^ D.w;
 op[7] = op[5]; op[6] = op[4]; op[5] = op[3]; op[4] = op[2];
 op[3] = op[1]; op[2] = op[0]; op[1] = t1;    op[0] = t0;
-head = head + 9u;
-if (head >= 10u) { head -= 10u; }
-for (var b = 0u; b < 4u; b++) {
-A[head][b] = nextA[b];
-B[head][b] = nextB[b];
+A9 = A8; A8 = A7; A7 = A6; A6 = A5; A5 = A4;
+A4 = A3; A3 = A2; A2 = A1; A1 = A0; A0 = nextA;
+B9 = B8; B8 = B7; B7 = B6; B6 = B5; B5 = B4;
+B4 = B3; B3 = B2; B2 = B1; B1 = B0; B0 = nextB;
 }
-}
-var cv_planes: array<u32, 8>;
+var mismatch = 0u;
 if (out_i == 0u) {
-c8p = bs_byte_to_planes(c8v, lane_mask);
-cv_planes = c8p;
-} else if (out_i == 1u) {
-c9p = bs_byte_to_planes(c9v, lane_mask);
-cv_planes = c9p;
-} else {
-c10p = bs_byte_to_planes(c10v, lane_mask);
-cv_planes = c10p;
-}
-var blk: array<u32, 8>;
-if (out_i == 0u) { blk = block0; }
-else if (out_i == 1u) { blk = block1; }
-else { blk = block2; }
-var diff: array<u32, 8>;
 for (var b = 0u; b < 8u; b++) {
-var v = blk[b] ^ op[b] ^ cv_planes[b];
-if (out_i == 2u && b == 0u) { v ^= lane_mask; }
-diff[b] = v;
+mismatch |= block0[b] ^ op[b] ^ c8p[b];
 }
-let mismatch = bs_reduce_or8(diff);
+} else if (out_i == 1u) {
+for (var b = 0u; b < 8u; b++) {
+mismatch |= block1[b] ^ op[b] ^ c9p[b];
+}
+} else {
+mismatch = (block2[0] ^ op[0] ^ c10p[0] ^ lane_mask);
+for (var b = 1u; b < 8u; b++) {
+mismatch |= block2[b] ^ op[b] ^ c10p[b];
+}
+}
 lane_mask &= ~mismatch;
 if (lane_mask == 0u) { return 0u; }
 }
 return lane_mask;
 }
 fn bs_block_decypher3_from_cw(
-cw_byte_planes: array<array<u32, 8>, 8>,
+cw_byte_planes_stream: array<array<u32, 8>, 8>,
 lane_mask: u32,
 u0: u32, u1: u32,
 out_b0: ptr<function, array<u32, 8>>,
@@ -1501,48 +1555,116 @@ var kbits: array<u32, 64>;
 for (var b = 0u; b < 64u; b++) {
 let by = b >> 3u;
 let bit = 7u - (b & 7u);
-kbits[b] = cw_byte_planes[by][bit];
+let stream_bit = (bit + 4u) & 7u;
+kbits[b] = cw_byte_planes_stream[by][stream_bit];
 }
-var ktmp: array<u32, 64>;
 for (var g_step = 0u; g_step < 7u; g_step++) {
 let g = 6u - g_step;
+let g0 = select(0u, lane_mask, (g & 0x01u) != 0u);
+let g1 = select(0u, lane_mask, (g & 0x02u) != 0u);
+let g2 = select(0u, lane_mask, (g & 0x04u) != 0u);
 for (var j_step = 0u; j_step < 8u; j_step++) {
 let j = 7u - j_step;
-var kbyte: array<u32, 8>;
+let base = j * 8u;
+let sbox_out = bs_block_sbox(
+(kbits[base + 7u] ^ g0) ^ R7[0u],
+(kbits[base + 6u] ^ g1) ^ R7[1u],
+(kbits[base + 5u] ^ g2) ^ R7[2u],
+kbits[base + 4u] ^ R7[3u],
+kbits[base + 3u] ^ R7[4u],
+kbits[base + 2u] ^ R7[5u],
+kbits[base + 1u] ^ R7[6u],
+kbits[base + 0u] ^ R7[7u],
+lane_mask
+);
 for (var bit = 0u; bit < 8u; bit++) {
-let bidx = j * 8u + (7u - bit);
-var plane = kbits[bidx];
-if (((g >> bit) & 1u) != 0u) { plane ^= lane_mask; }
-kbyte[bit] = plane;
+let oldR1 = R1[bit];
+let oldR2 = R2[bit];
+let oldR3 = R3[bit];
+let oldR4 = R4[bit];
+let oldR5 = R5[bit];
+let oldR6 = R6[bit];
+let oldR7 = R7[bit];
+let oldR8 = R8[bit];
+let common_x = oldR8 ^ sbox_out[bit];
+let perm = sbox_out[get_block_perm_out_to_in(bit)];
+R8[bit] = oldR7;
+R7[bit] = oldR6 ^ perm;
+R6[bit] = oldR5;
+R5[bit] = oldR4 ^ common_x;
+R4[bit] = oldR3 ^ common_x;
+R3[bit] = oldR2 ^ common_x;
+R2[bit] = oldR1;
+R1[bit] = common_x;
 }
-var sbox_in: array<u32, 8>;
-for (var bit = 0u; bit < 8u; bit++) { sbox_in[bit] = kbyte[bit] ^ R7[bit]; }
-let sbox_out = bs_block_sbox(sbox_in, lane_mask);
-var perm_out: array<u32, 8>;
-for (var bit = 0u; bit < 8u; bit++) { perm_out[bit] = sbox_out[get_block_perm_out_to_in(bit)]; }
-var common_xor: array<u32, 8>;
-for (var bit = 0u; bit < 8u; bit++) { common_xor[bit] = R8[bit] ^ sbox_out[bit]; }
-let next_R8 = R7;
-var new_R7: array<u32, 8>;
-for (var bit = 0u; bit < 8u; bit++) { new_R7[bit] = R6[bit] ^ perm_out[bit]; }
-let new_R6 = R5;
-var new_R5: array<u32, 8>;
-for (var bit = 0u; bit < 8u; bit++) { new_R5[bit] = R4[bit] ^ common_xor[bit]; }
-var new_R4: array<u32, 8>;
-for (var bit = 0u; bit < 8u; bit++) { new_R4[bit] = R3[bit] ^ common_xor[bit]; }
-var new_R3: array<u32, 8>;
-for (var bit = 0u; bit < 8u; bit++) { new_R3[bit] = R2[bit] ^ common_xor[bit]; }
-let new_R2 = R1;
-let new_R1 = common_xor;
-R1 = new_R1; R2 = new_R2; R3 = new_R3; R4 = new_R4;
-R5 = new_R5; R6 = new_R6; R7 = new_R7; R8 = next_R8;
 }
 if (g > 0u) {
-for (var b = 0u; b < 64u; b++) {
-let dst = get_key_perm_table(b);
-ktmp[dst] = kbits[b];
-}
-for (var b = 0u; b < 64u; b++) { kbits[b] = ktmp[b]; }
+var ktmp: array<u32, 64>;
+ktmp[0u] = kbits[23u];
+ktmp[1u] = kbits[20u];
+ktmp[2u] = kbits[60u];
+ktmp[3u] = kbits[25u];
+ktmp[4u] = kbits[49u];
+ktmp[5u] = kbits[53u];
+ktmp[6u] = kbits[3u];
+ktmp[7u] = kbits[42u];
+ktmp[8u] = kbits[2u];
+ktmp[9u] = kbits[54u];
+ktmp[10u] = kbits[52u];
+ktmp[11u] = kbits[35u];
+ktmp[12u] = kbits[26u];
+ktmp[13u] = kbits[27u];
+ktmp[14u] = kbits[59u];
+ktmp[15u] = kbits[62u];
+ktmp[16u] = kbits[47u];
+ktmp[17u] = kbits[0u];
+ktmp[18u] = kbits[12u];
+ktmp[19u] = kbits[17u];
+ktmp[20u] = kbits[7u];
+ktmp[21u] = kbits[36u];
+ktmp[22u] = kbits[44u];
+ktmp[23u] = kbits[16u];
+ktmp[24u] = kbits[43u];
+ktmp[25u] = kbits[30u];
+ktmp[26u] = kbits[22u];
+ktmp[27u] = kbits[8u];
+ktmp[28u] = kbits[6u];
+ktmp[29u] = kbits[38u];
+ktmp[30u] = kbits[41u];
+ktmp[31u] = kbits[56u];
+ktmp[32u] = kbits[13u];
+ktmp[33u] = kbits[24u];
+ktmp[34u] = kbits[33u];
+ktmp[35u] = kbits[1u];
+ktmp[36u] = kbits[18u];
+ktmp[37u] = kbits[61u];
+ktmp[38u] = kbits[19u];
+ktmp[39u] = kbits[29u];
+ktmp[40u] = kbits[31u];
+ktmp[41u] = kbits[4u];
+ktmp[42u] = kbits[51u];
+ktmp[43u] = kbits[55u];
+ktmp[44u] = kbits[40u];
+ktmp[45u] = kbits[58u];
+ktmp[46u] = kbits[45u];
+ktmp[47u] = kbits[37u];
+ktmp[48u] = kbits[5u];
+ktmp[49u] = kbits[11u];
+ktmp[50u] = kbits[32u];
+ktmp[51u] = kbits[34u];
+ktmp[52u] = kbits[21u];
+ktmp[53u] = kbits[9u];
+ktmp[54u] = kbits[63u];
+ktmp[55u] = kbits[50u];
+ktmp[56u] = kbits[28u];
+ktmp[57u] = kbits[39u];
+ktmp[58u] = kbits[14u];
+ktmp[59u] = kbits[48u];
+ktmp[60u] = kbits[46u];
+ktmp[61u] = kbits[10u];
+ktmp[62u] = kbits[57u];
+ktmp[63u] = kbits[15u];
+kbits = ktmp;
 }
 }
 *out_b0 = R1;
@@ -1552,7 +1674,7 @@ for (var b = 0u; b < 64u; b++) { kbits[b] = ktmp[b]; }
 var<workgroup> tg_u0: array<u32, 64>;
 var<workgroup> tg_u1: array<u32, 64>;
 var<workgroup> tg_u2: array<u32, 64>;
-@compute @workgroup_size(256)
+@compute @workgroup_size(STREAMSLICE_WORKGROUP_SIZE)
 fn dvbcsa_bruteforce_streamslice(
 @builtin(global_invocation_id) id: vec3<u32>,
 @builtin(local_invocation_index) tid: u32
@@ -1567,7 +1689,7 @@ let base = i * 4u;
 tg_u0[i] = packets_data[base + 0u];
 tg_u1[i] = packets_data[base + 1u];
 tg_u2[i] = packets_data[base + 2u];
-i += 256u;
+i += STREAMSLICE_WORKGROUP_SIZE;
 }
 }
 workgroupBarrier();
@@ -1668,7 +1790,7 @@ result_buffer[0] = p0_lane[lane].x;
 result_buffer[1] = p0_lane[lane].y;
 }
 }
-@compute @workgroup_size(256)
+@compute @workgroup_size(BITSLICE_WORKGROUP_SIZE)
 fn dvbcsa_bruteforce_streamslice_bitslice(
 @builtin(global_invocation_id) id: vec3<u32>,
 @builtin(local_invocation_index) tid: u32
@@ -1683,7 +1805,7 @@ let base = i * 4u;
 tg_u0[i] = packets_data[base + 0u];
 tg_u1[i] = packets_data[base + 1u];
 tg_u2[i] = packets_data[base + 2u];
-i += 256u;
+i += BITSLICE_WORKGROUP_SIZE;
 }
 }
 workgroupBarrier();
@@ -1721,6 +1843,33 @@ let hi = (cw0 << 24u) | (cw1 << 16u) | (cw2 << 8u) | cw3;
 let lo = (cw4 << 24u) | (cw5 << 16u) | (cw6 << 8u) | cw7;
 p0_lane[lane] = vec2<u32>(lo, hi);
 }
+var cw_byte_planes_stream: array<array<u32, 8>, 8>;
+for (var i = 0u; i < 8u; i++) {
+for (var j = 0u; j < 8u; j++) {
+cw_byte_planes_stream[i][j] = 0u;
+}
+}
+for (var lane = 0u; lane < BITS_SLICE_LANES; lane++) {
+let m = 1u << lane;
+if ((lane_mask & m) == 0u) { continue; }
+let p0 = p0_lane[lane];
+let p0_swapped_x = ((p0.x & 0xF0F0F0F0u) >> 4u) | ((p0.x & 0x0F0F0F0Fu) << 4u);
+let p0_swapped_y = ((p0.y & 0xF0F0F0F0u) >> 4u) | ((p0.y & 0x0F0F0F0Fu) << 4u);
+for (var by = 0u; by < 8u; by++) {
+let shift = 56u - 8u * by;
+var v_stream: u32;
+if (shift >= 32u) {
+v_stream = (p0_swapped_y >> (shift - 32u)) & 0xFFu;
+} else {
+v_stream = (p0_swapped_x >> shift) & 0xFFu;
+}
+for (var bit = 0u; bit < 8u; bit++) {
+if (((v_stream >> bit) & 1u) != 0u) {
+cw_byte_planes_stream[by][bit] |= m;
+}
+}
+}
+}
 for (var pidx = 0u; pidx < packet_count; pidx++) {
 var u0: u32; var u1: u32; var u2: u32;
 if (use_tg) {
@@ -1733,41 +1882,10 @@ u0 = packets_data[base + 0u];
 u1 = packets_data[base + 1u];
 u2 = packets_data[base + 2u];
 }
-var cw_byte_planes_block: array<array<u32, 8>, 8>;
-var cw_byte_planes_stream: array<array<u32, 8>, 8>;
-for (var i = 0u; i < 8u; i++) {
-for (var j = 0u; j < 8u; j++) {
-cw_byte_planes_block[i][j] = 0u;
-cw_byte_planes_stream[i][j] = 0u;
-}
-}
-for (var lane = 0u; lane < BITS_SLICE_LANES; lane++) {
-let m = 1u << lane;
-if ((lane_mask & m) == 0u) { continue; }
-let p0 = p0_lane[lane];
-let p0_swapped_x = ((p0.x & 0xF0F0F0F0u) >> 4u) | ((p0.x & 0x0F0F0F0Fu) << 4u);
-let p0_swapped_y = ((p0.y & 0xF0F0F0F0u) >> 4u) | ((p0.y & 0x0F0F0F0Fu) << 4u);
-for (var by = 0u; by < 8u; by++) {
-let shift = 56u - 8u * by;
-var v_block: u32;
-var v_stream: u32;
-if (shift >= 32u) {
-v_block = (p0.y >> (shift - 32u)) & 0xFFu;
-v_stream = (p0_swapped_y >> (shift - 32u)) & 0xFFu;
-} else {
-v_block = (p0.x >> shift) & 0xFFu;
-v_stream = (p0_swapped_x >> shift) & 0xFFu;
-}
-for (var bit = 0u; bit < 8u; bit++) {
-if (((v_block >> bit) & 1u) != 0u) { cw_byte_planes_block[by][bit] |= m; }
-if (((v_stream >> bit) & 1u) != 0u) { cw_byte_planes_stream[by][bit] |= m; }
-}
-}
-}
 var block0: array<u32, 8>;
 var block1: array<u32, 8>;
 var block2: array<u32, 8>;
-bs_block_decypher3_from_cw(cw_byte_planes_block, lane_mask, u0, u1, &block0, &block1, &block2);
+bs_block_decypher3_from_cw(cw_byte_planes_stream, lane_mask, u0, u1, &block0, &block1, &block2);
 lane_mask = bs_stream_check3_from_packet(lane_mask, cw_byte_planes_stream, block0, block1, block2, u0, u1, u2);
 if (lane_mask == 0u) { return; }
 if (atomicLoad(&found_flag) > 0u) { return; }
@@ -1943,6 +2061,7 @@ const progressText = document.getElementById('progressText');
 const speedText = document.getElementById('speedText');
 const currentSeedText = document.getElementById('currentSeedText');
 const timeText = document.getElementById('timeText');
+const gpuInfoText = document.getElementById('gpuInfoText');
 const resultBox = document.getElementById('resultBox');
 const foundKeyDiv = document.getElementById('foundKey');
 const errorBox = document.getElementById('errorBox');
@@ -2138,9 +2257,26 @@ function computeProgressPercent(checked, total) {
     const scaled = (clamped * 10000n + total / 2n) / total;
     return Number(scaled) / 100;
 }
+async function getAdapterSummary(adapter) {
+    const adapterWithInfo = adapter;
+    try {
+        const info = adapterWithInfo.info ?? (adapterWithInfo.requestAdapterInfo ? await adapterWithInfo.requestAdapterInfo() : null);
+        if (!info)
+            return adapterWithInfo.name || 'Unknown GPU';
+        const parts = [info.vendor, info.architecture, info.description, info.device].filter(Boolean);
+        return parts.length > 0 ? parts.join(' | ') : (adapterWithInfo.name || 'Unknown GPU');
+    }
+    catch {
+        return adapterWithInfo.name || 'Unknown GPU';
+    }
+}
 let device = null;
 let shaderModule = null;
 let pipelineByKernel = {};
+const WORKGROUP_SIZE_BY_KERNEL = {
+    streamslice: 256n,
+    bitslice: 128n,
+};
 async function getOrCreatePipeline(kernel) {
     if (!device || !shaderModule)
         throw new Error('GPU not initialized');
@@ -2181,9 +2317,11 @@ async function init() {
     });
     if (!adapter) {
         showToast('No WebGPU adapter found. This may happen if your GPU doesn\'t support WebGPU or drivers are outdated.', 'error', 8000);
+        gpuInfoText.textContent = 'Unavailable';
         startBtn.textContent = startBtnText;
         return;
     }
+    gpuInfoText.textContent = await getAdapterSummary(adapter);
     device = await adapter.requestDevice();
     const embeddedShader = document.getElementById('wgsl-shader');
     let shaderCode = '';
@@ -2575,7 +2713,7 @@ async function startBruteforce() {
         ];
         const extraEntries = kernel === 'streamslice'
             ? [{ binding: 6, resource: { buffer: keyPermBuf } }, { binding: 8, resource: { buffer: sboxBuf } }]
-            : [{ binding: 7, resource: { buffer: keyPermTableBuf } }];
+            : [];
         const bindGroups = [];
         for (let i = 0; i < submitBatchN; i++) {
             bindGroups.push(device.createBindGroup({
@@ -2600,8 +2738,9 @@ async function startBruteforce() {
         let dispatchCounter = 0;
         const batchSize = BigInt(batchSizeSelect.value);
         const keysPerThread = 32n;
+        const workgroupSize = WORKGROUP_SIZE_BY_KERNEL[kernel];
         const maxWorkgroups1D = BigInt(device.limits.maxComputeWorkgroupsPerDimension);
-        const maxKeysPerDispatch = maxWorkgroups1D * 256n * keysPerThread;
+        const maxKeysPerDispatch = maxWorkgroups1D * workgroupSize * keysPerThread;
         device.queue.writeBuffer(foundFlagBuf, 0, new Uint32Array([0]));
         while (currentSeed <= endSeed && !stopRequested) {
             const remaining = endSeed - currentSeed + 1n;
@@ -2616,7 +2755,7 @@ async function startBruteforce() {
                 const [countLo, countHi] = u64ToU32(keysThisDispatch);
                 device.queue.writeBuffer(keysToCheckBufs[slot], 0, new Uint32Array([countLo, countHi]));
                 const dispatchCount = Number((keysThisDispatch + keysPerThread - 1n) / keysPerThread);
-                const workgroups = Math.ceil(dispatchCount / 256);
+                const workgroups = Math.ceil(dispatchCount / Number(workgroupSize));
                 const encoder = device.createCommandEncoder();
                 const pass = encoder.beginComputePass();
                 pass.setPipeline(pipeline);
