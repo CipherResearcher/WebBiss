@@ -78,6 +78,7 @@ You are solely responsible for ensuring your activities comply with applicable l
 | Apple A18 Pro    | **290 M/s**       | 68 M/s         |
 | NVIDIA RTX 3060  | 1400 M/s           | **1600 M/s**   |
 | NVIDIA RTX 4070 Ti | 4600 M/s           | **4800 M/s**   |
+| NVIDIA RTX 5070 | **2600 M/s**           | 1700 M/s   |
 | NVIDIA RTX 4090 D | 6700 M/s           | **7800 M/s**   |
 | Intel            | N/A               | N/A            |
 | AMD              | N/A               | N/A            |
