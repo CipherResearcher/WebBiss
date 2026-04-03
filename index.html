@@ -504,6 +504,19 @@ button:disabled {
     color: var(--text-muted);
     font-size: 14px;
 }
+.status-row-meta {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+.status-row-etc {
+    white-space: nowrap;
+}
+.status-row-separator {
+    opacity: 0.7;
+}
 .progress-bar-bg {
     margin: 12px 18px 0;
     height: 12px;
@@ -882,7 +895,11 @@ button:disabled {
                 </div>
                 <div class="status-row">
                     <span>Progress</span>
-                    <span id="progressText">0.00%</span>
+                    <div class="status-row-meta">
+                        <span class="status-row-etc">ETC <span id="etcText">--</span></span>
+                        <span class="status-row-separator" aria-hidden="true">·</span>
+                        <span id="progressText">0.00%</span>
+                    </div>
                 </div>
                 <div class="progress-bar-bg">
                     <div id="progressBar" class="progress-bar-fill"></div>
@@ -2061,6 +2078,7 @@ const progressText = document.getElementById('progressText');
 const speedText = document.getElementById('speedText');
 const currentSeedText = document.getElementById('currentSeedText');
 const timeText = document.getElementById('timeText');
+const etcText = document.getElementById('etcText');
 const gpuInfoText = document.getElementById('gpuInfoText');
 const resultBox = document.getElementById('resultBox');
 const foundKeyDiv = document.getElementById('foundKey');
@@ -2256,6 +2274,39 @@ function computeProgressPercent(checked, total) {
     const clamped = checked > total ? total : checked;
     const scaled = (clamped * 10000n + total / 2n) / total;
     return Number(scaled) / 100;
+}
+function estimateRemainingSeconds(checked, total, elapsedSeconds) {
+    if (elapsedSeconds <= 0 || checked <= 0n || total <= 0n)
+        return null;
+    const clampedChecked = checked > total ? total : checked;
+    const remaining = total - clampedChecked;
+    if (remaining <= 0n)
+        return 0;
+    const ratioScale = 1000000n;
+    const scaledRatio = (remaining * ratioScale + clampedChecked / 2n) / clampedChecked;
+    return elapsedSeconds * (Number(scaledRatio) / Number(ratioScale));
+}
+function formatRemainingTime(seconds) {
+    if (seconds === null || !Number.isFinite(seconds))
+        return 'Calculating...';
+    if (seconds <= 0)
+        return '0.00s';
+    if (seconds < 60)
+        return `${seconds.toFixed(seconds < 10 ? 2 : 1)}s`;
+    const roundedSeconds = Math.round(seconds);
+    const minutes = Math.floor(roundedSeconds / 60);
+    const secs = roundedSeconds % 60;
+    if (roundedSeconds < 3600) {
+        return `${minutes}m ${secs.toString().padStart(2, '0')}s`;
+    }
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (roundedSeconds < 86400) {
+        return `${hours}h ${mins.toString().padStart(2, '0')}m`;
+    }
+    const days = Math.floor(hours / 24);
+    const remainingHours = hours % 24;
+    return `${days}d ${remainingHours}h`;
 }
 async function getAdapterSummary(adapter) {
     const adapterWithInfo = adapter;
@@ -2584,6 +2635,7 @@ async function startBruteforce() {
         stopBtn.disabled = false;
         progressBar.style.width = '0%';
         progressText.textContent = '0.00%';
+        etcText.textContent = 'Calculating...';
         resultBox.classList.add('hidden');
         errorBox.classList.add('hidden');
         foundKeyDiv.textContent = '';
@@ -2807,11 +2859,13 @@ async function startBruteforce() {
                 const total = endSeed - startSeed + 1n;
                 const progress = computeProgressPercent(checkedCount, total);
                 const speed = (Number(checkedCount) / elapsed) / 1000000; 
+                const remainingSeconds = estimateRemainingSeconds(checkedCount, total, elapsed);
                 progressText.textContent = `${progress.toFixed(2)}%`;
                 progressBar.style.width = `${progress}%`;
                 speedText.textContent = `${speed.toFixed(2)} M/s`;
                 currentSeedText.textContent = currentSeed.toString(16).toUpperCase();
                 timeText.textContent = `${elapsed.toFixed(2)}s`;
+                etcText.textContent = formatRemainingTime(remainingSeconds);
                 lastUpdate = now;
             }
         }
@@ -2829,6 +2883,7 @@ async function startBruteforce() {
             speedText.textContent = `${speed.toFixed(2)} M/s`;
             currentSeedText.textContent = keyFound ? currentSeed.toString(16).toUpperCase() : endSeed.toString(16).toUpperCase();
             timeText.textContent = `${elapsed.toFixed(2)}s`;
+            etcText.textContent = '0.00s';
         }
     }
     catch (err) {
