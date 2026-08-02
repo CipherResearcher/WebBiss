@@ -2653,7 +2653,11 @@ template_search_options.mode,
 template_search_options.fixed_word_byte_position,
 template_search_options.fixed_word_value
 );
-}</script><script type="module">function readUInt32BE(bytes, offset) {
+}</script><script type="module">const TS_PACKET_SIZE = 188;
+const TS_HEADER_SIZE = 4;
+const SAMPLE_SIZE = 16;
+const SAMPLE_PAYLOAD_SIZE = SAMPLE_SIZE - TS_HEADER_SIZE;
+function readUInt32BE(bytes, offset) {
     return ((bytes[offset] << 24) | (bytes[offset + 1] << 16) | (bytes[offset + 2] << 8) | bytes[offset + 3]) >>> 0;
 }
 function getPidFromHeaderInt(tsHeaderInt) {
@@ -2667,6 +2671,18 @@ function getPayloadUnitStart(tsHeaderInt) {
 }
 function getEncTag(tsHeaderInt) {
     return (tsHeaderInt & 0xc0) >>> 6;
+}
+function getPayloadOffset(data, packetOffset, adaptationControl) {
+    const packetEnd = packetOffset + TS_PACKET_SIZE;
+    if (adaptationControl === 1)
+        return packetOffset + TS_HEADER_SIZE;
+    if (adaptationControl !== 3 || packetOffset + TS_HEADER_SIZE >= data.length)
+        return null;
+    const adaptationLength = data[packetOffset + TS_HEADER_SIZE];
+    const payloadOffset = packetOffset + TS_HEADER_SIZE + 1 + adaptationLength;
+    if (payloadOffset > packetEnd || payloadOffset > data.length)
+        return null;
+    return payloadOffset;
 }
 function findTsSyncOffset(data) {
     const len = data.length;
@@ -2697,23 +2713,25 @@ async function checkIsEncrypted(file, offset, maxBytes, count) {
         return { ok: false, error: "TS sync not found.", encrypted: false, pids: [] };
     }
     const encryptedPids = new Set();
-    let counter = 0;
-    for (let pos = syncOffset; pos + 188 <= data.length; pos += 188) {
+    const encryptedRunCounts = new Map();
+    for (let pos = syncOffset; pos + TS_PACKET_SIZE <= data.length; pos += TS_PACKET_SIZE) {
         if (data[pos] !== 0x47)
             continue;
         const headerInt = readUInt32BE(data, pos);
         const pid = getPidFromHeaderInt(headerInt);
         const adaptationControl = getAdaptationControl(headerInt);
-        if (pid > 8191 || pid <= 32 || adaptationControl !== 1)
+        const payloadOffset = getPayloadOffset(data, pos, adaptationControl);
+        if (pid > 8191 || pid <= 32 || payloadOffset === null || payloadOffset >= pos + TS_PACKET_SIZE)
             continue;
         const encTag = getEncTag(headerInt);
         if (encTag === 2 || encTag === 3) {
-            counter += 1;
-            if (counter > count)
+            const nextCount = (encryptedRunCounts.get(pid) || 0) + 1;
+            encryptedRunCounts.set(pid, nextCount);
+            if (nextCount > count)
                 encryptedPids.add(pid);
         }
         else {
-            counter = 0;
+            encryptedRunCounts.delete(pid);
         }
     }
     const pids = Array.from(encryptedPids).sort((a, b) => a - b);
@@ -2727,7 +2745,7 @@ async function getTsSamples(file, offset, inputPid, maxBytes) {
     }
     const samples = [];
     const pesIndexes = [];
-    for (let pos = syncOffset; pos + 188 <= data.length; pos += 188) {
+    for (let pos = syncOffset; pos + TS_PACKET_SIZE <= data.length; pos += TS_PACKET_SIZE) {
         if (data[pos] !== 0x47)
             continue;
         const headerInt = readUInt32BE(data, pos);
@@ -2738,12 +2756,14 @@ async function getTsSamples(file, offset, inputPid, maxBytes) {
         const payloadUnitStart = getPayloadUnitStart(headerInt);
         if (payloadUnitStart !== 1)
             continue;
-        if (adaptationControl !== 1)
+        const payloadOffset = getPayloadOffset(data, pos, adaptationControl);
+        if (payloadOffset === null || payloadOffset + SAMPLE_PAYLOAD_SIZE > pos + TS_PACKET_SIZE)
             continue;
-        const pesIndex = 4;
-        const tsPacket = data.subarray(pos, pos + 188);
-        pesIndexes.push(pesIndex);
-        samples.push(bytesToHexWithSpaces(tsPacket, 0, 16));
+        const sample = new Uint8Array(SAMPLE_SIZE);
+        sample.set(data.subarray(pos, pos + TS_HEADER_SIZE), 0);
+        sample.set(data.subarray(payloadOffset, payloadOffset + SAMPLE_PAYLOAD_SIZE), TS_HEADER_SIZE);
+        pesIndexes.push(payloadOffset - pos);
+        samples.push(bytesToHexWithSpaces(sample, 0, SAMPLE_SIZE));
         if (samples.length >= 3)
             break;
     }
