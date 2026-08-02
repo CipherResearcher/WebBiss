@@ -2151,7 +2151,7 @@ const importStatus = document.getElementById('importStatus');
 const toastContainer = document.getElementById('toastContainer');
 let isRunning = false;
 let stopRequested = false;
-let currentKernel = 'streamslice'; 
+let currentKernel = 'streamslice';
 const KERNEL_STORAGE_KEY = 'webbiss.kernel';
 const BATCH_SIZE_STORAGE_KEY = 'webbiss.batchSize';
 const SUBMIT_BATCH_STORAGE_KEY = 'webbiss.submitBatch';
@@ -2230,7 +2230,7 @@ function showToast(message, type = 'success', duration = 3000) {
         toast.classList.add('fade-out');
         setTimeout(() => {
             toast.remove();
-        }, 500); 
+        }, 500);
     }, duration);
 }
 function getStoredThemeMode() {
@@ -2561,7 +2561,7 @@ function setupEventListeners() {
     kernelSelect.addEventListener('change', async () => {
         if (isRunning) {
             showToast('Cannot switch kernel mode while running. Please stop first.', 'error', 4000);
-            kernelSelect.value = currentKernel; 
+            kernelSelect.value = currentKernel;
             return;
         }
         const newKernel = kernelSelect.value;
@@ -2754,6 +2754,7 @@ async function startBruteforce() {
         showError('GPU not initialized');
         return;
     }
+    let cancelProgressRender = null;
     try {
         isRunning = true;
         stopRequested = false;
@@ -2905,15 +2906,43 @@ async function startBruteforce() {
             }));
         }
         const stagingBuf = device.createBuffer({
-            size: 4 + 8, 
+            size: 4 + 8,
             usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST
         });
         const startTime = performance.now();
-        let lastUpdate = startTime;
+        let progressRenderFrame = null;
+        let lastProgressRenderAt = Number.NEGATIVE_INFINITY;
         let checkedCount = 0n;
         let currentSeed = startSeed;
         let keyFound = false;
         let dispatchCounter = 0;
+        const renderProgress = () => {
+            const now = performance.now();
+            const elapsed = (now - startTime) / 1000;
+            const total = endSeed - startSeed + 1n;
+            const progress = computeProgressPercent(checkedCount, total);
+            const speed = elapsed > 0 ? (Number(checkedCount) / elapsed) / 1_000_000 : 0;
+            progressText.textContent = `${progress.toFixed(2)}%`;
+            progressBar.style.width = `${progress}%`;
+            speedText.textContent = `${speed.toFixed(2)} M/s`;
+            currentSeedText.textContent = currentSeed.toString(16).toUpperCase();
+            timeText.textContent = `${elapsed.toFixed(2)}s`;
+            etcText.textContent = formatRemainingTime(estimateRemainingSeconds(checkedCount, total, elapsed));
+        };
+        const scheduleProgressRender = () => {
+            if (progressRenderFrame !== null || performance.now() - lastProgressRenderAt < 100)
+                return;
+            progressRenderFrame = window.requestAnimationFrame(() => {
+                progressRenderFrame = null;
+                lastProgressRenderAt = performance.now();
+                renderProgress();
+            });
+        };
+        cancelProgressRender = () => {
+            if (progressRenderFrame !== null)
+                window.cancelAnimationFrame(progressRenderFrame);
+            progressRenderFrame = null;
+        };
         const batchSize = BigInt(batchSizeSelect.value);
         const keysPerThread = 32n;
         const workgroupSize = WORKGROUP_SIZE_BY_KERNEL[kernel];
@@ -2979,26 +3008,14 @@ async function startBruteforce() {
             }
             if (keyFound)
                 break;
-            const now = performance.now();
-            if (now - lastUpdate > 100) {
-                const elapsed = (now - startTime) / 1000;
-                const total = endSeed - startSeed + 1n;
-                const progress = computeProgressPercent(checkedCount, total);
-                const speed = (Number(checkedCount) / elapsed) / 1000000; 
-                const remainingSeconds = estimateRemainingSeconds(checkedCount, total, elapsed);
-                progressText.textContent = `${progress.toFixed(2)}%`;
-                progressBar.style.width = `${progress}%`;
-                speedText.textContent = `${speed.toFixed(2)} M/s`;
-                currentSeedText.textContent = currentSeed.toString(16).toUpperCase();
-                timeText.textContent = `${elapsed.toFixed(2)}s`;
-                etcText.textContent = formatRemainingTime(remainingSeconds);
-                lastUpdate = now;
-            }
+            scheduleProgressRender();
         }
         if (stopRequested) {
+            cancelProgressRender?.();
             progressText.textContent += " (Stopped)";
         }
         else if (keyFound || currentSeed > endSeed) {
+            cancelProgressRender?.();
             const now = performance.now();
             const elapsed = (now - startTime) / 1000;
             const total = endSeed - startSeed + 1n;
@@ -3013,10 +3030,12 @@ async function startBruteforce() {
         }
     }
     catch (err) {
+        cancelProgressRender?.();
         showToast(err.message, 'error', 8000);
         console.error(err);
     }
     finally {
+        cancelProgressRender?.();
         isRunning = false;
         startBtn.disabled = false;
         stopBtn.disabled = true;

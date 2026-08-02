@@ -2773,6 +2773,77 @@ async function getTsSamples(file, offset, inputPid, maxBytes) {
     return { ok: true, samples, pesIndexes, syncOffset };
 }
 const MAX_SEED = 0xffffffffffffn;
+function isTemplateSearchMode(value) {
+    return value === 1 || value === 5 || value === 13;
+}
+function formatSeed(value) {
+    return value.toString(16).toUpperCase().padStart(12, '0');
+}
+function fixedWordBytePositionForMode(mode) {
+    if (mode === 5)
+        return 0;
+    if (mode === 13)
+        return 2;
+    return 0;
+}
+function compressSeed(seed, bytePosition) {
+    const lowBitCount = BigInt(bytePosition * 8);
+    const highShift = BigInt((bytePosition + 2) * 8);
+    const lowMask = lowBitCount === 0n ? 0n : (1n << lowBitCount) - 1n;
+    const low = seed & lowMask;
+    const high = seed >> highShift;
+    return (high << lowBitCount) | low;
+}
+function injectFixedWord(ordinal, bytePosition, fixedWordValue) {
+    if (!Number.isInteger(bytePosition) || bytePosition < 0 || bytePosition > 4) {
+        throw new Error('Fixed word byte position must be between 0 and 4.');
+    }
+    if (!Number.isInteger(fixedWordValue) || fixedWordValue < 0 || fixedWordValue > 0xFFFF) {
+        throw new Error('Fixed word value must be between 0 and 65535.');
+    }
+    const lowBitCount = BigInt(bytePosition * 8);
+    const lowMask = lowBitCount === 0n ? 0n : (1n << lowBitCount) - 1n;
+    const low = ordinal & lowMask;
+    const high = ordinal >> lowBitCount;
+    return (high << BigInt((bytePosition + 2) * 8))
+        | (BigInt(fixedWordValue) << lowBitCount)
+        | low;
+}
+function buildSearchRangePlan(startSeed, endSeed, mode) {
+    if (startSeed < 0n || endSeed > MAX_SEED || startSeed > endSeed) {
+        throw new Error('Search range must be an ordered 48-bit seed interval.');
+    }
+    if (mode === 1) {
+        return {
+            mode,
+            baseOrdinal: startSeed,
+            candidateCount: endSeed - startSeed + 1n,
+            fixedWordBytePosition: 0,
+            fixedWordValue: 0,
+            firstCandidate: startSeed,
+            lastCandidate: endSeed,
+        };
+    }
+    const fixedWordBytePosition = fixedWordBytePositionForMode(mode);
+    const fixedWordValue = Number((startSeed >> BigInt(fixedWordBytePosition * 8)) & 0xffffn);
+    let firstOrdinal = compressSeed(startSeed, fixedWordBytePosition);
+    if (injectFixedWord(firstOrdinal, fixedWordBytePosition, fixedWordValue) < startSeed)
+        firstOrdinal += 1n;
+    let lastOrdinal = compressSeed(endSeed, fixedWordBytePosition);
+    if (injectFixedWord(lastOrdinal, fixedWordBytePosition, fixedWordValue) > endSeed)
+        lastOrdinal -= 1n;
+    if (lastOrdinal < firstOrdinal)
+        throw new Error('The selected range contains no candidates for the fixed word.');
+    return {
+        mode,
+        baseOrdinal: firstOrdinal,
+        candidateCount: lastOrdinal - firstOrdinal + 1n,
+        fixedWordBytePosition,
+        fixedWordValue,
+        firstCandidate: injectFixedWord(firstOrdinal, fixedWordBytePosition, fixedWordValue),
+        lastCandidate: injectFixedWord(lastOrdinal, fixedWordBytePosition, fixedWordValue),
+    };
+}
 const DATE_TOKEN_RE = /\{(?:yyyy|MMdd[+-]?|ddMM[+-]?)\}/g;
 const TEMPLATE_VALUE_SOURCE = '(?:[0-9A-Fa-f]|\\{(?:yyyy|MMdd[+-]?|ddMM[+-]?)\\})+';
 const EMBEDDED_TEMPLATE_RE = new RegExp(`(?:^|\\s)(${TEMPLATE_VALUE_SOURCE})\\s+(${TEMPLATE_VALUE_SOURCE})\\s+(\\d+)\\s+(1|5|13)\\s+((?:\\d+(?:\\.\\d+)?|\\.\\d+))(?=\\s|$)`);
@@ -2827,9 +2898,6 @@ const DEFAULT_TEMPLATE_CONFIGS = [
 function cloneDefaultTemplateConfigs() {
     return DEFAULT_TEMPLATE_CONFIGS.map((config) => ({ ...config }));
 }
-function isTemplateSearchMode(value) {
-    return value === 1 || value === 5 || value === 13;
-}
 function extractDateFromFilename(filename) {
     const matches = filename.matchAll(/\d{8}/g);
     for (const match of matches) {
@@ -2883,9 +2951,6 @@ function parseSeed(value, label) {
         throw new Error(`${label} must expand to exactly 12 hexadecimal characters.`);
     }
     return BigInt(`0x${value}`);
-}
-function formatSeed(value) {
-    return value.toString(16).toUpperCase().padStart(12, '0');
 }
 function expandTemplateConfig(config, filenameDate) {
     const dateRequired = templateNeedsFilenameDate(config.startTemplate)
@@ -3037,71 +3102,6 @@ function serializeTemplateLine(config) {
         config.timeoutSeconds,
     ].join(' ');
 }
-function fixedWordBytePositionForMode(mode) {
-    if (mode === 5)
-        return 0;
-    if (mode === 13)
-        return 2;
-    return 0;
-}
-function compressSeed(seed, bytePosition) {
-    const lowBitCount = BigInt(bytePosition * 8);
-    const highShift = BigInt((bytePosition + 2) * 8);
-    const lowMask = lowBitCount === 0n ? 0n : (1n << lowBitCount) - 1n;
-    const low = seed & lowMask;
-    const high = seed >> highShift;
-    return (high << lowBitCount) | low;
-}
-function injectFixedWord(ordinal, bytePosition, fixedWordValue) {
-    if (!Number.isInteger(bytePosition) || bytePosition < 0 || bytePosition > 4) {
-        throw new Error('Fixed word byte position must be between 0 and 4.');
-    }
-    if (!Number.isInteger(fixedWordValue) || fixedWordValue < 0 || fixedWordValue > 0xFFFF) {
-        throw new Error('Fixed word value must be between 0 and 65535.');
-    }
-    const lowBitCount = BigInt(bytePosition * 8);
-    const lowMask = lowBitCount === 0n ? 0n : (1n << lowBitCount) - 1n;
-    const low = ordinal & lowMask;
-    const high = ordinal >> lowBitCount;
-    return (high << BigInt((bytePosition + 2) * 8))
-        | (BigInt(fixedWordValue) << lowBitCount)
-        | low;
-}
-function buildSearchRangePlan(startSeed, endSeed, mode) {
-    if (startSeed < 0n || endSeed > MAX_SEED || startSeed > endSeed) {
-        throw new Error('Search range must be an ordered 48-bit seed interval.');
-    }
-    if (mode === 1) {
-        return {
-            mode,
-            baseOrdinal: startSeed,
-            candidateCount: endSeed - startSeed + 1n,
-            fixedWordBytePosition: 0,
-            fixedWordValue: 0,
-            firstCandidate: startSeed,
-            lastCandidate: endSeed,
-        };
-    }
-    const fixedWordBytePosition = fixedWordBytePositionForMode(mode);
-    const fixedWordValue = Number((startSeed >> BigInt(fixedWordBytePosition * 8)) & 0xffffn);
-    let firstOrdinal = compressSeed(startSeed, fixedWordBytePosition);
-    if (injectFixedWord(firstOrdinal, fixedWordBytePosition, fixedWordValue) < startSeed)
-        firstOrdinal += 1n;
-    let lastOrdinal = compressSeed(endSeed, fixedWordBytePosition);
-    if (injectFixedWord(lastOrdinal, fixedWordBytePosition, fixedWordValue) > endSeed)
-        lastOrdinal -= 1n;
-    if (lastOrdinal < firstOrdinal)
-        throw new Error('The selected range contains no candidates for the fixed word.');
-    return {
-        mode,
-        baseOrdinal: firstOrdinal,
-        candidateCount: lastOrdinal - firstOrdinal + 1n,
-        fixedWordBytePosition,
-        fixedWordValue,
-        firstCandidate: injectFixedWord(firstOrdinal, fixedWordBytePosition, fixedWordValue),
-        lastCandidate: injectFixedWord(lastOrdinal, fixedWordBytePosition, fixedWordValue),
-    };
-}
 function getKeyPermByteTable() {
     const metalTable = [
         0x12, 0x24, 0x09, 0x07, 0x2A, 0x31, 0x1D, 0x15, 0x1C, 0x36, 0x3E, 0x32, 0x13, 0x21, 0x3B, 0x40,
@@ -3242,25 +3242,49 @@ async function getAdapterSummary(adapter) {
         return adapterWithInfo.name || 'Unknown GPU';
     }
 }
+async function detectGpuPreferenceAvailability() {
+    if (!navigator.gpu) {
+        return {
+            canSelect: false,
+            highPerformanceSummary: null,
+            lowPowerSummary: null,
+        };
+    }
+    const [highPerformanceAdapter, lowPowerAdapter] = await Promise.all([
+        navigator.gpu.requestAdapter({ powerPreference: 'high-performance' }),
+        navigator.gpu.requestAdapter({ powerPreference: 'low-power' }),
+    ]);
+    const [highPerformanceSummary, lowPowerSummary] = await Promise.all([
+        highPerformanceAdapter ? getAdapterSummary(highPerformanceAdapter) : Promise.resolve(null),
+        lowPowerAdapter ? getAdapterSummary(lowPowerAdapter) : Promise.resolve(null),
+    ]);
+    return {
+        canSelect: Boolean(highPerformanceSummary
+            && lowPowerSummary
+            && highPerformanceSummary !== lowPowerSummary),
+        highPerformanceSummary,
+        lowPowerSummary,
+    };
+}
 function destroyBuffers(buffers) {
     buffers.forEach((buffer) => buffer.destroy());
 }
 class TemplateSearchEngine {
     device = null;
     shaderModule = null;
-    pipelineCache = {};
+    pipelineCache = new Map();
     keyPermBuffer = null;
     sboxBuffer = null;
     adapterSummary = 'Not initialized';
     get gpuSummary() {
         return this.adapterSummary;
     }
-    async initialize() {
+    async initialize(powerPreference = 'high-performance') {
         if (this.device && this.shaderModule)
             return this.adapterSummary;
         if (!navigator.gpu)
             throw new Error('WebGPU is not available in this browser.');
-        const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
+        const adapter = await navigator.gpu.requestAdapter({ powerPreference });
         if (!adapter)
             throw new Error('No compatible WebGPU adapter was found.');
         this.adapterSummary = await getAdapterSummary(adapter);
@@ -3294,18 +3318,37 @@ class TemplateSearchEngine {
         });
         new Uint32Array(this.sboxBuffer.getMappedRange()).set(BLOCK_SBOX_PERM);
         this.sboxBuffer.unmap();
-        await Promise.all([this.getPipeline('streamslice'), this.getPipeline('bitslice')]);
+        await Promise.all([
+            this.getPipeline('streamslice', false),
+            this.getPipeline('bitslice', false),
+            this.getPipeline('streamslice', true),
+            this.getPipeline('bitslice', true),
+        ]);
         return this.adapterSummary;
     }
-    async getPipeline(kernel) {
+    reset() {
+        this.device?.destroy();
+        this.device = null;
+        this.shaderModule = null;
+        this.pipelineCache.clear();
+        this.keyPermBuffer = null;
+        this.sboxBuffer = null;
+        this.adapterSummary = 'Not initialized';
+    }
+    async getPipeline(kernel, useTemplateEntry) {
         if (!this.device || !this.shaderModule)
             throw new Error('The GPU engine is not initialized.');
-        const cached = this.pipelineCache[kernel];
+        const cacheKey = `${kernel}:${useTemplateEntry ? 'template' : 'standard'}`;
+        const cached = this.pipelineCache.get(cacheKey);
         if (cached)
             return cached;
         const entryPoint = kernel === 'bitslice'
-            ? 'dvbcsa_bruteforce_streamslice_bitslice_template'
-            : 'dvbcsa_bruteforce_streamslice_template';
+            ? (useTemplateEntry
+                ? 'dvbcsa_bruteforce_streamslice_bitslice_template'
+                : 'dvbcsa_bruteforce_streamslice_bitslice')
+            : (useTemplateEntry
+                ? 'dvbcsa_bruteforce_streamslice_template'
+                : 'dvbcsa_bruteforce_streamslice');
         const deviceWithAsync = this.device;
         const pipeline = deviceWithAsync.createComputePipelineAsync
             ? await deviceWithAsync.createComputePipelineAsync.call(this.device, {
@@ -3316,7 +3359,7 @@ class TemplateSearchEngine {
                 layout: 'auto',
                 compute: { module: this.shaderModule, entryPoint },
             });
-        this.pipelineCache[kernel] = pipeline;
+        this.pipelineCache.set(cacheKey, pipeline);
         return pipeline;
     }
     async search(request) {
@@ -3329,7 +3372,8 @@ class TemplateSearchEngine {
             throw new Error('Submit batch must be a positive integer.');
         }
         const device = this.device;
-        const pipeline = await this.getPipeline(request.kernel);
+        const useTemplateEntry = request.plan.mode !== 1;
+        const pipeline = await this.getPipeline(request.kernel, useTemplateEntry);
         const payloads = buildPacketsPayloads(request.samples);
         const ownedBuffers = [];
         const makeBuffer = (descriptor) => {
@@ -3364,18 +3408,21 @@ class TemplateSearchEngine {
                 size: 12,
                 usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
             });
-            const optionsBuffer = makeBuffer({
-                size: 16,
-                usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-                mappedAtCreation: true,
-            });
-            new Uint32Array(optionsBuffer.getMappedRange()).set([
-                request.plan.mode,
-                request.plan.fixedWordBytePosition,
-                request.plan.fixedWordValue,
-                0,
-            ]);
-            optionsBuffer.unmap();
+            let optionsBuffer = null;
+            if (useTemplateEntry) {
+                optionsBuffer = makeBuffer({
+                    size: 16,
+                    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+                    mappedAtCreation: true,
+                });
+                new Uint32Array(optionsBuffer.getMappedRange()).set([
+                    request.plan.mode,
+                    request.plan.fixedWordBytePosition,
+                    request.plan.fixedWordValue,
+                    0,
+                ]);
+                optionsBuffer.unmap();
+            }
             const baseOrdinalBuffers = [];
             const candidateCountBuffers = [];
             for (let i = 0; i < request.submitBatch; i++) {
@@ -3393,8 +3440,10 @@ class TemplateSearchEngine {
                 { binding: 1, resource: { buffer: packetCountBuffer } },
                 { binding: 2, resource: { buffer: foundFlagBuffer } },
                 { binding: 3, resource: { buffer: resultBuffer } },
-                { binding: 9, resource: { buffer: optionsBuffer } },
             ];
+            if (optionsBuffer) {
+                commonEntries.push({ binding: 9, resource: { buffer: optionsBuffer } });
+            }
             const kernelEntries = request.kernel === 'streamslice'
                 ? [
                     { binding: 6, resource: { buffer: this.keyPermBuffer } },
@@ -3490,6 +3539,7 @@ const TEMPLATE_STORAGE_KEY = 'webbiss.templateConfigs.v1';
 const TEMPLATE_KERNEL_STORAGE_KEY = 'webbiss.template.kernel';
 const TEMPLATE_BATCH_STORAGE_KEY = 'webbiss.template.batchSize';
 const TEMPLATE_SUBMIT_STORAGE_KEY = 'webbiss.template.submitBatch';
+const PROGRESS_RENDER_INTERVAL_MS = 100;
 const THEME_STORAGE_KEY = 'webbiss.themeMode';
 const DISCLAIMER_STORAGE_KEY = 'webbiss.disclaimerAccepted';
 const MAX_TS_SCAN_BYTES = 20 * 1024 * 1024;
@@ -3572,11 +3622,20 @@ let loadedSamples = null;
 let engineReady = false;
 let isRunning = false;
 let activeAbortController = null;
+let progressRenderFrame = null;
+let pendingProgress = null;
+let lastProgressRenderAt = Number.NEGATIVE_INFINITY;
 let editingTemplateId = null;
 let deletingTemplateId = null;
 let queueItems = [];
 let fileOperationToken = 0;
 let sampleOperationToken = 0;
+function cancelProgressRender() {
+    if (progressRenderFrame !== null)
+        window.cancelAnimationFrame(progressRenderFrame);
+    progressRenderFrame = null;
+    pendingProgress = null;
+}
 function isStoredTemplateConfig(value) {
     if (!value || typeof value !== 'object')
         return false;
@@ -4088,6 +4147,8 @@ function renderQueue() {
     queueList.replaceChildren(...rows);
 }
 function resetProgress() {
+    cancelProgressRender();
+    lastProgressRenderAt = Number.NEGATIVE_INFINITY;
     progressText.textContent = '0.00%';
     progressBar.style.width = '0%';
     speedText.textContent = '0.00 M/s';
@@ -4125,12 +4186,34 @@ async function copyResolvedKey() {
         showToast('The key could not be copied to the clipboard.', 'error');
     }
 }
-function updateProgress(progress) {
+function renderProgress(progress) {
     progressText.textContent = `${progress.progressPercent.toFixed(2)}%`;
     progressBar.style.width = `${progress.progressPercent}%`;
     speedText.textContent = `${progress.throughputMkeys.toFixed(2)} M/s`;
     currentSeedText.textContent = progress.currentSeed;
     elapsedText.textContent = formatElapsed(progress.elapsedSeconds);
+}
+function updateProgress(progress, force = false) {
+    pendingProgress = progress;
+    if (force) {
+        const latest = pendingProgress;
+        cancelProgressRender();
+        lastProgressRenderAt = performance.now();
+        if (latest)
+            renderProgress(latest);
+        return;
+    }
+    if (progressRenderFrame !== null || performance.now() - lastProgressRenderAt < PROGRESS_RENDER_INTERVAL_MS)
+        return;
+    progressRenderFrame = window.requestAnimationFrame(() => {
+        progressRenderFrame = null;
+        const latest = pendingProgress;
+        pendingProgress = null;
+        if (!latest)
+            return;
+        lastProgressRenderAt = performance.now();
+        renderProgress(latest);
+    });
 }
 async function runTemplateQueue() {
     if (isRunning || !engineReady || !loadedSamples)
@@ -4181,7 +4264,7 @@ async function runTemplateQueue() {
                 signal: activeAbortController.signal,
                 onProgress: updateProgress,
             });
-            updateProgress(result);
+            updateProgress(result, true);
             if (result.status === 'found' && result.foundKey) {
                 item.status = 'found';
                 item.detail = `Matched after ${formatElapsed(result.elapsedSeconds)}.`;
@@ -4228,6 +4311,7 @@ async function runTemplateQueue() {
         showToast(error instanceof Error ? error.message : String(error), 'error');
     }
     finally {
+        cancelProgressRender();
         isRunning = false;
         activeAbortController = null;
         activeTemplateText.textContent = resultBox.classList.contains('hidden') ? 'Queue complete' : 'Match found';
