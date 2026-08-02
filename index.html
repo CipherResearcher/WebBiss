@@ -254,6 +254,21 @@ body {
     gap: 10px;
     flex: 0 0 auto;
 }
+.topbar-controls {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 0 0 auto;
+}
+.topbar-link {
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+}
+.topbar-link:hover {
+    color: var(--accent-strong);
+}
 .theme-label {
     margin: 0;
     display: inline-flex;
@@ -584,9 +599,28 @@ button:disabled {
     text-transform: uppercase;
     letter-spacing: 0.08em;
 }
+.result-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+}
 .result-box h3 {
-    margin: 0 0 10px;
+    margin: 0;
     font-size: 22px;
+}
+.copy-key-button {
+    flex: 0 0 auto;
+    min-height: 32px;
+    padding: 0 10px;
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--success);
+    font-size: 12px;
+}
+.copy-key-button:hover:not(:disabled) {
+    background: var(--surface-soft);
 }
 .key-display {
     font-size: 18px;
@@ -746,6 +780,11 @@ button:disabled {
         width: 100%;
         align-items: stretch;
     }
+    .topbar-controls {
+        width: 100%;
+        align-items: stretch;
+        flex-direction: column;
+    }
     .theme-label {
         justify-content: flex-start;
     }
@@ -807,13 +846,16 @@ button:disabled {
                         </p>
                     </div>
                 </div>
-                <div class="theme-control">
-                    <label for="themeSelect" class="theme-label">Theme</label>
-                    <select id="themeSelect" class="theme-select" aria-label="Color theme">
-                        <option value="system" selected>System</option>
-                        <option value="light">Light</option>
-                        <option value="dark">Dark</option>
-                    </select>
+                <div class="topbar-controls">
+                    <a href="index_template.html" class="topbar-link">Template</a>
+                    <div class="theme-control">
+                        <label for="themeSelect" class="theme-label">Theme</label>
+                        <select id="themeSelect" class="theme-select" aria-label="Color theme">
+                            <option value="system" selected>System</option>
+                            <option value="light">Light</option>
+                            <option value="dark">Dark</option>
+                        </select>
+                    </div>
                 </div>
             </div>
         </header>
@@ -920,7 +962,10 @@ button:disabled {
                 </div>
                 <div id="resultBox" class="result-box hidden">
                     <p class="result-kicker">Resolved Match</p>
-                    <h3>Key Found</h3>
+                    <div class="result-title-row">
+                        <h3>Key Found</h3>
+                        <button id="copyKeyBtn" type="button" class="copy-key-button" aria-label="Copy resolved key">Copy</button>
+                    </div>
                     <div id="foundKey" class="key-display font-mono"></div>
                 </div>
                 <div id="errorBox" class="error-box hidden"></div>
@@ -979,6 +1024,13 @@ button:disabled {
 @group(0) @binding(6) var<storage, read> key_perm_byte_storage: array<vec2<u32>>;
 @group(0) @binding(7) var<storage, read> key_perm_table_storage: array<u32>;
 @group(0) @binding(8) var<storage, read> sbox_table_storage: array<u32>;
+struct TemplateSearchOptions {
+mode: u32,
+fixed_word_byte_position: u32,
+fixed_word_value: u32,
+reserved: u32,
+}
+@group(0) @binding(9) var<uniform> template_search_options: TemplateSearchOptions;
 const BITS_SLICE_LANES = 32u;
 const MAX_PRELOAD_PACKETS = 64u;
 const BLOCK_PERM_OUT_TO_IN = array<u32, 8>(6u, 0u, 4u, 7u, 3u, 2u, 5u, 1u);
@@ -1003,6 +1055,15 @@ return vec2<u32>(0u, v.x << (shift - 32u));
 }
 let lo = v.x << shift;
 let hi = (v.y << shift) | (v.x >> (32u - shift));
+return vec2<u32>(lo, hi);
+}
+fn u64_shr(v: vec2<u32>, shift: u32) -> vec2<u32> {
+if (shift == 0u) { return v; }
+if (shift >= 32u) {
+return vec2<u32>(v.y >> (shift - 32u), 0u);
+}
+let lo = (v.x >> shift) | (v.y << (32u - shift));
+let hi = v.y >> shift;
 return vec2<u32>(lo, hi);
 }
 fn u64_ge(a: vec2<u32>, b: vec2<u32>) -> bool {
@@ -1636,8 +1697,29 @@ return vec3<u32>(tg_u0[pidx], tg_u1[pidx], tg_u2[pidx]);
 let base = pidx * 4u;
 return vec3<u32>(packets_data[base + 0u], packets_data[base + 1u], packets_data[base + 2u]);
 }
-fn init_lanes_and_check_range(
+fn map_template_ordinal(
+ordinal: vec2<u32>,
+mode: u32,
+fixed_word_byte_position: u32,
+fixed_word_value: u32
+) -> vec2<u32> {
+if (mode == 1u) { return ordinal; }
+let fixed_value = fixed_word_value & 0xFFFFu;
+if (fixed_word_byte_position == 0u) {
+return u64_or(u64_shl(ordinal, 16u), vec2<u32>(fixed_value, 0u));
+}
+if (fixed_word_byte_position == 2u) {
+let low = ordinal.x & 0xFFFFu;
+let high = u64_shl(u64_shr(ordinal, 16u), 32u);
+return u64_or(high, vec2<u32>(low | (fixed_value << 16u), 0u));
+}
+return ordinal;
+}
+fn init_lanes_and_check_range_mapped(
 id_x: u32,
+mode: u32,
+fixed_word_byte_position: u32,
+fixed_word_value: u32,
 p_lane_mask: ptr<function, u32>,
 p_p0_lane: ptr<function, array<vec2<u32>, 32>>
 ) -> bool {
@@ -1647,13 +1729,14 @@ let diff_check = u64_sub(thread_base, base_key_idx);
 if (u64_ge(diff_check, keys_to_check)) { return false; }
 var lane_mask = 0u;
 for (var lane = 0u; lane < BITS_SLICE_LANES; lane++) {
-let idx = u64_add(thread_base, vec2<u32>(lane, 0u));
-let diff = u64_sub(idx, base_key_idx);
+let ordinal = u64_add(thread_base, vec2<u32>(lane, 0u));
+let diff = u64_sub(ordinal, base_key_idx);
 if (u64_ge(diff, keys_to_check)) {
 (*p_p0_lane)[lane] = vec2<u32>(0u, 0u);
 continue;
 }
 lane_mask |= (1u << lane);
+let idx = map_template_ordinal(ordinal, mode, fixed_word_byte_position, fixed_word_value);
 let seed0 = (idx.y >> 8u) & 0xFFu;
 let seed1 = (idx.y >> 0u) & 0xFFu;
 let seed2 = (idx.x >> 24u) & 0xFFu;
@@ -1669,18 +1752,34 @@ let lo = (seed3 << 24u) | (seed4 << 16u) | (seed5 << 8u) | cw7;
 *p_lane_mask = lane_mask;
 return true;
 }
+fn init_lanes_and_check_range(
+id_x: u32,
+p_lane_mask: ptr<function, u32>,
+p_p0_lane: ptr<function, array<vec2<u32>, 32>>
+) -> bool {
+return init_lanes_and_check_range_mapped(id_x, 1u, 0u, 0u, p_lane_mask, p_p0_lane);
+}
 var<workgroup> tg_u0: array<u32, 64>;
 var<workgroup> tg_u1: array<u32, 64>;
 var<workgroup> tg_u2: array<u32, 64>;
-@compute @workgroup_size(STREAMSLICE_WORKGROUP_SIZE)
-fn dvbcsa_bruteforce_streamslice(
-@builtin(global_invocation_id) id: vec3<u32>,
-@builtin(local_invocation_index) tid: u32
+fn run_streamslice_kernel(
+id_x: u32,
+tid: u32,
+mode: u32,
+fixed_word_byte_position: u32,
+fixed_word_value: u32
 ) {
 if (!tg_preload_and_check_found(tid, STREAMSLICE_WORKGROUP_SIZE)) { return; }
 var lane_mask = 0u;
 var p0_lane: array<vec2<u32>, 32>;
-if (!init_lanes_and_check_range(id.x, &lane_mask, &p0_lane)) { return; }
+if (!init_lanes_and_check_range_mapped(
+id_x,
+mode,
+fixed_word_byte_position,
+fixed_word_value,
+&lane_mask,
+&p0_lane
+)) { return; }
 for (var pidx = 0u; pidx < packet_count; pidx++) {
 let pkt = load_packet_data(pidx);
 let u0 = pkt.x;
@@ -1737,15 +1836,24 @@ result_buffer[0] = p0_lane[lane].x;
 result_buffer[1] = p0_lane[lane].y;
 }
 }
-@compute @workgroup_size(BITSLICE_WORKGROUP_SIZE)
-fn dvbcsa_bruteforce_streamslice_bitslice(
-@builtin(global_invocation_id) id: vec3<u32>,
-@builtin(local_invocation_index) tid: u32
+fn run_bitslice_kernel(
+id_x: u32,
+tid: u32,
+mode: u32,
+fixed_word_byte_position: u32,
+fixed_word_value: u32
 ) {
 if (!tg_preload_and_check_found(tid, BITSLICE_WORKGROUP_SIZE)) { return; }
 var lane_mask = 0u;
 var p0_lane: array<vec2<u32>, 32>;
-if (!init_lanes_and_check_range(id.x, &lane_mask, &p0_lane)) { return; }
+if (!init_lanes_and_check_range_mapped(
+id_x,
+mode,
+fixed_word_byte_position,
+fixed_word_value,
+&lane_mask,
+&p0_lane
+)) { return; }
 var cw_byte_planes_stream: array<array<u32, 8>, 8>;
 for (var i = 0u; i < 8u; i++) {
 for (var j = 0u; j < 8u; j++) {
@@ -1792,6 +1900,46 @@ let lane = countTrailingZeros(lane_mask);
 result_buffer[0] = p0_lane[lane].x;
 result_buffer[1] = p0_lane[lane].y;
 }
+}
+@compute @workgroup_size(STREAMSLICE_WORKGROUP_SIZE)
+fn dvbcsa_bruteforce_streamslice(
+@builtin(global_invocation_id) id: vec3<u32>,
+@builtin(local_invocation_index) tid: u32
+) {
+run_streamslice_kernel(id.x, tid, 1u, 0u, 0u);
+}
+@compute @workgroup_size(BITSLICE_WORKGROUP_SIZE)
+fn dvbcsa_bruteforce_streamslice_bitslice(
+@builtin(global_invocation_id) id: vec3<u32>,
+@builtin(local_invocation_index) tid: u32
+) {
+run_bitslice_kernel(id.x, tid, 1u, 0u, 0u);
+}
+@compute @workgroup_size(STREAMSLICE_WORKGROUP_SIZE)
+fn dvbcsa_bruteforce_streamslice_template(
+@builtin(global_invocation_id) id: vec3<u32>,
+@builtin(local_invocation_index) tid: u32
+) {
+run_streamslice_kernel(
+id.x,
+tid,
+template_search_options.mode,
+template_search_options.fixed_word_byte_position,
+template_search_options.fixed_word_value
+);
+}
+@compute @workgroup_size(BITSLICE_WORKGROUP_SIZE)
+fn dvbcsa_bruteforce_streamslice_bitslice_template(
+@builtin(global_invocation_id) id: vec3<u32>,
+@builtin(local_invocation_index) tid: u32
+) {
+run_bitslice_kernel(
+id.x,
+tid,
+template_search_options.mode,
+template_search_options.fixed_word_byte_position,
+template_search_options.fixed_word_value
+);
 }</script><script type="module">function getKeyPermByteTable() {
     const metalTable = [
         0x12, 0x24, 0x09, 0x07, 0x2A, 0x31, 0x1D, 0x15, 0x1C, 0x36, 0x3E, 0x32, 0x13, 0x21, 0x3B, 0x40,
@@ -1961,6 +2109,7 @@ const etcText = document.getElementById('etcText');
 const gpuInfoText = document.getElementById('gpuInfoText');
 const resultBox = document.getElementById('resultBox');
 const foundKeyDiv = document.getElementById('foundKey');
+const copyKeyBtn = document.getElementById('copyKeyBtn');
 const errorBox = document.getElementById('errorBox');
 const kernelSelect = document.getElementById('kernelSelect');
 const batchSizeSelect = document.getElementById('batchSizeSelect');
@@ -2345,7 +2494,38 @@ function showError(msg) {
         showToast(msg, 'error', 5000);
     }
 }
+function resetStandardRuntimeDisplay() {
+    progressBar.style.width = '0%';
+    progressText.textContent = '0.00%';
+    speedText.textContent = '0.00 M/s';
+    currentSeedText.textContent = '-';
+    timeText.textContent = '0.00s';
+    etcText.textContent = '--';
+    foundKeyDiv.textContent = '';
+    copyKeyBtn.textContent = 'Copy';
+    resultBox.classList.add('hidden');
+    errorBox.classList.add('hidden');
+}
+async function copyResolvedKey() {
+    const key = (foundKeyDiv.textContent || '').replace(/\s+/g, '').toUpperCase();
+    if (!/^[0-9A-F]{16}$/.test(key)) {
+        showToast('No valid 16-character key is available to copy.', 'error', 4000);
+        return;
+    }
+    try {
+        await navigator.clipboard.writeText(key);
+        copyKeyBtn.textContent = 'Copied';
+        showToast('Key copied.');
+        window.setTimeout(() => {
+            copyKeyBtn.textContent = 'Copy';
+        }, 1600);
+    }
+    catch {
+        showToast('The key could not be copied to the clipboard.', 'error', 4000);
+    }
+}
 function setupEventListeners() {
+    copyKeyBtn.addEventListener('click', () => void copyResolvedKey());
     startBtn.addEventListener('click', () => {
         if (device && shaderModule) {
             startBruteforce();
@@ -2398,16 +2578,25 @@ function setupEventListeners() {
     });
     importBtn.addEventListener('click', (e) => {
         e.preventDefault();
+        if (isRunning) {
+            showToast('Cannot switch files while running. Please stop first.', 'error', 4000);
+            return;
+        }
         importModal.classList.remove('hidden');
         resetImportModal();
     });
     cancelImportBtn.addEventListener('click', () => {
+        resetImportModal();
         importModal.classList.add('hidden');
     });
-    fileDropZone.addEventListener('click', () => fileInput.click());
+    fileDropZone.addEventListener('click', () => {
+        if (!isRunning)
+            fileInput.click();
+    });
     fileDropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
-        fileDropZone.classList.add('drag-over');
+        if (!isRunning)
+            fileDropZone.classList.add('drag-over');
     });
     fileDropZone.addEventListener('dragleave', () => {
         fileDropZone.classList.remove('drag-over');
@@ -2416,7 +2605,7 @@ function setupEventListeners() {
         e.preventDefault();
         fileDropZone.classList.remove('drag-over');
         const dragEvent = e;
-        if (dragEvent.dataTransfer?.files.length) {
+        if (!isRunning && dragEvent.dataTransfer?.files.length) {
             handleFileSelect(dragEvent.dataTransfer.files[0]);
         }
     });
@@ -2425,14 +2614,30 @@ function setupEventListeners() {
             handleFileSelect(fileInput.files[0]);
         }
     });
+    pidSelect.addEventListener('change', () => {
+        importOperationToken += 1;
+        confirmImportBtn.disabled = !selectedFile || !pidSelect.value;
+    });
     confirmImportBtn.addEventListener('click', async () => {
-        if (!selectedFile || !pidSelect.value)
+        if (isRunning)
             return;
+        const sourceFile = selectedFile;
+        const pidValue = pidSelect.value;
+        if (!sourceFile || !pidValue)
+            return;
+        const pid = parseInt(pidValue, 10);
+        const operationToken = importOperationToken;
+        const isCurrentImport = () => operationToken === importOperationToken
+            && selectedFile === sourceFile
+            && pidSelect.value === pidValue;
         confirmImportBtn.disabled = true;
+        pidSelect.disabled = true;
+        resetStandardRuntimeDisplay();
         importStatus.textContent = "Extracting samples...";
         try {
-            const pid = parseInt(pidSelect.value);
-            const result = await getTsSamples(selectedFile, 0, pid, 20 * 1024 * 1024);
+            const result = await getTsSamples(sourceFile, 0, pid, 20 * 1024 * 1024);
+            if (!isCurrentImport())
+                return;
             if (result.ok && result.samples) {
                 const inputs = [
                     document.getElementById('sample1'),
@@ -2449,17 +2654,25 @@ function setupEventListeners() {
             }
             else {
                 importStatus.textContent = result.error || "Failed to extract samples.";
-                confirmImportBtn.disabled = false;
             }
         }
         catch (e) {
+            if (!isCurrentImport())
+                return;
             importStatus.textContent = "Error: " + e.message;
-            confirmImportBtn.disabled = false;
+        }
+        finally {
+            if (isCurrentImport()) {
+                pidSelect.disabled = false;
+                confirmImportBtn.disabled = !selectedFile || !pidSelect.value;
+            }
         }
     });
 }
 let selectedFile = null;
+let importOperationToken = 0;
 function resetImportModal() {
+    importOperationToken += 1;
     selectedFile = null;
     fileInput.value = '';
     fileNameDisplay.classList.add('hidden');
@@ -2467,21 +2680,32 @@ function resetImportModal() {
     confirmImportBtn.disabled = true;
     importStatus.textContent = '';
     pidSelect.innerHTML = '';
+    pidSelect.disabled = false;
 }
 async function handleFileSelect(file) {
+    if (isRunning) {
+        showToast('Cannot switch files while running. Please stop first.', 'error', 4000);
+        return;
+    }
     if (!file.name.toLowerCase().endsWith('.ts')) {
         importStatus.textContent = "Please select a .ts file.";
         return;
     }
+    const operationToken = ++importOperationToken;
+    const sourceFile = file;
     selectedFile = file;
+    resetStandardRuntimeDisplay();
     fileNameDisplay.textContent = file.name;
     fileNameDisplay.classList.remove('hidden');
     importStatus.textContent = "Scanning for encrypted PIDs (max 20MB)...";
     importControls.classList.remove('hidden');
     confirmImportBtn.disabled = true;
+    pidSelect.disabled = true;
     pidSelect.innerHTML = '';
     try {
-        const result = await checkIsEncrypted(file, 0, 20 * 1024 * 1024, 5);
+        const result = await checkIsEncrypted(sourceFile, 0, 20 * 1024 * 1024, 5);
+        if (operationToken !== importOperationToken || selectedFile !== sourceFile)
+            return;
         if (result.ok && result.encrypted) {
             importStatus.textContent = `Found ${result.pids.length} encrypted PID(s).`;
             result.pids.forEach(pid => {
@@ -2490,6 +2714,7 @@ async function handleFileSelect(file) {
                 option.textContent = `PID ${pid}`;
                 pidSelect.appendChild(option);
             });
+            pidSelect.disabled = false;
             confirmImportBtn.disabled = false;
         }
         else {
@@ -2497,6 +2722,8 @@ async function handleFileSelect(file) {
         }
     }
     catch (e) {
+        if (operationToken !== importOperationToken || selectedFile !== sourceFile)
+            return;
         importStatus.textContent = "Error scanning file: " + e.message;
     }
 }

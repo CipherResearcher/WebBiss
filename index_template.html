@@ -1,0 +1,4378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebBiss | Template</title>
+    <meta name="description" content="Run local DVB-CSA1 / BISS template searches from MPEG-TS samples with WebGPU.">
+    <meta name="robots" content="noindex,nofollow">
+    <meta name="theme-color" content="#1d2c48">
+    <style>:root {
+    color-scheme: light dark;
+    --font-body: "SF Pro Text", "Segoe UI Variable Text", "Helvetica Neue", Arial, sans-serif;
+    --font-display: "Avenir Next", "SF Pro Display", "Segoe UI Variable Display", sans-serif;
+    --font-mono: "SFMono-Regular", "IBM Plex Mono", Consolas, monospace;
+    --bg: #f8f3eb;
+    --surface: #fffdf9;
+    --surface-muted: #fff8f0;
+    --surface-soft: #f2f7fb;
+    --text: #1d2c48;
+    --text-muted: rgba(29, 44, 72, 0.68);
+    --line: #274064;
+    --line-soft: rgba(39, 64, 100, 0.18);
+    --accent: #45c55d;
+    --accent-strong: #27a744;
+    --accent-soft: rgba(69, 197, 93, 0.14);
+    --secondary: #8ec7de;
+    --secondary-strong: #74adc8;
+    --danger: #ef8d8d;
+    --danger-strong: #e46e6e;
+    --danger-soft: rgba(239, 141, 141, 0.16);
+    --success: #45c55d;
+    --success-soft: rgba(69, 197, 93, 0.16);
+    --shadow: 0 10px 22px rgba(39, 64, 100, 0.08);
+    --radius-xl: 24px;
+    --radius-lg: 18px;
+    --radius-md: 14px;
+    --border-strong: 2px solid var(--line);
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #171b23;
+        --surface: #202633;
+        --surface-muted: #252d3a;
+        --surface-soft: #293140;
+        --text: #edf2fa;
+        --text-muted: rgba(237, 242, 250, 0.7);
+        --line: #7f93b3;
+        --line-soft: rgba(127, 147, 179, 0.18);
+        --accent: #69d687;
+        --accent-strong: #7ce29a;
+        --accent-soft: rgba(105, 214, 135, 0.14);
+        --secondary: #7eaec6;
+        --secondary-strong: #95bfd4;
+        --danger: #db8b92;
+        --danger-strong: #e7a2aa;
+        --danger-soft: rgba(219, 139, 146, 0.16);
+        --success: #69d687;
+        --success-soft: rgba(105, 214, 135, 0.14);
+        --shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+        --border-strong: 1.5px solid var(--line);
+    }
+}
+html[data-theme="light"] {
+    color-scheme: light;
+    --bg: #f8f3eb;
+    --surface: #fffdf9;
+    --surface-muted: #fff8f0;
+    --surface-soft: #f2f7fb;
+    --text: #1d2c48;
+    --text-muted: rgba(29, 44, 72, 0.68);
+    --line: #274064;
+    --line-soft: rgba(39, 64, 100, 0.18);
+    --accent: #45c55d;
+    --accent-strong: #27a744;
+    --accent-soft: rgba(69, 197, 93, 0.14);
+    --secondary: #8ec7de;
+    --secondary-strong: #74adc8;
+    --danger: #ef8d8d;
+    --danger-strong: #e46e6e;
+    --danger-soft: rgba(239, 141, 141, 0.16);
+    --success: #45c55d;
+    --success-soft: rgba(69, 197, 93, 0.16);
+    --shadow: 0 10px 22px rgba(39, 64, 100, 0.08);
+}
+html[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #171b23;
+    --surface: #202633;
+    --surface-muted: #252d3a;
+    --surface-soft: #293140;
+    --text: #edf2fa;
+    --text-muted: rgba(237, 242, 250, 0.7);
+    --line: #7f93b3;
+    --line-soft: rgba(127, 147, 179, 0.18);
+    --accent: #69d687;
+    --accent-strong: #7ce29a;
+    --accent-soft: rgba(105, 214, 135, 0.14);
+    --secondary: #7eaec6;
+    --secondary-strong: #95bfd4;
+    --danger: #db8b92;
+    --danger-strong: #e7a2aa;
+    --danger-soft: rgba(219, 139, 146, 0.16);
+    --success: #69d687;
+    --success-soft: rgba(105, 214, 135, 0.14);
+    --shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+    --border-strong: 1.5px solid var(--line);
+}
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+html {
+    overflow-y: scroll;
+    scrollbar-gutter: stable;
+}
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: var(--font-body);
+    color: var(--text);
+    background: var(--bg);
+}
+.app-shell {
+    width: min(1100px, calc(100% - 24px));
+    margin: 0 auto;
+    padding: 18px 0 28px;
+}
+.topbar {
+    margin-bottom: 16px;
+}
+.nav-pill,
+.panel,
+.modal-content,
+.toast {
+    background: var(--surface);
+    border: var(--border-strong);
+    box-shadow: var(--shadow);
+}
+.nav-pill {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 12px 14px;
+    border-radius: 20px;
+}
+.brand-lockup {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.brand-mark {
+    width: 42px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: var(--danger-soft);
+    border: var(--border-strong);
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+}
+.brand-copy h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(24px, 4vw, 32px);
+    line-height: 1;
+    letter-spacing: -0.04em;
+}
+.brand-copy .topbar-copy {
+    margin-top: 8px;
+    max-width: none;
+    width: 100%;
+}
+.app-kicker,
+.panel-kicker {
+    margin: 0 0 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+.theme-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 0 0 auto;
+}
+.topbar-controls {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 0 0 auto;
+}
+.topbar-link {
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+}
+.topbar-link:hover {
+    color: var(--accent-strong);
+}
+.theme-label {
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    font-size: 11px;
+    color: var(--text-muted);
+}
+.theme-select {
+    min-width: 120px;
+    min-height: 40px;
+    padding: 0 12px;
+}
+.topbar-copy,
+.topbar-note,
+.panel-copy,
+.panel-note {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.6;
+}
+.brand-copy .topbar-note {
+    margin-top: 6px;
+}
+.tool-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+    gap: 16px;
+}
+.panel {
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+}
+.panel-head {
+    display: grid;
+    gap: 6px;
+    padding: 18px;
+    border-bottom: var(--border-strong);
+}
+.panel h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(22px, 3vw, 28px);
+    line-height: 1.04;
+    letter-spacing: -0.04em;
+}
+.panel-head .panel-copy {
+    max-width: 32rem;
+}
+.runtime-device {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 4px;
+    padding: 10px 12px;
+    border: var(--border-strong);
+    border-radius: 12px;
+    background: var(--surface-soft);
+}
+.runtime-device-label {
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+.runtime-device-value {
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.4;
+    text-align: right;
+    word-break: break-word;
+}
+.field-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    padding: 18px;
+}
+.form-group-full {
+    grid-column: 1 / -1;
+}
+.segmented-control {
+    display: inline-grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    width: 100%;
+    padding: 6px;
+    border: var(--border-strong);
+    border-radius: 14px;
+    background: var(--surface-soft);
+}
+.segment-button {
+    min-height: 40px;
+    padding: 0 12px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: none;
+}
+.segment-button.is-active {
+    background: var(--secondary);
+}
+.native-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+    pointer-events: none;
+}
+.form-group {
+    margin: 0;
+}
+.field-hint {
+    margin: 8px 0 0;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+label {
+    display: block;
+    margin-bottom: 7px;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+input[type="text"],
+select {
+    width: 100%;
+    min-height: 44px;
+    padding: 11px 12px;
+    border: var(--border-strong);
+    border-radius: 12px;
+    background: var(--surface-strong, var(--surface));
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    box-shadow: none;
+}
+input[type="text"]:focus,
+select:focus {
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.font-mono {
+    font-family: var(--font-mono);
+}
+.samples-block {
+    padding: 0 18px 18px;
+    display: grid;
+    gap: 10px;
+}
+.label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.label-row label {
+    margin: 0;
+}
+.sample-input {
+    min-height: 46px;
+}
+.import-link {
+    color: var(--text);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 700;
+}
+.import-link:hover {
+    color: var(--accent-strong);
+}
+.import-link.disabled {
+    color: var(--text-muted);
+    pointer-events: none;
+}
+.panel-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 18px 18px;
+    border-top: var(--border-strong);
+}
+.action-cluster {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    min-width: 240px;
+    justify-content: flex-end;
+}
+button {
+    min-height: 44px;
+    padding: 0 16px;
+    border: var(--border-strong);
+    border-radius: 12px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    color: var(--text);
+    background: var(--surface-soft);
+}
+.action-cluster button {
+    flex: 1 1 0;
+    min-width: 110px;
+    max-width: 132px;
+}
+#startBtn {
+    background: var(--accent);
+    color: #fff;
+}
+#startBtn:hover:not(:disabled) {
+    background: var(--accent-strong);
+}
+#stopBtn {
+    background: var(--danger);
+    color: #fff;
+}
+#stopBtn:hover:not(:disabled) {
+    background: var(--danger-strong);
+}
+button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+.panel-status {
+    padding-bottom: 18px;
+}
+.status-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 18px 0;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+.status-row-meta {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+.status-row-etc {
+    white-space: nowrap;
+}
+.status-row-separator {
+    opacity: 0.7;
+}
+.progress-bar-bg {
+    margin: 12px 18px 0;
+    height: 12px;
+    border: var(--border-strong);
+    border-radius: 999px;
+    overflow: hidden;
+    background: var(--surface-soft);
+}
+.progress-bar-fill {
+    position: relative;
+    width: 0%;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--success), #84e79a);
+    transition: width 0.2s ease;
+}
+.progress-bar-fill::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.42), transparent);
+    animation: progressSweep 2.4s linear infinite;
+}
+.status-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 16px 18px 0;
+}
+.status-item {
+    padding: 14px;
+    border: var(--border-strong);
+    border-radius: 14px;
+    background: var(--surface-soft);
+}
+.status-item .label {
+    display: block;
+    margin-bottom: 7px;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+.status-item .value {
+    display: block;
+    font-size: clamp(18px, 2vw, 22px);
+    line-height: 1.1;
+    font-weight: 700;
+}
+.result-box,
+.error-box {
+    margin: 16px 18px 0;
+    padding: 16px;
+    border: var(--border-strong);
+    border-radius: 14px;
+}
+.result-box {
+    background: var(--success-soft);
+    color: var(--success);
+}
+.result-kicker {
+    margin: 0 0 6px;
+    color: var(--text-muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+.result-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+.result-box h3 {
+    margin: 0;
+    font-size: 22px;
+}
+.copy-key-button {
+    flex: 0 0 auto;
+    min-height: 32px;
+    padding: 0 10px;
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--success);
+    font-size: 12px;
+}
+.copy-key-button:hover:not(:disabled) {
+    background: var(--surface-soft);
+}
+.key-display {
+    font-size: 18px;
+    line-height: 1.6;
+    word-break: break-word;
+}
+.error-box {
+    background: var(--danger-soft);
+    color: var(--danger-strong);
+}
+.hidden {
+    display: none !important;
+}
+.modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    background: rgba(9, 14, 24, 0.42);
+    backdrop-filter: blur(8px);
+}
+.modal-content {
+    width: min(720px, 100%);
+    max-height: calc(100svh - 48px);
+    overflow: auto;
+    padding: 22px;
+    border-radius: 20px;
+}
+.modal h2 {
+    margin: 0;
+    font-size: 26px;
+    letter-spacing: -0.04em;
+}
+.modal-body {
+    margin: 18px 0;
+    color: var(--text-muted);
+    line-height: 1.7;
+}
+.modal-body strong {
+    color: var(--text);
+}
+.modal-body p {
+    margin: 0 0 12px;
+}
+.modal-body ul {
+    margin: 0;
+    padding-left: 20px;
+}
+.modal-body p {
+    margin: 0 0 12px;
+}
+.modal-body ul {
+    margin: 0;
+    padding-left: 20px;
+}
+.modal-warning {
+    margin-top: 16px;
+    padding: 14px;
+    border: var(--border-strong);
+    border-radius: 14px;
+    background: var(--surface-soft);
+    color: var(--text);
+}
+#acceptDisclaimerBtn {
+    width: 100%;
+}
+.dropzone {
+    padding: 28px 16px;
+    border: var(--border-strong);
+    border-radius: 14px;
+    text-align: center;
+    cursor: pointer;
+    background: var(--surface-soft);
+}
+.dropzone:hover,
+.dropzone.drag-over {
+    background: var(--accent-soft);
+}
+.hidden-input {
+    display: none;
+}
+.drop-hint,
+.status-text {
+    color: var(--text-muted);
+    font-size: 14px;
+}
+.file-name {
+    margin-top: 10px;
+    color: var(--accent-strong);
+    font-weight: 700;
+}
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: var(--border-strong);
+}
+.secondary {
+    background: var(--surface-soft);
+    color: var(--text);
+}
+.toast-container {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 2000;
+}
+.toast {
+    min-width: 240px;
+    max-width: 360px;
+    margin-bottom: 10px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    color: var(--text);
+    animation: revealToast 0.2s ease forwards;
+}
+.toast.success {
+    border-left: 4px solid var(--success);
+}
+.toast.error {
+    border-left: 4px solid var(--danger);
+}
+.toast.fade-out {
+    animation: fadeOut 0.4s ease forwards;
+}
+@media (max-width: 920px) {
+    .tool-layout,
+    .panel-head {
+        grid-template-columns: 1fr;
+    }
+    .topbar-tools {
+        justify-items: start;
+    }
+}
+@media (max-width: 700px) {
+    .app-shell {
+        width: min(100%, calc(100% - 16px));
+        padding-top: 16px;
+    }
+    .nav-pill,
+    .brand-lockup,
+    .panel-footer,
+    .label-row,
+    .modal-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .theme-control {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 6px;
+        width: 100%;
+        align-items: stretch;
+    }
+    .topbar-controls {
+        width: 100%;
+        align-items: stretch;
+        flex-direction: column;
+    }
+    .theme-label {
+        justify-content: flex-start;
+    }
+    .theme-select {
+        width: 100%;
+    }
+    .field-grid {
+        grid-template-columns: 1fr;
+    }
+    .runtime-device {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+    .runtime-device-value {
+        text-align: left;
+    }
+    .action-cluster {
+        min-width: 0;
+    }
+}
+@keyframes revealToast {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+@keyframes progressSweep {
+    from {
+        transform: translateX(-120%);
+    }
+    to {
+        transform: translateX(120%);
+    }
+}</style>
+    <style>.template-shell {
+    width: min(1180px, calc(100% - 24px));
+}
+.template-nav {
+    align-items: center;
+}
+.brand-link {
+    color: var(--text);
+    text-decoration: none;
+}
+.topbar-actions,
+.section-actions,
+.run-actions,
+.pid-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.topbar-actions {
+    flex: 0 0 auto;
+}
+.text-link {
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+}
+.text-link:hover {
+    color: var(--accent-strong);
+}
+.template-workflow {
+    display: grid;
+    gap: 16px;
+}
+.workflow-panel {
+    animation: templateReveal 0.28s ease both;
+}
+.workflow-panel:nth-child(2) {
+    animation-delay: 0.05s;
+}
+.workflow-panel:nth-child(3) {
+    animation-delay: 0.1s;
+}
+.workflow-head {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+}
+.compact-device {
+    width: min(360px, 40vw);
+    margin: 0;
+}
+.source-layout {
+    display: grid;
+    grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
+    gap: 0;
+}
+.source-dropzone {
+    min-height: 210px;
+    margin: 18px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.16s ease, transform 0.16s ease;
+}
+.source-dropzone:focus-visible {
+    outline: 3px solid var(--accent-soft);
+    outline-offset: 2px;
+}
+.source-dropzone.drag-over {
+    transform: translateY(-2px);
+}
+.source-dropzone span:not(.dropzone-mark) {
+    color: var(--text-muted);
+    font-size: 13px;
+}
+.dropzone-mark {
+    width: 48px;
+    height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 4px;
+    border: var(--border-strong);
+    border-radius: 12px;
+    background: var(--surface);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 800;
+}
+.source-details {
+    padding: 18px;
+    border-left: var(--border-strong);
+}
+.source-meta {
+    margin: 0 0 18px;
+    display: grid;
+    gap: 12px;
+}
+.source-meta > div {
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr);
+    gap: 14px;
+    align-items: baseline;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line-soft);
+}
+.source-meta dt,
+.active-label,
+.editor-preview > span,
+.runtime-metrics span {
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+.source-meta dd {
+    min-width: 0;
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+.pid-controls {
+    align-items: end;
+}
+.pid-controls .form-group {
+    flex: 1 1 auto;
+}
+.pid-controls button {
+    flex: 0 0 auto;
+}
+.inline-status {
+    margin: 14px 0 0;
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+.inline-status.is-error {
+    color: var(--danger-strong);
+}
+.sample-summary {
+    display: grid;
+    gap: 8px;
+    padding: 16px 18px 18px;
+    border-top: var(--border-strong);
+    background: var(--surface-soft);
+}
+.sample-summary code {
+    display: block;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+.selection-count {
+    color: var(--text-muted);
+    font-size: 13px;
+    white-space: nowrap;
+}
+.compact-button {
+    min-height: 40px;
+}
+.template-list {
+    max-height: calc(92px * 5);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+}
+.template-list-head,
+.template-row {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr) minmax(150px, 0.3fr) 150px;
+    align-items: center;
+    gap: 14px;
+}
+.template-list-head {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--line-soft);
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+.template-row {
+    min-height: 92px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--line-soft);
+    transition: background-color 0.16s ease, opacity 0.16s ease;
+}
+.template-row:last-child {
+    border-bottom: 0;
+}
+.template-row:hover {
+    background: var(--surface-soft);
+}
+.template-row.is-unavailable {
+    opacity: 0.56;
+}
+.template-check {
+    width: 22px;
+    height: 22px;
+    margin: 0;
+    accent-color: var(--accent-strong);
+}
+.template-main {
+    min-width: 0;
+}
+.template-name {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+.template-name strong {
+    font-size: 15px;
+}
+.template-rule,
+.template-resolved {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+}
+.template-rule {
+    color: var(--text-muted);
+}
+.template-resolved {
+    margin-top: 3px;
+    color: var(--text);
+}
+.template-resolved.is-error {
+    color: var(--danger-strong);
+    font-family: var(--font-body);
+}
+.template-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 3px 8px;
+    border: 1px solid var(--line-soft);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 700;
+}
+.template-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+}
+.template-actions button {
+    min-height: 36px;
+    padding: 0 10px;
+    font-size: 12px;
+}
+.runtime-settings {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    padding: 18px;
+    border-bottom: var(--border-strong);
+}
+.run-actions {
+    align-items: stretch;
+}
+#runTemplatesBtn,
+#saveTemplateBtn,
+#acceptDisclaimerBtn {
+    background: var(--accent);
+    color: #fff;
+}
+#runTemplatesBtn:hover:not(:disabled),
+#saveTemplateBtn:hover:not(:disabled),
+#acceptDisclaimerBtn:hover:not(:disabled) {
+    background: var(--accent-strong);
+}
+#stopTemplatesBtn,
+.danger-button {
+    background: var(--danger);
+    color: #fff;
+}
+.active-run {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 150px;
+    gap: 18px;
+    padding: 18px 18px 0;
+}
+.active-run-copy,
+.active-run-mode {
+    min-width: 0;
+    display: grid;
+    gap: 6px;
+}
+.active-run-copy strong,
+.active-run-mode strong {
+    font-size: 16px;
+}
+.active-run-copy .font-mono {
+    color: var(--text-muted);
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+.template-progress-row {
+    padding-top: 16px;
+}
+.runtime-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0;
+    margin-top: 18px;
+    border-top: var(--border-strong);
+    border-bottom: var(--border-strong);
+}
+.runtime-metrics > div {
+    min-width: 0;
+    display: grid;
+    gap: 7px;
+    padding: 14px 18px;
+    border-right: 1px solid var(--line-soft);
+}
+.runtime-metrics > div:last-child {
+    border-right: 0;
+}
+.runtime-metrics strong {
+    overflow-wrap: anywhere;
+}
+.queue-list {
+    padding: 4px 18px 0;
+}
+.queue-list.empty-list {
+    padding: 24px 18px;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+.queue-list.empty-list p {
+    margin: 0;
+}
+.queue-row {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    min-height: 64px;
+    border-bottom: 1px solid var(--line-soft);
+}
+.queue-index {
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 12px;
+}
+.queue-copy {
+    min-width: 0;
+}
+.queue-copy strong,
+.queue-copy span {
+    display: block;
+}
+.queue-copy span {
+    margin-top: 4px;
+    color: var(--text-muted);
+    font-size: 12px;
+}
+.queue-status {
+    min-width: 78px;
+    text-align: right;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: capitalize;
+}
+.queue-row[data-status="running"] .queue-status,
+.queue-row[data-status="found"] .queue-status {
+    color: var(--accent-strong);
+}
+.queue-row[data-status="error"] .queue-status,
+.queue-row[data-status="timeout"] .queue-status {
+    color: var(--danger-strong);
+}
+.result-context {
+    margin: 8px 0 0;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+.template-editor {
+    width: min(780px, 100%);
+}
+.template-importer {
+    width: min(760px, 100%);
+}
+.import-body {
+    display: grid;
+    gap: 14px;
+}
+.import-body textarea {
+    width: 100%;
+    min-height: 230px;
+    resize: vertical;
+    padding: 12px;
+    border: var(--border-strong);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.6;
+    outline: none;
+}
+.import-body textarea:focus {
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.import-summary {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 12px 14px;
+    border: var(--border-strong);
+    border-radius: 12px;
+    background: var(--surface-soft);
+    font-size: 13px;
+}
+.import-summary span {
+    color: var(--text-muted);
+    text-align: right;
+}
+.import-issues {
+    min-height: 0;
+}
+.import-issues > strong {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+.import-issues ol {
+    max-height: 210px;
+    margin: 0;
+    padding: 0 0 0 32px;
+    overflow: auto;
+    color: var(--danger-strong);
+}
+.import-issues li {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--line-soft);
+}
+.import-issues li:last-child {
+    border-bottom: 0;
+}
+.import-issues li strong,
+.import-issues li code {
+    display: block;
+    overflow-wrap: anywhere;
+}
+.import-issues li strong {
+    color: var(--danger-strong);
+    font-size: 12px;
+    line-height: 1.45;
+}
+.import-issues li code {
+    margin-top: 4px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.45;
+}
+.editor-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+}
+.close-button {
+    min-height: 36px;
+    padding: 0 10px;
+    font-size: 12px;
+}
+.editor-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+.editor-full {
+    grid-column: 1 / -1;
+}
+input[type="number"] {
+    width: 100%;
+    min-height: 44px;
+    padding: 11px 12px;
+    border: var(--border-strong);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+}
+input[type="number"]:focus {
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.checkbox-field {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 44px;
+    margin: 0;
+    color: var(--text);
+    font-size: 13px;
+    letter-spacing: 0;
+    text-transform: none;
+}
+.checkbox-field input {
+    width: 19px;
+    height: 19px;
+    accent-color: var(--accent-strong);
+}
+.editor-preview {
+    display: grid;
+    gap: 7px;
+    padding: 14px;
+    border: var(--border-strong);
+    border-radius: 14px;
+    background: var(--surface-soft);
+}
+.editor-preview code {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    overflow-wrap: anywhere;
+}
+.editor-preview small {
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+.editor-error {
+    margin: 0;
+    color: var(--danger-strong);
+    font-size: 13px;
+}
+.confirm-dialog,
+.disclaimer-dialog {
+    width: min(520px, 100%);
+}
+@media (max-width: 860px) {
+    .workflow-head,
+    .source-layout {
+        grid-template-columns: 1fr;
+    }
+    .compact-device {
+        width: 100%;
+    }
+    .source-details {
+        border-top: var(--border-strong);
+        border-left: 0;
+    }
+    .template-list-head {
+        display: none;
+    }
+    .template-row {
+        grid-template-columns: 36px minmax(0, 1fr) auto;
+    }
+    .template-badges {
+        grid-column: 2;
+    }
+    .template-actions {
+        grid-column: 3;
+        grid-row: 1 / span 2;
+        flex-direction: column;
+    }
+    .runtime-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .runtime-metrics > div:nth-child(2) {
+        border-right: 0;
+    }
+    .runtime-metrics > div:nth-child(-n + 2) {
+        border-bottom: 1px solid var(--line-soft);
+    }
+}
+@media (max-width: 700px) {
+    .template-nav,
+    .topbar-actions,
+    .workflow-head,
+    .section-actions,
+    .run-actions,
+    .pid-controls,
+    .editor-heading {
+        align-items: stretch;
+        flex-direction: column;
+    }
+    .topbar-actions {
+        width: 100%;
+    }
+    .source-dropzone {
+        min-height: 180px;
+        margin: 14px;
+    }
+    .source-details {
+        padding: 14px;
+    }
+    .source-meta > div {
+        grid-template-columns: 1fr;
+        gap: 5px;
+    }
+    .template-row {
+        grid-template-columns: 30px minmax(0, 1fr);
+        align-items: start;
+        padding: 14px;
+    }
+    .template-badges,
+    .template-actions {
+        grid-column: 2;
+    }
+    .template-actions {
+        grid-row: auto;
+        flex-direction: row;
+        justify-content: flex-start;
+    }
+    .runtime-settings,
+    .active-run,
+    .editor-grid {
+        grid-template-columns: 1fr;
+    }
+    .import-summary {
+        flex-direction: column;
+    }
+    .import-summary span {
+        text-align: left;
+    }
+    .runtime-settings {
+        padding: 14px;
+    }
+    .runtime-metrics {
+        grid-template-columns: 1fr;
+    }
+    .runtime-metrics > div {
+        border-right: 0;
+        border-bottom: 1px solid var(--line-soft);
+    }
+    .runtime-metrics > div:last-child {
+        border-bottom: 0;
+    }
+    .editor-full {
+        grid-column: auto;
+    }
+}
+@keyframes templateReveal {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .workflow-panel,
+    .source-dropzone,
+    .template-row {
+        animation: none;
+        transition: none;
+    }
+}</style>
+</head>
+<body>
+    <div class="app-shell template-shell">
+        <header class="topbar">
+            <div class="nav-pill template-nav">
+                <div class="brand-lockup">
+                    <a class="brand-mark brand-link" href="index.html" aria-label="Back to WebBiss">WB</a>
+                    <div class="brand-copy">
+                        <p class="app-kicker">Template Utility</p>
+                        <h1>WebBiss Templates</h1>
+                        <p class="topbar-copy">Run saved seed patterns against encrypted TS samples in a controlled local workflow.</p>
+                    </div>
+                </div>
+                <div class="topbar-actions">
+                    <a href="index.html" class="text-link">Standard</a>
+                    <div class="theme-control">
+                        <label for="themeSelect" class="theme-label">Theme</label>
+                        <select id="themeSelect" class="theme-select" aria-label="Color theme">
+                            <option value="system" selected>System</option>
+                            <option value="light">Light</option>
+                            <option value="dark">Dark</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <main class="template-workflow">
+            <section class="panel workflow-panel" aria-labelledby="sourceTitle">
+                <div class="panel-head workflow-head">
+                    <div>
+                        <p class="panel-kicker">Step 01</p>
+                        <h2 id="sourceTitle">TS Source</h2>
+                        <p class="panel-copy">Select an encrypted transport stream and load three sample windows from a PID.</p>
+                    </div>
+                    <div class="runtime-device compact-device">
+                        <span class="runtime-device-label">Runtime Device</span>
+                        <span id="gpuInfoText" class="runtime-device-value">Initializing...</span>
+                    </div>
+                </div>
+                <div class="source-layout">
+                    <div id="fileDropZone" class="dropzone source-dropzone" tabindex="0" role="button" aria-label="Choose or drop a TS file">
+                        <input type="file" id="fileInput" accept=".ts" class="hidden-input">
+                        <span class="dropzone-mark" aria-hidden="true">TS</span>
+                        <strong>Drop a .ts file here</strong>
+                        <span>or click to choose from this device</span>
+                    </div>
+                    <div class="source-details">
+                        <dl class="source-meta">
+                            <div>
+                                <dt>File</dt>
+                                <dd id="fileNameText">No file selected</dd>
+                            </div>
+                            <div>
+                                <dt>Filename Date</dt>
+                                <dd id="fileDateText">Not available</dd>
+                            </div>
+                        </dl>
+                        <div class="pid-controls">
+                            <div class="form-group">
+                                <label for="pidSelect">Encrypted PID</label>
+                                <select id="pidSelect" disabled>
+                                    <option value="">Select a TS file first</option>
+                                </select>
+                            </div>
+                            <button id="loadSamplesBtn" type="button" class="secondary" disabled>Load Samples</button>
+                        </div>
+                        <p id="sourceStatus" class="inline-status" aria-live="polite">Waiting for a TS file.</p>
+                    </div>
+                </div>
+                <div id="sampleSummary" class="sample-summary hidden" aria-live="polite"></div>
+            </section>
+            <section class="panel workflow-panel" aria-labelledby="templateTitle">
+                <div class="panel-head workflow-head">
+                    <div>
+                        <p class="panel-kicker">Step 02</p>
+                        <h2 id="templateTitle">Template Library</h2>
+                        <p class="panel-copy">Choose saved configurations to run. Date-based rows are resolved from the selected filename.</p>
+                    </div>
+                    <div class="section-actions">
+                        <span id="selectedCountText" class="selection-count">0 selected</span>
+                        <button id="importTemplatesBtn" type="button" class="compact-button secondary">Import</button>
+                        <button id="addTemplateBtn" type="button" class="compact-button">+ Add Configuration</button>
+                    </div>
+                </div>
+                <div class="template-list-head" aria-hidden="true">
+                    <span>Use</span>
+                    <span>Configuration</span>
+                    <span>Mode / Timeout</span>
+                    <span>Actions</span>
+                </div>
+                <div id="templateList" class="template-list"></div>
+            </section>
+            <section class="panel workflow-panel runtime-panel" aria-labelledby="runtimeTitle">
+                <div class="panel-head workflow-head runtime-head">
+                    <div>
+                        <p class="panel-kicker">Step 03</p>
+                        <h2 id="runtimeTitle">Run Queue</h2>
+                        <p class="panel-copy">Selected templates run sequentially. The queue stops immediately after a key is found.</p>
+                    </div>
+                    <div class="run-actions">
+                        <button id="runTemplatesBtn" type="button" disabled>Run Selected</button>
+                        <button id="stopTemplatesBtn" type="button" disabled>Stop</button>
+                    </div>
+                </div>
+                <div class="runtime-settings">
+                    <div class="form-group">
+                        <label for="kernelSelect">Kernel</label>
+                        <select id="kernelSelect">
+                            <option value="streamslice" selected>Stream Slice</option>
+                            <option value="bitslice">Bitslice</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="batchSizeSelect">Batch Size</label>
+                        <select id="batchSizeSelect">
+                            <option value="33554432">32M</option>
+                            <option value="67108864">64M</option>
+                            <option value="134217728" selected>128M (default)</option>
+                            <option value="268435456">256M</option>
+                            <option value="536870912">512M</option>
+                            <option value="1073741824">1024M</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="submitBatchSelect">Submit Batch</label>
+                        <select id="submitBatchSelect">
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="5">5</option>
+                            <option value="10" selected>10 (default)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="active-run">
+                    <div class="active-run-copy">
+                        <span class="active-label">Current Configuration</span>
+                        <strong id="activeTemplateText">Idle</strong>
+                        <span id="activeRangeText" class="font-mono">--</span>
+                    </div>
+                    <div class="active-run-mode">
+                        <span class="active-label">Mode</span>
+                        <strong id="activeModeText">--</strong>
+                    </div>
+                </div>
+                <div class="status-row template-progress-row">
+                    <span>Template Progress</span>
+                    <span id="progressText">0.00%</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div id="progressBar" class="progress-bar-fill"></div>
+                </div>
+                <div class="runtime-metrics">
+                    <div>
+                        <span>Speed</span>
+                        <strong id="speedText">0.00 M/s</strong>
+                    </div>
+                    <div>
+                        <span>Current Seed</span>
+                        <strong id="currentSeedText" class="font-mono">--</strong>
+                    </div>
+                    <div>
+                        <span>Elapsed</span>
+                        <strong id="elapsedText">0.00s</strong>
+                    </div>
+                    <div>
+                        <span>Queue</span>
+                        <strong id="queuePositionText">0 / 0</strong>
+                    </div>
+                </div>
+                <div id="resultBox" class="result-box hidden">
+                    <p class="result-kicker">Resolved Match</p>
+                    <div class="result-title-row">
+                        <h3>Key Found</h3>
+                        <button id="copyKeyBtn" type="button" class="copy-key-button" aria-label="Copy resolved key">Copy</button>
+                    </div>
+                    <div id="foundKeyText" class="key-display font-mono"></div>
+                    <p id="foundByText" class="result-context"></p>
+                </div>
+                <div id="queueList" class="queue-list empty-list">
+                    <p>Select configurations and load TS samples to prepare a run.</p>
+                </div>
+            </section>
+        </main>
+    </div>
+    <div id="templateImportModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="templateImportTitle">
+        <form id="templateImportForm" class="modal-content template-importer">
+            <div class="editor-heading">
+                <div>
+                    <p class="panel-kicker">Configuration</p>
+                    <h2 id="templateImportTitle">Import Templates</h2>
+                </div>
+                <button id="cancelImportTopBtn" type="button" class="close-button" aria-label="Close template importer">Close</button>
+            </div>
+            <div class="modal-body import-body">
+                <div class="form-group">
+                    <label for="templateImportInput">Template Lines</label>
+                    <textarea id="templateImportInput" class="font-mono" rows="10" spellcheck="false" placeholder="000000000000 FFFFFF000000 1 1 10"></textarea>
+                </div>
+                <div class="import-summary" aria-live="polite">
+                    <strong id="importSummaryText">0 recognized / 0 skipped</strong>
+                    <span>Valid templates will be selected after import.</span>
+                </div>
+                <div id="importIssues" class="import-issues hidden">
+                    <strong>Skipped Lines</strong>
+                    <ol id="importIssueList"></ol>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelImportBtn" type="button" class="secondary">Cancel</button>
+                <button id="confirmImportBtn" type="submit" disabled>Import Valid</button>
+            </div>
+        </form>
+    </div>
+    <div id="templateEditorModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="templateEditorTitle">
+        <form id="templateEditorForm" class="modal-content template-editor">
+            <div class="editor-heading">
+                <div>
+                    <p class="panel-kicker">Configuration</p>
+                    <h2 id="templateEditorTitle">Add Template</h2>
+                </div>
+                <button id="cancelTemplateTopBtn" type="button" class="close-button" aria-label="Close template editor">Close</button>
+            </div>
+            <div class="modal-body editor-grid">
+                <div class="form-group editor-full">
+                    <label for="templateNameInput">Name</label>
+                    <input type="text" id="templateNameInput" required maxlength="80">
+                </div>
+                <div class="form-group">
+                    <label for="startTemplateInput">Start Seed Template</label>
+                    <input type="text" id="startTemplateInput" class="font-mono" required spellcheck="false">
+                </div>
+                <div class="form-group">
+                    <label for="endTemplateInput">End Seed Template</label>
+                    <input type="text" id="endTemplateInput" class="font-mono" required spellcheck="false">
+                </div>
+                <div class="form-group">
+                    <label for="reservedInput">Reserved</label>
+                    <input type="number" id="reservedInput" min="0" step="1" value="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="modeInput">Search Mode</label>
+                    <select id="modeInput">
+                        <option value="1">Mode 1 - Full range</option>
+                        <option value="5">Mode 5 - Fix last 2 bytes</option>
+                        <option value="13">Mode 13 - Fix middle 2 bytes</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="timeoutInput">Timeout (seconds)</label>
+                    <input type="number" id="timeoutInput" min="0.1" step="0.1" value="10" required>
+                </div>
+                <label class="checkbox-field">
+                    <input type="checkbox" id="enabledInput" checked>
+                    <span>Selected for future runs</span>
+                </label>
+                <div class="editor-preview editor-full">
+                    <span>Template Line</span>
+                    <code id="templateLinePreview">--</code>
+                    <small id="templatePreviewText">Enter a valid configuration.</small>
+                </div>
+                <p id="templateEditorError" class="editor-error editor-full hidden" role="alert"></p>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelTemplateBtn" type="button" class="secondary">Cancel</button>
+                <button id="saveTemplateBtn" type="submit">Save Configuration</button>
+            </div>
+        </form>
+    </div>
+    <div id="deleteTemplateModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="deleteTemplateTitle">
+        <div class="modal-content confirm-dialog">
+            <h2 id="deleteTemplateTitle">Delete Configuration</h2>
+            <p id="deleteTemplateText" class="modal-body">This removes the saved configuration from this browser.</p>
+            <div class="modal-footer">
+                <button id="cancelDeleteBtn" type="button" class="secondary">Cancel</button>
+                <button id="confirmDeleteBtn" type="button" class="danger-button">Delete</button>
+            </div>
+        </div>
+    </div>
+    <div id="disclaimerModal" class="modal hidden">
+        <div class="modal-content disclaimer-dialog">
+            <h2>Disclaimer</h2>
+            <div class="modal-body">
+                <p>This tool is intended for defensive research, GPU benchmarking, and authorized testing only.</p>
+                <p class="modal-warning">Only process content and systems that you own or are explicitly permitted to test.</p>
+            </div>
+            <button id="acceptDisclaimerBtn" type="button">I Understand</button>
+        </div>
+    </div>
+    <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+    <script id="wgsl-shader" type="x-shader/x-wgsl">@group(0) @binding(0) var<storage, read> packets_data: array<u32>;
+@group(0) @binding(1) var<uniform> packet_count: u32;
+@group(0) @binding(2) var<storage, read_write> found_flag: atomic<u32>;
+@group(0) @binding(3) var<storage, read_write> result_buffer: array<u32>;
+@group(0) @binding(4) var<uniform> base_key_idx: vec2<u32>;
+@group(0) @binding(5) var<uniform> keys_to_check: vec2<u32>;
+@group(0) @binding(6) var<storage, read> key_perm_byte_storage: array<vec2<u32>>;
+@group(0) @binding(7) var<storage, read> key_perm_table_storage: array<u32>;
+@group(0) @binding(8) var<storage, read> sbox_table_storage: array<u32>;
+struct TemplateSearchOptions {
+mode: u32,
+fixed_word_byte_position: u32,
+fixed_word_value: u32,
+reserved: u32,
+}
+@group(0) @binding(9) var<uniform> template_search_options: TemplateSearchOptions;
+const BITS_SLICE_LANES = 32u;
+const MAX_PRELOAD_PACKETS = 64u;
+const BLOCK_PERM_OUT_TO_IN = array<u32, 8>(6u, 0u, 4u, 7u, 3u, 2u, 5u, 1u);
+const STREAMSLICE_WORKGROUP_SIZE = 256u;
+const BITSLICE_WORKGROUP_SIZE = 128u;
+fn u64_add(a: vec2<u32>, b: vec2<u32>) -> vec2<u32> {
+let lo = a.x + b.x;
+let carry = select(0u, 1u, lo < a.x);
+let hi = a.y + b.y + carry;
+return vec2<u32>(lo, hi);
+}
+fn u64_sub(a: vec2<u32>, b: vec2<u32>) -> vec2<u32> {
+let lo = a.x - b.x;
+let borrow = select(0u, 1u, lo > a.x);
+let hi = a.y - b.y - borrow;
+return vec2<u32>(lo, hi);
+}
+fn u64_shl(v: vec2<u32>, shift: u32) -> vec2<u32> {
+if (shift == 0u) { return v; }
+if (shift >= 32u) {
+return vec2<u32>(0u, v.x << (shift - 32u));
+}
+let lo = v.x << shift;
+let hi = (v.y << shift) | (v.x >> (32u - shift));
+return vec2<u32>(lo, hi);
+}
+fn u64_shr(v: vec2<u32>, shift: u32) -> vec2<u32> {
+if (shift == 0u) { return v; }
+if (shift >= 32u) {
+return vec2<u32>(v.y >> (shift - 32u), 0u);
+}
+let lo = (v.x >> shift) | (v.y << (32u - shift));
+let hi = v.y >> shift;
+return vec2<u32>(lo, hi);
+}
+fn u64_ge(a: vec2<u32>, b: vec2<u32>) -> bool {
+if (a.y > b.y) { return true; }
+if (a.y < b.y) { return false; }
+return a.x >= b.x;
+}
+fn bs_not_mask(v: u32, lane_mask: u32) -> u32 {
+return (~v) & lane_mask;
+}
+fn get_key_perm_table(idx: u32) -> u32 {
+return key_perm_table_storage[idx];
+}
+fn get_sbox_entry(idx: u32) -> u32 {
+return sbox_table_storage[idx];
+}
+fn u64_or(a: vec2<u32>, b: vec2<u32>) -> vec2<u32> {
+return vec2<u32>(a.x | b.x, a.y | b.y);
+}
+fn key_permute64_from_table(x: vec2<u32>) -> vec2<u32> {
+let v0 = (x.y >> 24u) & 0xFFu;
+let v1 = (x.y >> 16u) & 0xFFu;
+let v2 = (x.y >> 8u) & 0xFFu;
+let v3 = (x.y >> 0u) & 0xFFu;
+let v4 = (x.x >> 24u) & 0xFFu;
+let v5 = (x.x >> 16u) & 0xFFu;
+let v6 = (x.x >> 8u) & 0xFFu;
+let v7 = (x.x >> 0u) & 0xFFu;
+let t0 = key_perm_byte_storage[0u * 256u + v0];
+let t1 = key_perm_byte_storage[1u * 256u + v1];
+let t2 = key_perm_byte_storage[2u * 256u + v2];
+let t3 = key_perm_byte_storage[3u * 256u + v3];
+let t4 = key_perm_byte_storage[4u * 256u + v4];
+let t5 = key_perm_byte_storage[5u * 256u + v5];
+let t6 = key_perm_byte_storage[6u * 256u + v6];
+let t7 = key_perm_byte_storage[7u * 256u + v7];
+let a0 = u64_or(t0, t1);
+let a1 = u64_or(t2, t3);
+let a2 = u64_or(t4, t5);
+let a3 = u64_or(t6, t7);
+let b0 = u64_or(a0, a1);
+let b1 = u64_or(a2, a3);
+return u64_or(b0, b1);
+}
+fn get_block_perm_out_to_in(bit: u32) -> u32 {
+return BLOCK_PERM_OUT_TO_IN[bit];
+}
+fn block_decypher3_from_p0_jit(u0: u32, u1: u32, p0: vec2<u32>) -> vec2<u32> {
+var R1 = (u0 >> 0u) & 0xFFu;
+var R2 = (u0 >> 8u) & 0xFFu;
+var R3 = (u0 >> 16u) & 0xFFu;
+var R4 = (u0 >> 24u) & 0xFFu;
+var R5 = (u1 >> 0u) & 0xFFu;
+var R6 = (u1 >> 8u) & 0xFFu;
+var R7 = (u1 >> 16u) & 0xFFu;
+var R8 = (u1 >> 24u) & 0xFFu;
+var p_curr = p0;
+for (var group = 0u; group < 7u; group++) {
+let xval = 6u - group;
+let kb7 = (p_curr.x >> 0u) & 0xFFu;
+let kb6 = (p_curr.x >> 8u) & 0xFFu;
+let kb5 = (p_curr.x >> 16u) & 0xFFu;
+let kb4 = (p_curr.x >> 24u) & 0xFFu;
+let kb3 = (p_curr.y >> 0u) & 0xFFu;
+let kb2 = (p_curr.y >> 8u) & 0xFFu;
+let kb1 = (p_curr.y >> 16u) & 0xFFu;
+let kb0 = (p_curr.y >> 24u) & 0xFFu;
+{
+let sbox_in = (kb7 ^ xval) ^ R7;
+let entry = get_sbox_entry(sbox_in);
+let sbox_out = entry & 0xFFu;
+let perm_out = (entry >> 8u) & 0xFFu;
+let common_xor = R8 ^ sbox_out;
+let next_R8 = R7;
+R7 = R6 ^ perm_out;
+R6 = R5;
+R5 = R4 ^ common_xor;
+R4 = R3 ^ common_xor;
+R3 = R2 ^ common_xor;
+R2 = R1;
+R1 = common_xor;
+R8 = next_R8;
+}
+{
+let sbox_in = (kb6 ^ xval) ^ R7;
+let entry = get_sbox_entry(sbox_in);
+let sbox_out = entry & 0xFFu;
+let perm_out = (entry >> 8u) & 0xFFu;
+let common_xor = R8 ^ sbox_out;
+let next_R8 = R7;
+R7 = R6 ^ perm_out;
+R6 = R5;
+R5 = R4 ^ common_xor;
+R4 = R3 ^ common_xor;
+R3 = R2 ^ common_xor;
+R2 = R1;
+R1 = common_xor;
+R8 = next_R8;
+}
+{
+let sbox_in = (kb5 ^ xval) ^ R7;
+let entry = get_sbox_entry(sbox_in);
+let sbox_out = entry & 0xFFu;
+let perm_out = (entry >> 8u) & 0xFFu;
+let common_xor = R8 ^ sbox_out;
+let next_R8 = R7;
+R7 = R6 ^ perm_out;
+R6 = R5;
+R5 = R4 ^ common_xor;
+R4 = R3 ^ common_xor;
+R3 = R2 ^ common_xor;
+R2 = R1;
+R1 = common_xor;
+R8 = next_R8;
+}
+{
+let sbox_in = (kb4 ^ xval) ^ R7;
+let entry = get_sbox_entry(sbox_in);
+let sbox_out = entry & 0xFFu;
+let perm_out = (entry >> 8u) & 0xFFu;
+let common_xor = R8 ^ sbox_out;
+let next_R8 = R7;
+R7 = R6 ^ perm_out;
+R6 = R5;
+R5 = R4 ^ common_xor;
+R4 = R3 ^ common_xor;
+R3 = R2 ^ common_xor;
+R2 = R1;
+R1 = common_xor;
+R8 = next_R8;
+}
+{
+let sbox_in = (kb3 ^ xval) ^ R7;
+let entry = get_sbox_entry(sbox_in);
+let sbox_out = entry & 0xFFu;
+let perm_out = (entry >> 8u) & 0xFFu;
+let common_xor = R8 ^ sbox_out;
+let next_R8 = R7;
+R7 = R6 ^ perm_out;
+R6 = R5;
+R5 = R4 ^ common_xor;
+R4 = R3 ^ common_xor;
+R3 = R2 ^ common_xor;
+R2 = R1;
+R1 = common_xor;
+R8 = next_R8;
+}
+{
+let sbox_in = (kb2 ^ xval) ^ R7;
+let entry = get_sbox_entry(sbox_in);
+let sbox_out = entry & 0xFFu;
+let perm_out = (entry >> 8u) & 0xFFu;
+let common_xor = R8 ^ sbox_out;
+let next_R8 = R7;
+R7 = R6 ^ perm_out;
+R6 = R5;
+R5 = R4 ^ common_xor;
+R4 = R3 ^ common_xor;
+R3 = R2 ^ common_xor;
+R2 = R1;
+R1 = common_xor;
+R8 = next_R8;
+}
+{
+let sbox_in = (kb1 ^ xval) ^ R7;
+let entry = get_sbox_entry(sbox_in);
+let sbox_out = entry & 0xFFu;
+let perm_out = (entry >> 8u) & 0xFFu;
+let common_xor = R8 ^ sbox_out;
+let next_R8 = R7;
+R7 = R6 ^ perm_out;
+R6 = R5;
+R5 = R4 ^ common_xor;
+R4 = R3 ^ common_xor;
+R3 = R2 ^ common_xor;
+R2 = R1;
+R1 = common_xor;
+R8 = next_R8;
+}
+{
+let sbox_in = (kb0 ^ xval) ^ R7;
+let entry = get_sbox_entry(sbox_in);
+let sbox_out = entry & 0xFFu;
+let perm_out = (entry >> 8u) & 0xFFu;
+let common_xor = R8 ^ sbox_out;
+let next_R8 = R7;
+R7 = R6 ^ perm_out;
+R6 = R5;
+R5 = R4 ^ common_xor;
+R4 = R3 ^ common_xor;
+R3 = R2 ^ common_xor;
+R2 = R1;
+R1 = common_xor;
+R8 = next_R8;
+}
+if (group < 6u) {
+p_curr = key_permute64_from_table(p_curr);
+}
+}
+let lo = R1 | (R2 << 8u) | (R3 << 16u) | (R4 << 24u);
+let hi = R5 | (R6 << 8u) | (R7 << 16u) | (R8 << 24u);
+return vec2<u32>(lo, hi);
+}
+fn bs_stream_sbox1(fa: u32, fb: u32, fc: u32, fd: u32, fe: u32, lane_mask: u32) -> vec2<u32> {
+let tmp0 = fa ^ (fb ^ bs_not_mask((((fa | fb) ^ fc) | (fc ^ fd)), lane_mask));
+let tmp1 = (fa | fb) ^ bs_not_mask((fc & (fa | (fb ^ fd))), lane_mask);
+let tmp2 = fa ^ ((fb & fd) ^ ((fa & fd) | fc));
+let tmp3 = (fa & fc) ^ (fa ^ ((fa & fb) | fd));
+let sa = tmp0 ^ (fe & tmp1);
+let sb = tmp2 ^ (fe & tmp3);
+return vec2<u32>(sa, sb);
+}
+fn bs_stream_sbox2(fa: u32, fb: u32, fc: u32, fd: u32, fe: u32, lane_mask: u32) -> vec2<u32> {
+let tmp0 = fa ^ ((fb & (fc | fd)) ^ (fc ^ bs_not_mask(fd, lane_mask)));
+let tmp1 = (fa & (fb ^ fd)) | ((fa | fb) & fc);
+let tmp2 = (fb & fd) ^ ((fa & fd) | (fb ^ bs_not_mask(fc, lane_mask)));
+let tmp3 = (fa & fd) | (fa ^ (fb ^ (fc & fd)));
+let sa = tmp0 ^ (fe & tmp1);
+let sb = tmp2 ^ (fe & tmp3);
+return vec2<u32>(sa, sb);
+}
+fn bs_stream_sbox3(fa: u32, fb: u32, fc: u32, fd: u32, fe: u32, lane_mask: u32) -> vec2<u32> {
+let tmp0 = fa ^ (fb ^ ((fc & (fa | fd)) ^ fd));
+let tmp1 = (fa & fc) ^ ((fa ^ fd) | ((fb | fc) ^ bs_not_mask(fd, lane_mask)));
+let tmp2 = fa ^ (((fb ^ fc) & fd) ^ fc);
+let sa = tmp0 ^ (bs_not_mask(fe, lane_mask) & tmp1);
+let sb = tmp2 ^ fe;
+return vec2<u32>(sa, sb);
+}
+fn bs_stream_sbox4(fa: u32, fb: u32, fc: u32, fd: u32, fe: u32, lane_mask: u32) -> vec2<u32> {
+let tmp0 = fa ^ (((fc & (fa ^ fd)) | (fb ^ (fc | bs_not_mask(fd, lane_mask)))));
+let tmp1 = (fa & fb) ^ (fb ^ (((fa | fc) & fd) ^ fc));
+let tmp2 = fa ^ ((fb & fc) | (((fa & (fb ^ fd)) | fc) ^ fd));
+let tmp_sa = tmp0 ^ (fe & (tmp1 ^ tmp0));
+let sa = tmp_sa;
+let sb = (tmp_sa ^ tmp2) ^ fe;
+return vec2<u32>(sa, sb);
+}
+fn bs_stream_sbox5(fa: u32, fb: u32, fc: u32, fd: u32, fe: u32, lane_mask: u32) -> vec2<u32> {
+let all1 = lane_mask;
+let tmp0 = ((fa & (fb | fc)) ^ fb) | (((fa ^ fc) | fd) ^ all1);
+let tmp1 = fb ^ ((fc ^ fd) & (fc ^ (fb | (fa ^ fd))));
+let tmp2 = (fa & fc) ^ (fb ^ (((fb | (fa ^ fc))) & fd));
+let tmp3 = ((fa ^ fb) & (fc ^ all1)) | fd;
+let sa = tmp0 ^ (fe & tmp1);
+let sb = tmp2 ^ (fe & tmp3);
+return vec2<u32>(sa, sb);
+}
+fn bs_stream_sbox6(fa: u32, fb: u32, fc: u32, fd: u32, fe: u32, lane_mask: u32) -> vec2<u32> {
+let tmp0 = ((fa & fc) & fd) ^ ((fb & (fa | fd)) ^ fc);
+let tmp1 = bs_not_mask(((fa ^ fc) & fd), lane_mask);
+let tmp2 = (fa & (fb | fc)) ^ (fb ^ ((fb & fc) | fd));
+let tmp3 = fc & ((fa & (fb ^ fd)) ^ (fb | fd));
+let sa = tmp0 ^ (fe & tmp1);
+let sb = tmp2 ^ (fe & tmp3);
+return vec2<u32>(sa, sb);
+}
+fn bs_stream_sbox7(fa: u32, fb: u32, fc: u32, fd: u32, fe: u32, lane_mask: u32) -> vec2<u32> {
+let all1 = lane_mask;
+let tmp0 = fb ^ ((fc & fd) | (fa ^ (fc ^ fd)));
+let tmp1 = (fb | fd) & ((fa & fc) | (fb ^ (fc ^ fd)));
+let tmp2 = (fa | fb) ^ ((fc & (fb | fd)) ^ fd);
+let tmp3 = fd | ((fa & fc) ^ all1);
+let sa = tmp0 ^ (fe & tmp1);
+let sb = tmp2 ^ (fe & tmp3);
+return vec2<u32>(sa, sb);
+}
+fn bs_block_sbox(
+i0: u32, i1: u32, i2: u32, i3: u32,
+i4: u32, i5: u32, i6: u32, i7: u32,
+lane_mask: u32
+) -> array<u32, 8> {
+let x0 = i7; let x1 = i6; let x2 = i5; let x3 = i4;
+let x4 = i3; let x5 = i2; let x6 = i1; let x7 = i0;
+let y0 = ((x0 & x3 & x6 & x7 & ~x5) | (x0 & x3 & x7 & ~x1 & ~x5) | (x0 & x1 & x2 & x4 & x7 & ~x5) | (x2 & x4 & x5 & x6 & x7 & ~x3) | (x2 & x6 & ~x1 & ~x3 & ~x4) | (x3 & x7 & ~x2 & ~x4 & ~x5) | (x0 & x1 & x2 & x5 & ~x3 & ~x7) | (x0 & x2 & x3 & x6 & ~x4 & ~x5) | (x0 & x3 & x4 & x6 & ~x2 & ~x5) | (x1 & x2 & x6 & x7 & ~x0 & ~x5) | (x0 & x1 & x2 & x3 & x4 & x7 & ~x6) | (x0 & x1 & x3 & x4 & x5 & x7 & ~x2) | (x0 & x2 & x4 & x5 & x6 & x7 & ~x1) | (x1 & x2 & x3 & x4 & x5 & x6 & ~x7) | (x0 & x2 & x6 & ~x1 & ~x3 & ~x7) | (x0 & x5 & x6 & ~x1 & ~x4 & ~x7) | (x0 & x5 & x7 & ~x2 & ~x3 & ~x4) | (x1 & x3 & x4 & ~x2 & ~x6 & ~x7) | (x3 & x5 & x6 & ~x2 & ~x4 & ~x7) | (x1 & x2 & x4 & x5 & x7 & ~x0 & ~x3) | (x0 & x4 & ~x2 & ~x3 & ~x5 & ~x6) | (x1 & x3 & ~x0 & ~x2 & ~x5 & ~x7) | (x2 & x3 & ~x0 & ~x1 & ~x4 & ~x5) | (x2 & x5 & ~x0 & ~x3 & ~x6 & ~x7) | (x3 & x6 & ~x0 & ~x2 & ~x4 & ~x5) | (x4 & x6 & ~x1 & ~x3 & ~x5 & ~x7) | (x4 & x7 & ~x0 & ~x1 & ~x3 & ~x5) | (x5 & x7 & ~x1 & ~x3 & ~x4 & ~x6) | (x0 & x1 & x4 & x7 & ~x2 & ~x3 & ~x6) | (x0 & x2 & x4 & x7 & ~x1 & ~x3 & ~x6) | (x1 & x3 & x4 & x7 & ~x0 & ~x5 & ~x6) | (x3 & x4 & x5 & x7 & ~x0 & ~x1 & ~x2) | (x3 & x4 & x5 & x7 & ~x0 & ~x1 & ~x6) | (x0 & ~x1 & ~x2 & ~x3 & ~x6 & ~x7) | (x0 & ~x1 & ~x2 & ~x4 & ~x5 & ~x6) | (x0 & ~x1 & ~x3 & ~x4 & ~x5 & ~x7) | (x4 & ~x0 & ~x2 & ~x3 & ~x5 & ~x7) | (x5 & ~x2 & ~x3 & ~x4 & ~x6 & ~x7) | (x0 & x1 & x2 & ~x3 & ~x4 & ~x5 & ~x6) | (x0 & x1 & x3 & ~x4 & ~x5 & ~x6 & ~x7) | (x0 & x1 & x6 & ~x2 & ~x3 & ~x4 & ~x5) | (x1 & x5 & x6 & ~x0 & ~x2 & ~x3 & ~x7) | (x2 & x3 & x4 & ~x1 & ~x5 & ~x6 & ~x7) | (x3 & x4 & x5 & ~x0 & ~x2 & ~x6 & ~x7) | (x1 & x2 & x3 & x5 & x7 & ~x0 & ~x4 & ~x6) | (x1 & x7 & ~x0 & ~x3 & ~x4 & ~x5 & ~x6));
+let y1 = ((x0 & x4 & x7 & ~x2 & ~x6) | (x0 & x2 & x4 & x5 & x6 & ~x7) | (x1 & x2 & x3 & x4 & x6 & ~x7) | (x2 & x3 & ~x0 & ~x4 & ~x7) | (x0 & x1 & x2 & x7 & ~x4 & ~x5) | (x0 & x1 & x3 & x7 & ~x4 & ~x6) | (x1 & x3 & x4 & x6 & ~x2 & ~x5) | (x1 & x3 & x6 & x7 & ~x0 & ~x4) | (x1 & x4 & x5 & x6 & ~x0 & ~x3) | (x0 & x1 & x2 & x3 & x4 & x5 & ~x7) | (x0 & x2 & x3 & x5 & x6 & x7 & ~x4) | (x2 & x3 & x4 & x5 & x6 & x7 & ~x1) | (x4 & ~x0 & ~x1 & ~x2 & ~x6) | (x0 & x1 & x2 & ~x3 & ~x4 & ~x6) | (x0 & x2 & x4 & ~x1 & ~x3 & ~x6) | (x0 & x5 & x7 & ~x1 & ~x2 & ~x3) | (x1 & x2 & x3 & ~x0 & ~x5 & ~x6) | (x1 & x2 & x4 & ~x0 & ~x3 & ~x7) | (x1 & x2 & x6 & ~x3 & ~x4 & ~x7) | (x1 & x5 & x6 & ~x3 & ~x4 & ~x7) | (x2 & x3 & x6 & ~x4 & ~x5 & ~x7) | (x2 & x5 & x6 & ~x0 & ~x3 & ~x4) | (x2 & x5 & x6 & ~x1 & ~x3 & ~x4) | (x0 & x1 & x3 & x5 & x6 & ~x2 & ~x7) | (x0 & x2 & x3 & x4 & x7 & ~x1 & ~x5) | (x0 & x6 & ~x1 & ~x2 & ~x3 & ~x4) | (x2 & x3 & ~x1 & ~x5 & ~x6 & ~x7) | (x2 & x7 & ~x1 & ~x3 & ~x5 & ~x6) | (x3 & x4 & ~x0 & ~x1 & ~x2 & ~x7) | (x3 & x7 & ~x0 & ~x1 & ~x2 & ~x6) | (x6 & x7 & ~x0 & ~x1 & ~x2 & ~x3) | (x0 & x1 & x4 & x5 & ~x2 & ~x3 & ~x6) | (x4 & ~x0 & ~x2 & ~x5 & ~x6 & ~x7) | (x0 & x2 & x5 & ~x1 & ~x4 & ~x6 & ~x7) | (x0 & x4 & x6 & ~x1 & ~x2 & ~x5 & ~x7) | (x1 & x3 & x5 & ~x0 & ~x2 & ~x4 & ~x6) | (x1 & x5 & x7 & ~x0 & ~x3 & ~x4 & ~x6) | (x2 & x4 & x6 & ~x0 & ~x3 & ~x5 & ~x7) | (x2 & x6 & x7 & ~x0 & ~x1 & ~x4 & ~x5) | (~x0 & ~x1 & ~x3 & ~x4 & ~x5 & ~x6) | (~x0 & ~x2 & ~x3 & ~x4 & ~x5 & ~x6) | (x0 & x3 & ~x1 & ~x2 & ~x4 & ~x5 & ~x6) | (x5 & ~x1 & ~x2 & ~x3 & ~x4 & ~x6 & ~x7));
+let y2 = ((x2 & x4 & x6 & x7 & ~x5) | (x3 & x4 & x7 & ~x1 & ~x5) | (x2 & x3 & x5 & x6 & x7 & ~x1) | (x0 & x4 & ~x2 & ~x5 & ~x6) | (x3 & x5 & ~x0 & ~x2 & ~x7) | (x6 & x7 & ~x0 & ~x2 & ~x5) | (x0 & x1 & x3 & x7 & ~x4 & ~x5) | (x0 & x2 & x3 & x4 & ~x5 & ~x7) | (x0 & x2 & x4 & x5 & ~x3 & ~x6) | (x0 & x2 & x5 & x6 & ~x3 & ~x4) | (x0 & x2 & x5 & x6 & ~x4 & ~x7) | (x0 & x2 & x5 & x7 & ~x1 & ~x3) | (x0 & x4 & x5 & x7 & ~x1 & ~x3) | (x1 & x2 & x5 & x7 & ~x0 & ~x4) | (x2 & x3 & x4 & x5 & ~x0 & ~x1) | (x2 & x3 & x4 & x7 & ~x0 & ~x5) | (x0 & x2 & x7 & ~x1 & ~x5 & ~x6) | (x0 & x3 & x6 & ~x1 & ~x2 & ~x4) | (x1 & x4 & x6 & ~x0 & ~x3 & ~x5) | (x1 & x4 & x7 & ~x0 & ~x3 & ~x6) | (x1 & x5 & x6 & ~x3 & ~x4 & ~x7) | (x1 & x6 & x7 & ~x0 & ~x2 & ~x4) | (x3 & x4 & x5 & ~x0 & ~x6 & ~x7) | (x1 & x3 & x4 & x5 & x6 & ~x2 & ~x7) | (x1 & x3 & x4 & x5 & x7 & ~x2 & ~x6) | (x0 & x4 & ~x1 & ~x2 & ~x3 & ~x7) | (x0 & x6 & ~x1 & ~x4 & ~x5 & ~x7) | (x0 & x7 & ~x2 & ~x3 & ~x5 & ~x6) | (x2 & x3 & ~x0 & ~x1 & ~x6 & ~x7) | (x2 & x3 & ~x4 & ~x5 & ~x6 & ~x7) | (x2 & x4 & ~x1 & ~x3 & ~x6 & ~x7) | (x2 & x6 & ~x0 & ~x1 & ~x3 & ~x5) | (x2 & x6 & ~x1 & ~x3 & ~x4 & ~x7) | (x4 & x7 & ~x0 & ~x1 & ~x2 & ~x5) | (x0 & x1 & x2 & x6 & ~x3 & ~x5 & ~x7) | (x0 & x3 & x5 & x7 & ~x1 & ~x2 & ~x6) | (x1 & x2 & x4 & x6 & ~x0 & ~x3 & ~x7) | (x2 & ~x0 & ~x1 & ~x4 & ~x5 & ~x7) | (x0 & x5 & ~x1 & ~x2 & ~x3 & ~x6 & ~x7) | (x1 & x2 & ~x0 & ~x3 & ~x4 & ~x6 & ~x7) | (x3 & x7 & ~x0 & ~x1 & ~x2 & ~x4 & ~x6) | (x1 & ~x0 & ~x2 & ~x3 & ~x4 & ~x5 & ~x7));
+let y3 = ((x0 & x3 & x4 & x6 & x7 & ~x5) | (x1 & x2 & x3 & x4 & x7 & ~x6) | (x1 & x2 & x4 & x5 & x6 & ~x3) | (x0 & x2 & ~x1 & ~x3 & ~x4) | (x1 & x2 & ~x0 & ~x4 & ~x6) | (x1 & x2 & ~x5 & ~x6 & ~x7) | (x2 & x3 & ~x0 & ~x6 & ~x7) | (x0 & x1 & x4 & x6 & ~x2 & ~x7) | (x0 & x4 & x5 & x6 & ~x3 & ~x7) | (x3 & x4 & x6 & x7 & ~x0 & ~x2) | (x0 & x1 & x2 & x3 & x5 & x6 & ~x7) | (x1 & x2 & x3 & x5 & x6 & x7 & ~x4) | (x2 & ~x0 & ~x3 & ~x5 & ~x6) | (x2 & ~x3 & ~x5 & ~x6 & ~x7) | (x6 & ~x0 & ~x2 & ~x3 & ~x4) | (x0 & x5 & x6 & ~x1 & ~x2 & ~x3) | (x1 & x2 & x3 & ~x4 & ~x5 & ~x7) | (x1 & x5 & x7 & ~x0 & ~x4 & ~x6) | (x2 & x3 & x7 & ~x1 & ~x4 & ~x6) | (x2 & x4 & x7 & ~x0 & ~x1 & ~x3) | (x2 & x5 & x6 & ~x0 & ~x1 & ~x7) | (x0 & x1 & x2 & x6 & x7 & ~x4 & ~x5) | (x0 & x3 & x4 & x5 & x7 & ~x2 & ~x6) | (~x1 & ~x4 & ~x5 & ~x6 & ~x7) | (x1 & x4 & ~x3 & ~x5 & ~x6 & ~x7) | (x1 & x6 & ~x0 & ~x2 & ~x4 & ~x5) | (x1 & x7 & ~x0 & ~x3 & ~x4 & ~x5) | (x1 & x7 & ~x2 & ~x3 & ~x4 & ~x5) | (x2 & x6 & ~x0 & ~x1 & ~x4 & ~x7) | (x3 & x5 & ~x2 & ~x4 & ~x6 & ~x7) | (x4 & x5 & ~x0 & ~x1 & ~x3 & ~x7) | (x0 & x1 & x2 & x4 & ~x3 & ~x6 & ~x7) | (x0 & x1 & x3 & x5 & ~x2 & ~x6 & ~x7) | (x0 & x1 & x4 & x7 & ~x2 & ~x3 & ~x6) | (x0 & x3 & x6 & x7 & ~x1 & ~x2 & ~x5) | (x1 & x3 & x4 & x7 & ~x0 & ~x2 & ~x5) | (x2 & x4 & x5 & x7 & ~x1 & ~x3 & ~x6) | (x0 & ~x2 & ~x3 & ~x4 & ~x5 & ~x6) | (x7 & ~x0 & ~x1 & ~x2 & ~x3 & ~x5) | (x7 & ~x1 & ~x2 & ~x3 & ~x4 & ~x6) | (x0 & x3 & x4 & ~x2 & ~x5 & ~x6 & ~x7) | (x1 & x2 & x4 & ~x0 & ~x3 & ~x5 & ~x7));
+let y4 = ((x0 & x2 & x7 & ~x1 & ~x5) | (x2 & x3 & x4 & ~x0 & ~x7) | (x2 & x4 & x7 & ~x1 & ~x6) | (x0 & x1 & x2 & x5 & x7 & ~x3) | (x0 & x2 & x3 & x6 & x7 & ~x1) | (x0 & x2 & x4 & x6 & x7 & ~x5) | (x1 & x2 & x3 & x4 & x5 & ~x7) | (x1 & x2 & x3 & x5 & x7 & ~x4) | (x1 & x2 & x3 & x6 & x7 & ~x0) | (x1 & x3 & x5 & x6 & x7 & ~x0) | (x0 & x1 & ~x2 & ~x6 & ~x7) | (x0 & x2 & x3 & x6 & ~x1 & ~x4) | (x1 & x2 & x5 & x6 & ~x0 & ~x3) | (x1 & x5 & x6 & x7 & ~x3 & ~x4) | (x2 & x5 & x6 & x7 & ~x3 & ~x4) | (x0 & x1 & x3 & x4 & x5 & x7 & ~x2) | (x0 & x1 & x2 & ~x3 & ~x5 & ~x7) | (x0 & x1 & x5 & ~x2 & ~x4 & ~x7) | (x0 & x3 & x4 & ~x2 & ~x6 & ~x7) | (x0 & x3 & x5 & ~x1 & ~x6 & ~x7) | (x0 & x4 & x5 & ~x1 & ~x2 & ~x7) | (x0 & x4 & x5 & ~x2 & ~x3 & ~x7) | (x1 & x4 & x6 & ~x0 & ~x5 & ~x7) | (x2 & x4 & x7 & ~x1 & ~x3 & ~x5) | (x0 & x1 & x3 & x4 & x6 & ~x2 & ~x5) | (x0 & x2 & ~x1 & ~x3 & ~x5 & ~x6) | (x0 & x7 & ~x1 & ~x3 & ~x4 & ~x5) | (x0 & x7 & ~x1 & ~x3 & ~x5 & ~x6) | (x0 & x7 & ~x3 & ~x4 & ~x5 & ~x6) | (x1 & x3 & ~x0 & ~x4 & ~x5 & ~x7) | (x1 & x4 & ~x0 & ~x2 & ~x3 & ~x5) | (x1 & x5 & ~x0 & ~x3 & ~x6 & ~x7) | (x2 & x7 & ~x0 & ~x1 & ~x3 & ~x6) | (x4 & x5 & ~x1 & ~x2 & ~x6 & ~x7) | (x6 & x7 & ~x0 & ~x1 & ~x2 & ~x3) | (x6 & x7 & ~x0 & ~x1 & ~x2 & ~x5) | (x0 & x1 & x3 & x7 & ~x2 & ~x4 & ~x5) | (x1 & x3 & x4 & x7 & ~x0 & ~x5 & ~x6) | (x0 & x2 & x5 & ~x1 & ~x4 & ~x6 & ~x7) | (x0 & x3 & x6 & ~x1 & ~x4 & ~x5 & ~x7) | (x0 & x4 & x6 & ~x1 & ~x2 & ~x3 & ~x7) | (x1 & x2 & x7 & ~x0 & ~x3 & ~x4 & ~x5) | (x3 & x5 & x7 & ~x0 & ~x1 & ~x2 & ~x4) | (x4 & x5 & x6 & ~x0 & ~x1 & ~x2 & ~x3) | (~x0 & ~x2 & ~x3 & ~x4 & ~x6 & ~x7) | (x0 & x7 & ~x1 & ~x2 & ~x3 & ~x4 & ~x6) | (x2 & ~x0 & ~x1 & ~x4 & ~x5 & ~x6 & ~x7));
+let y5 = ((x0 & x3 & x6 & ~x2 & ~x4) | (x0 & x1 & x3 & x6 & x7 & ~x4) | (x0 & x1 & x4 & x6 & x7 & ~x2) | (x0 & x2 & x3 & x4 & x5 & ~x6) | (x0 & x2 & x3 & x4 & x7 & ~x1) | (x1 & x2 & x3 & x4 & x6 & ~x0) | (x1 & x2 & x3 & x4 & x6 & ~x5) | (x1 & x4 & x5 & x6 & x7 & ~x3) | (x1 & x3 & ~x0 & ~x2 & ~x6) | (x0 & x1 & x5 & x6 & ~x2 & ~x7) | (x0 & x3 & x5 & x6 & ~x4 & ~x7) | (x1 & x2 & x5 & x7 & ~x3 & ~x4) | (x3 & x4 & x5 & x7 & ~x0 & ~x6) | (x7 & ~x0 & ~x2 & ~x4 & ~x6) | (x0 & x3 & x6 & ~x1 & ~x5 & ~x7) | (x0 & x5 & x6 & ~x1 & ~x3 & ~x7) | (x1 & x3 & x7 & ~x2 & ~x4 & ~x6) | (x1 & x3 & x7 & ~x2 & ~x5 & ~x6) | (x2 & x3 & x4 & ~x1 & ~x5 & ~x6) | (x2 & x4 & x6 & ~x1 & ~x3 & ~x5) | (x3 & x5 & x6 & ~x1 & ~x2 & ~x4) | (x4 & x5 & x6 & ~x0 & ~x2 & ~x7) | (x4 & x5 & x7 & ~x1 & ~x2 & ~x6) | (x0 & x2 & x3 & x5 & x7 & ~x1 & ~x6) | (~x0 & ~x1 & ~x4 & ~x5 & ~x6) | (~x0 & ~x1 & ~x4 & ~x5 & ~x7) | (~x1 & ~x2 & ~x4 & ~x5 & ~x7) | (x0 & x1 & ~x2 & ~x3 & ~x6 & ~x7) | (x0 & x3 & ~x1 & ~x2 & ~x4 & ~x7) | (x1 & x2 & ~x4 & ~x5 & ~x6 & ~x7) | (x1 & x3 & ~x0 & ~x4 & ~x6 & ~x7) | (x1 & x5 & ~x0 & ~x2 & ~x3 & ~x4) | (x1 & x2 & x6 & x7 & ~x0 & ~x3 & ~x4) | (x2 & x5 & x6 & x7 & ~x0 & ~x3 & ~x4) | (x3 & x4 & x6 & x7 & ~x1 & ~x2 & ~x5) | (x3 & ~x0 & ~x1 & ~x5 & ~x6 & ~x7) | (x5 & ~x0 & ~x1 & ~x2 & ~x3 & ~x6) | (x6 & ~x0 & ~x1 & ~x2 & ~x3 & ~x5) | (x6 & ~x0 & ~x2 & ~x4 & ~x5 & ~x7) | (x7 & ~x2 & ~x3 & ~x4 & ~x5 & ~x6) | (x0 & x1 & x2 & ~x3 & ~x4 & ~x5 & ~x7) | (x0 & x4 & ~x1 & ~x3 & ~x5 & ~x6 & ~x7) | (x1 & x4 & ~x2 & ~x3 & ~x5 & ~x6 & ~x7) | (x1 & x2 & x4 & x7 & ~x0 & ~x3 & ~x5 & ~x6));
+let y6 = ((x1 & x4 & x5 & ~x0 & ~x2) | (x1 & x4 & x5 & ~x2 & ~x3) | (x2 & x6 & x7 & ~x3 & ~x4) | (x0 & x1 & x3 & x4 & x6 & ~x5) | (x0 & x1 & x2 & x3 & x5 & x6 & x7) | (x1 & x5 & ~x0 & ~x3 & ~x6) | (x0 & x1 & x2 & x7 & ~x4 & ~x6) | (x0 & x2 & x4 & x7 & ~x3 & ~x5) | (x0 & x2 & x5 & x6 & ~x1 & ~x4) | (x0 & x4 & x5 & x7 & ~x3 & ~x6) | (x1 & x3 & x5 & x6 & ~x0 & ~x4) | (x1 & x3 & x6 & x7 & ~x0 & ~x2) | (x1 & x4 & x5 & x6 & ~x0 & ~x7) | (x2 & x3 & x4 & x5 & ~x0 & ~x1) | (x3 & x5 & x6 & x7 & ~x0 & ~x2) | (x0 & x3 & x7 & ~x1 & ~x2 & ~x6) | (x0 & x3 & x7 & ~x1 & ~x5 & ~x6) | (x1 & x4 & x5 & ~x2 & ~x6 & ~x7) | (x1 & x4 & x6 & ~x2 & ~x3 & ~x7) | (x2 & x3 & x5 & ~x1 & ~x6 & ~x7) | (x4 & x6 & x7 & ~x1 & ~x2 & ~x5) | (x2 & x4 & x5 & x6 & x7 & ~x0 & ~x1) | (x0 & x1 & ~x2 & ~x4 & ~x5 & ~x6) | (x0 & x1 & ~x3 & ~x5 & ~x6 & ~x7) | (x1 & x3 & ~x0 & ~x5 & ~x6 & ~x7) | (x1 & x3 & ~x2 & ~x4 & ~x5 & ~x7) | (x2 & x3 & ~x0 & ~x1 & ~x4 & ~x6) | (x2 & x5 & ~x3 & ~x4 & ~x6 & ~x7) | (x3 & x6 & ~x0 & ~x1 & ~x4 & ~x7) | (x4 & x7 & ~x0 & ~x3 & ~x5 & ~x6) | (x4 & x7 & ~x1 & ~x2 & ~x3 & ~x6) | (x6 & x7 & ~x0 & ~x3 & ~x4 & ~x5) | (x0 & x1 & x5 & x6 & ~x2 & ~x3 & ~x7) | (x0 & x2 & x5 & x6 & ~x1 & ~x3 & ~x7) | (x0 & x5 & x6 & x7 & ~x1 & ~x3 & ~x4) | (x3 & ~x2 & ~x4 & ~x5 & ~x6 & ~x7) | (x6 & ~x0 & ~x1 & ~x3 & ~x5 & ~x7) | (x6 & ~x1 & ~x3 & ~x4 & ~x5 & ~x7) | (x7 & ~x0 & ~x1 & ~x3 & ~x4 & ~x6) | (x0 & x3 & x4 & x5 & x6 & ~x1 & ~x2 & ~x7) | (x1 & x2 & ~x0 & ~x3 & ~x4 & ~x5 & ~x7) | (x2 & x4 & ~x0 & ~x1 & ~x3 & ~x6 & ~x7));
+let y7 = ((x2 & x3 & x4 & x5 & ~x6) | (x0 & x1 & x2 & x3 & x6 & x7) | (x0 & x1 & x2 & x4 & x5 & x6) | (x0 & x2 & x3 & ~x6 & ~x7) | (x1 & x3 & x6 & ~x2 & ~x7) | (x0 & x1 & x3 & x4 & x7 & ~x6) | (x2 & x3 & x5 & x6 & x7 & ~x1) | (x1 & x6 & ~x2 & ~x5 & ~x7) | (x1 & x2 & x5 & x6 & ~x0 & ~x3) | (x2 & x4 & x6 & x7 & ~x0 & ~x3) | (x0 & x1 & x3 & ~x2 & ~x4 & ~x5) | (x0 & x2 & x7 & ~x1 & ~x3 & ~x6) | (x0 & x2 & x7 & ~x3 & ~x4 & ~x5) | (x0 & x3 & x5 & ~x1 & ~x6 & ~x7) | (x0 & x3 & x7 & ~x2 & ~x5 & ~x6) | (x1 & x2 & x5 & ~x0 & ~x3 & ~x4) | (x1 & x3 & x6 & ~x0 & ~x4 & ~x7) | (x1 & x4 & x6 & ~x0 & ~x2 & ~x5) | (x1 & x4 & x6 & ~x2 & ~x3 & ~x5) | (x1 & x4 & x7 & ~x0 & ~x3 & ~x5) | (x2 & x5 & x6 & ~x0 & ~x3 & ~x4) | (x4 & x5 & x7 & ~x2 & ~x3 & ~x6) | (x0 & x1 & x5 & x6 & x7 & ~x3 & ~x4) | (x0 & x3 & x4 & x6 & x7 & ~x1 & ~x5) | (x0 & x3 & x5 & x6 & x7 & ~x1 & ~x4) | (x0 & x1 & ~x3 & ~x4 & ~x5 & ~x7) | (x0 & x5 & ~x2 & ~x4 & ~x6 & ~x7) | (x1 & x5 & ~x2 & ~x3 & ~x6 & ~x7) | (x1 & x7 & ~x2 & ~x4 & ~x5 & ~x6) | (x2 & x5 & ~x1 & ~x3 & ~x6 & ~x7) | (x3 & x4 & ~x0 & ~x2 & ~x5 & ~x7) | (x1 & x3 & x5 & x7 & ~x0 & ~x4 & ~x6) | (x2 & x3 & x4 & x7 & ~x0 & ~x1 & ~x6) | (x2 & ~x1 & ~x3 & ~x4 & ~x6 & ~x7) | (x3 & ~x1 & ~x4 & ~x5 & ~x6 & ~x7) | (x4 & ~x0 & ~x1 & ~x3 & ~x6 & ~x7) | (x4 & ~x1 & ~x2 & ~x3 & ~x5 & ~x7) | (x7 & ~x0 & ~x1 & ~x2 & ~x3 & ~x6) | (x0 & x4 & x6 & ~x1 & ~x2 & ~x3 & ~x7) | (x1 & x2 & x4 & ~x3 & ~x5 & ~x6 & ~x7) | (x2 & x3 & x6 & ~x0 & ~x4 & ~x5 & ~x7) | (x4 & x5 & x7 & ~x0 & ~x1 & ~x2 & ~x6) | (x0 & x6 & ~x1 & ~x2 & ~x3 & ~x4 & ~x5) | (x5 & x6 & ~x0 & ~x1 & ~x2 & ~x4 & ~x7) | (x6 & x7 & ~x0 & ~x1 & ~x2 & ~x4 & ~x5));
+var out8: array<u32, 8>;
+out8[0] = y0 & lane_mask;
+out8[1] = y1 & lane_mask;
+out8[2] = y2 & lane_mask;
+out8[3] = y3 & lane_mask;
+out8[4] = y4 & lane_mask;
+out8[5] = y5 & lane_mask;
+out8[6] = y6 & lane_mask;
+out8[7] = y7 & lane_mask;
+return out8;
+}
+fn bs_byte_to_planes(v: u32, lane_mask: u32) -> array<u32, 8> {
+return array<u32, 8>(
+select(0u, lane_mask, ((v >> 0u) & 1u) != 0u),
+select(0u, lane_mask, ((v >> 1u) & 1u) != 0u),
+select(0u, lane_mask, ((v >> 2u) & 1u) != 0u),
+select(0u, lane_mask, ((v >> 3u) & 1u) != 0u),
+select(0u, lane_mask, ((v >> 4u) & 1u) != 0u),
+select(0u, lane_mask, ((v >> 5u) & 1u) != 0u),
+select(0u, lane_mask, ((v >> 6u) & 1u) != 0u),
+select(0u, lane_mask, ((v >> 7u) & 1u) != 0u)
+);
+}
+fn bs_nibble_to_vec4(v: u32, lane_mask: u32) -> vec4<u32> {
+return vec4<u32>(
+select(0u, lane_mask, ((v >> 0u) & 1u) != 0u),
+select(0u, lane_mask, ((v >> 1u) & 1u) != 0u),
+select(0u, lane_mask, ((v >> 2u) & 1u) != 0u),
+select(0u, lane_mask, ((v >> 3u) & 1u) != 0u)
+);
+}
+struct StreamDefResult {
+new_D: vec4<u32>,
+new_E: vec4<u32>,
+new_F: vec4<u32>,
+new_r: u32,
+}
+fn compute_extra(B2: vec4<u32>, B3: vec4<u32>, B4: vec4<u32>, B5: vec4<u32>, B6: vec4<u32>, B7: vec4<u32>, B8: vec4<u32>) -> vec4<u32> {
+return vec4<u32>(
+B8.z ^ B5.w ^ B2.y ^ B7.x,
+B4.w ^ B7.z ^ B3.x ^ B4.y,
+B5.x ^ B7.y ^ B2.w ^ B3.z,
+B2.x ^ B5.y ^ B6.z ^ B8.w
+);
+}
+fn transform_nextB(nextB: vec4<u32>, p: u32) -> vec4<u32> {
+let nx = nextB.x;
+let ny = nextB.y;
+let nz = nextB.z;
+let nw = nextB.w;
+return vec4<u32>(
+nx ^ ((nx ^ nw) & p),
+ny ^ ((ny ^ nx) & p),
+nz ^ ((nz ^ ny) & p),
+nw ^ ((nw ^ nz) & p)
+);
+}
+fn compute_def(Z: vec4<u32>, E: vec4<u32>, F: vec4<u32>, extra: vec4<u32>, q: u32, r: u32) -> StreamDefResult {
+var carry = r;
+let zx0 = Z.x ^ E.x;
+let ze0 = Z.x & E.x;
+let oldF0 = F.x;
+let f0 = E.x ^ (q & (Z.x ^ carry));
+let d0 = extra.x ^ zx0;
+carry = ze0 | (zx0 & carry);
+let zx1 = Z.y ^ E.y;
+let ze1 = Z.y & E.y;
+let oldF1 = F.y;
+let f1 = E.y ^ (q & (Z.y ^ carry));
+let d1 = extra.y ^ zx1;
+carry = ze1 | (zx1 & carry);
+let zx2 = Z.z ^ E.z;
+let ze2 = Z.z & E.z;
+let oldF2 = F.z;
+let f2 = E.z ^ (q & (Z.z ^ carry));
+let d2 = extra.z ^ zx2;
+carry = ze2 | (zx2 & carry);
+let zx3 = Z.w ^ E.w;
+let ze3 = Z.w & E.w;
+let oldF3 = F.w;
+let f3 = E.w ^ (q & (Z.w ^ carry));
+let d3 = extra.w ^ zx3;
+carry = ze3 | (zx3 & carry);
+let new_r = r ^ (q & (carry ^ r));
+return StreamDefResult(
+vec4<u32>(d0, d1, d2, d3),
+vec4<u32>(oldF0, oldF1, oldF2, oldF3),
+vec4<u32>(f0, f1, f2, f3),
+new_r
+);
+}
+fn bs_stream_check3_from_packet(
+lane_mask_in: u32,
+cw_byte_planes: array<array<u32, 8>, 8>,
+block0: array<u32, 8>,
+block1: array<u32, 8>,
+block2: array<u32, 8>,
+u0: u32, u1: u32, u2: u32
+) -> u32 {
+var lane_mask = lane_mask_in;
+var A0 = vec4<u32>(cw_byte_planes[0][0u], cw_byte_planes[0][1u], cw_byte_planes[0][2u], cw_byte_planes[0][3u]);
+var A1 = vec4<u32>(cw_byte_planes[0][4u], cw_byte_planes[0][5u], cw_byte_planes[0][6u], cw_byte_planes[0][7u]);
+var A2 = vec4<u32>(cw_byte_planes[1][0u], cw_byte_planes[1][1u], cw_byte_planes[1][2u], cw_byte_planes[1][3u]);
+var A3 = vec4<u32>(cw_byte_planes[1][4u], cw_byte_planes[1][5u], cw_byte_planes[1][6u], cw_byte_planes[1][7u]);
+var A4 = vec4<u32>(cw_byte_planes[2][0u], cw_byte_planes[2][1u], cw_byte_planes[2][2u], cw_byte_planes[2][3u]);
+var A5 = vec4<u32>(cw_byte_planes[2][4u], cw_byte_planes[2][5u], cw_byte_planes[2][6u], cw_byte_planes[2][7u]);
+var A6 = vec4<u32>(cw_byte_planes[3][0u], cw_byte_planes[3][1u], cw_byte_planes[3][2u], cw_byte_planes[3][3u]);
+var A7 = vec4<u32>(cw_byte_planes[3][4u], cw_byte_planes[3][5u], cw_byte_planes[3][6u], cw_byte_planes[3][7u]);
+var A8 = vec4<u32>(0u);
+var A9 = vec4<u32>(0u);
+var B0 = vec4<u32>(cw_byte_planes[4][0u], cw_byte_planes[4][1u], cw_byte_planes[4][2u], cw_byte_planes[4][3u]);
+var B1 = vec4<u32>(cw_byte_planes[4][4u], cw_byte_planes[4][5u], cw_byte_planes[4][6u], cw_byte_planes[4][7u]);
+var B2 = vec4<u32>(cw_byte_planes[5][0u], cw_byte_planes[5][1u], cw_byte_planes[5][2u], cw_byte_planes[5][3u]);
+var B3 = vec4<u32>(cw_byte_planes[5][4u], cw_byte_planes[5][5u], cw_byte_planes[5][6u], cw_byte_planes[5][7u]);
+var B4 = vec4<u32>(cw_byte_planes[6][0u], cw_byte_planes[6][1u], cw_byte_planes[6][2u], cw_byte_planes[6][3u]);
+var B5 = vec4<u32>(cw_byte_planes[6][4u], cw_byte_planes[6][5u], cw_byte_planes[6][6u], cw_byte_planes[6][7u]);
+var B6 = vec4<u32>(cw_byte_planes[7][0u], cw_byte_planes[7][1u], cw_byte_planes[7][2u], cw_byte_planes[7][3u]);
+var B7 = vec4<u32>(cw_byte_planes[7][4u], cw_byte_planes[7][5u], cw_byte_planes[7][6u], cw_byte_planes[7][7u]);
+var B8 = vec4<u32>(0u);
+var B9 = vec4<u32>(0u);
+var X = vec4<u32>(0u);
+var Y = vec4<u32>(0u);
+var Z = vec4<u32>(0u);
+var D = vec4<u32>(0u);
+var E = vec4<u32>(0u);
+var F = vec4<u32>(0u);
+var p = 0u;
+var q = 0u;
+var r = 0u;
+let iv0 = (u0 >> 0u) & 0xFFu;
+let iv1 = (u0 >> 8u) & 0xFFu;
+let iv2 = (u0 >> 16u) & 0xFFu;
+let iv3 = (u0 >> 24u) & 0xFFu;
+let iv4 = (u1 >> 0u) & 0xFFu;
+let iv5 = (u1 >> 8u) & 0xFFu;
+let iv6 = (u1 >> 16u) & 0xFFu;
+let iv7 = (u1 >> 24u) & 0xFFu;
+for (var i = 0u; i < 8u; i++) {
+let iv = select(
+select(select(iv0, iv1, i == 1u), select(iv2, iv3, i == 3u), i >= 2u),
+select(select(iv4, iv5, i == 5u), select(iv6, iv7, i == 7u), i >= 6u),
+i >= 4u
+);
+let in1p = bs_nibble_to_vec4((iv >> 4u) & 0x0Fu, lane_mask);
+let in2p = bs_nibble_to_vec4((iv >> 0u) & 0x0Fu, lane_mask);
+for (var j = 0u; j < 4u; j++) {
+let extra = compute_extra(B2, B3, B4, B5, B6, B7, B8);
+let odd = (j & 1u) != 0u;
+let ain = select(in1p, in2p, odd);
+let bin = select(in2p, in1p, odd);
+var nextA = A9 ^ X ^ D ^ ain;
+var nextB = B6 ^ B9 ^ Y ^ bin;
+nextB = transform_nextB(nextB, p);
+let defRes = compute_def(Z, E, F, extra, q, r);
+D = defRes.new_D;
+E = defRes.new_E;
+F = defRes.new_F;
+r = defRes.new_r;
+let s1 = bs_stream_sbox1(A0.z, A5.y, A6.w, A8.x, A3.x, lane_mask);
+let s2 = bs_stream_sbox2(A2.z, A5.w, A6.x, A8.y, A1.y, lane_mask);
+let s3 = bs_stream_sbox3(A1.x, A4.y, A4.w, A5.z, A0.w, lane_mask);
+let s4 = bs_stream_sbox4(A0.y, A1.w, A3.z, A7.x, A2.w, lane_mask);
+let s5 = bs_stream_sbox5(A3.w, A5.x, A7.y, A8.z, A4.z, lane_mask);
+let s6 = bs_stream_sbox6(A3.y, A4.x, A6.z, A8.w, A2.y, lane_mask);
+let s7 = bs_stream_sbox7(A2.x, A6.y, A7.z, A7.w, A1.z, lane_mask);
+X = vec4<u32>(s1.x, s2.x, s3.y, s4.y);
+Y = vec4<u32>(s3.x, s4.x, s5.y, s6.y);
+Z = vec4<u32>(s5.x, s6.x, s1.y, s2.y);
+p = s7.x;
+q = s7.y;
+A9 = A8; A8 = A7; A7 = A6; A6 = A5; A5 = A4;
+A4 = A3; A3 = A2; A2 = A1; A1 = A0; A0 = nextA;
+B9 = B8; B8 = B7; B7 = B6; B6 = B5; B5 = B4;
+B4 = B3; B3 = B2; B2 = B1; B1 = B0; B0 = nextB;
+}
+}
+let c8v = (u2 >> 0u) & 0xFFu;
+let c9v = (u2 >> 8u) & 0xFFu;
+let c10v = (u2 >> 16u) & 0xFFu;
+let c8p = bs_byte_to_planes(c8v, lane_mask);
+let c9p = bs_byte_to_planes(c9v, lane_mask);
+let c10p = bs_byte_to_planes(c10v, lane_mask);
+for (var out_i = 0u; out_i < 3u; out_i++) {
+var op = array<u32, 8>(0u,0u,0u,0u,0u,0u,0u,0u);
+for (var j = 0u; j < 4u; j++) {
+let extra = compute_extra(B2, B3, B4, B5, B6, B7, B8);
+var nextA = A9 ^ X;
+var nextB = B6 ^ B9 ^ Y;
+nextB = transform_nextB(nextB, p);
+let defRes = compute_def(Z, E, F, extra, q, r);
+D = defRes.new_D;
+E = defRes.new_E;
+F = defRes.new_F;
+r = defRes.new_r;
+let s1 = bs_stream_sbox1(A0.z, A5.y, A6.w, A8.x, A3.x, lane_mask);
+let s2 = bs_stream_sbox2(A2.z, A5.w, A6.x, A8.y, A1.y, lane_mask);
+let s3 = bs_stream_sbox3(A1.x, A4.y, A4.w, A5.z, A0.w, lane_mask);
+let s4 = bs_stream_sbox4(A0.y, A1.w, A3.z, A7.x, A2.w, lane_mask);
+let s5 = bs_stream_sbox5(A3.w, A5.x, A7.y, A8.z, A4.z, lane_mask);
+let s6 = bs_stream_sbox6(A3.y, A4.x, A6.z, A8.w, A2.y, lane_mask);
+let s7 = bs_stream_sbox7(A2.x, A6.y, A7.z, A7.w, A1.z, lane_mask);
+X = vec4<u32>(s1.x, s2.x, s3.y, s4.y);
+Y = vec4<u32>(s3.x, s4.x, s5.y, s6.y);
+Z = vec4<u32>(s5.x, s6.x, s1.y, s2.y);
+p = s7.x;
+q = s7.y;
+let t0 = D.x ^ D.y;
+let t1 = D.z ^ D.w;
+op[7] = op[5]; op[6] = op[4]; op[5] = op[3]; op[4] = op[2];
+op[3] = op[1]; op[2] = op[0]; op[1] = t1;    op[0] = t0;
+A9 = A8; A8 = A7; A7 = A6; A6 = A5; A5 = A4;
+A4 = A3; A3 = A2; A2 = A1; A1 = A0; A0 = nextA;
+B9 = B8; B8 = B7; B7 = B6; B6 = B5; B5 = B4;
+B4 = B3; B3 = B2; B2 = B1; B1 = B0; B0 = nextB;
+}
+var mismatch = 0u;
+if (out_i == 0u) {
+for (var b = 0u; b < 8u; b++) {
+mismatch |= block0[b] ^ op[b] ^ c8p[b];
+}
+} else if (out_i == 1u) {
+for (var b = 0u; b < 8u; b++) {
+mismatch |= block1[b] ^ op[b] ^ c9p[b];
+}
+} else {
+mismatch = (block2[0] ^ op[0] ^ c10p[0] ^ lane_mask);
+for (var b = 1u; b < 8u; b++) {
+mismatch |= block2[b] ^ op[b] ^ c10p[b];
+}
+}
+lane_mask &= ~mismatch;
+if (lane_mask == 0u) { return 0u; }
+}
+return lane_mask;
+}
+const KEY_PERM: array<u32, 64> = array<u32, 64>(
+23u, 20u, 60u, 25u, 49u, 53u,  3u, 42u,
+2u, 54u, 52u, 35u, 26u, 27u, 59u, 62u,
+47u,  0u, 12u, 17u,  7u, 36u, 44u, 16u,
+43u, 30u, 22u,  8u,  6u, 38u, 41u, 56u,
+13u, 24u, 33u,  1u, 18u, 61u, 19u, 29u,
+31u,  4u, 51u, 55u, 40u, 58u, 45u, 37u,
+5u, 11u, 32u, 34u, 21u,  9u, 63u, 50u,
+28u, 39u, 14u, 48u, 46u, 10u, 57u, 15u
+);
+fn bs_block_decypher3_from_cw(
+cw_byte_planes_stream: array<array<u32, 8>, 8>,
+lane_mask: u32,
+u0: u32, u1: u32,
+out_b0: ptr<function, array<u32, 8>>,
+out_b1: ptr<function, array<u32, 8>>,
+out_b2: ptr<function, array<u32, 8>>
+) {
+let ib0 = (u0 >> 0u) & 0xFFu;
+let ib1 = (u0 >> 8u) & 0xFFu;
+let ib2 = (u0 >> 16u) & 0xFFu;
+let ib3 = (u0 >> 24u) & 0xFFu;
+let ib4 = (u1 >> 0u) & 0xFFu;
+let ib5 = (u1 >> 8u) & 0xFFu;
+let ib6 = (u1 >> 16u) & 0xFFu;
+let ib7 = (u1 >> 24u) & 0xFFu;
+var R1 = bs_byte_to_planes(ib0, lane_mask);
+var R2 = bs_byte_to_planes(ib1, lane_mask);
+var R3 = bs_byte_to_planes(ib2, lane_mask);
+var R4 = bs_byte_to_planes(ib3, lane_mask);
+var R5 = bs_byte_to_planes(ib4, lane_mask);
+var R6 = bs_byte_to_planes(ib5, lane_mask);
+var R7 = bs_byte_to_planes(ib6, lane_mask);
+var R8 = bs_byte_to_planes(ib7, lane_mask);
+var kbits: array<u32, 64>;
+for (var b = 0u; b < 64u; b++) {
+let by = b >> 3u;
+let bit = 7u - (b & 7u);
+let stream_bit = (bit + 4u) & 7u;
+kbits[b] = cw_byte_planes_stream[by][stream_bit];
+}
+for (var g_step = 0u; g_step < 7u; g_step++) {
+let g = 6u - g_step;
+let g0 = select(0u, lane_mask, (g & 0x01u) != 0u);
+let g1 = select(0u, lane_mask, (g & 0x02u) != 0u);
+let g2 = select(0u, lane_mask, (g & 0x04u) != 0u);
+for (var j_step = 0u; j_step < 8u; j_step++) {
+let j = 7u - j_step;
+let base = j * 8u;
+let sbox_out = bs_block_sbox(
+(kbits[base + 7u] ^ g0) ^ R7[0u],
+(kbits[base + 6u] ^ g1) ^ R7[1u],
+(kbits[base + 5u] ^ g2) ^ R7[2u],
+kbits[base + 4u] ^ R7[3u],
+kbits[base + 3u] ^ R7[4u],
+kbits[base + 2u] ^ R7[5u],
+kbits[base + 1u] ^ R7[6u],
+kbits[base + 0u] ^ R7[7u],
+lane_mask
+);
+for (var bit = 0u; bit < 8u; bit++) {
+let oldR1 = R1[bit];
+let oldR2 = R2[bit];
+let oldR3 = R3[bit];
+let oldR4 = R4[bit];
+let oldR5 = R5[bit];
+let oldR6 = R6[bit];
+let oldR7 = R7[bit];
+let oldR8 = R8[bit];
+let common_x = oldR8 ^ sbox_out[bit];
+let perm = sbox_out[get_block_perm_out_to_in(bit)];
+R8[bit] = oldR7;
+R7[bit] = oldR6 ^ perm;
+R6[bit] = oldR5;
+R5[bit] = oldR4 ^ common_x;
+R4[bit] = oldR3 ^ common_x;
+R3[bit] = oldR2 ^ common_x;
+R2[bit] = oldR1;
+R1[bit] = common_x;
+}
+}
+if (g > 0u) {
+var ktmp: array<u32, 64>;
+for (var i = 0u; i < 64u; i++) {
+ktmp[i] = kbits[KEY_PERM[i]];
+}
+kbits = ktmp;
+}
+}
+*out_b0 = R1;
+*out_b1 = R2;
+*out_b2 = R3;
+}
+fn tg_preload_and_check_found(tid: u32, wg_size: u32) -> bool {
+if (packet_count <= MAX_PRELOAD_PACKETS) {
+if (atomicLoad(&found_flag) == 0u) {
+var i = tid;
+while (i < packet_count) {
+let base = i * 4u;
+tg_u0[i] = packets_data[base + 0u];
+tg_u1[i] = packets_data[base + 1u];
+tg_u2[i] = packets_data[base + 2u];
+i += wg_size;
+}
+}
+workgroupBarrier();
+}
+return atomicLoad(&found_flag) == 0u;
+}
+fn load_packet_data(pidx: u32) -> vec3<u32> {
+if (packet_count <= MAX_PRELOAD_PACKETS) {
+return vec3<u32>(tg_u0[pidx], tg_u1[pidx], tg_u2[pidx]);
+}
+let base = pidx * 4u;
+return vec3<u32>(packets_data[base + 0u], packets_data[base + 1u], packets_data[base + 2u]);
+}
+fn map_template_ordinal(
+ordinal: vec2<u32>,
+mode: u32,
+fixed_word_byte_position: u32,
+fixed_word_value: u32
+) -> vec2<u32> {
+if (mode == 1u) { return ordinal; }
+let fixed_value = fixed_word_value & 0xFFFFu;
+if (fixed_word_byte_position == 0u) {
+return u64_or(u64_shl(ordinal, 16u), vec2<u32>(fixed_value, 0u));
+}
+if (fixed_word_byte_position == 2u) {
+let low = ordinal.x & 0xFFFFu;
+let high = u64_shl(u64_shr(ordinal, 16u), 32u);
+return u64_or(high, vec2<u32>(low | (fixed_value << 16u), 0u));
+}
+return ordinal;
+}
+fn init_lanes_and_check_range_mapped(
+id_x: u32,
+mode: u32,
+fixed_word_byte_position: u32,
+fixed_word_value: u32,
+p_lane_mask: ptr<function, u32>,
+p_p0_lane: ptr<function, array<vec2<u32>, 32>>
+) -> bool {
+let offset = u64_shl(vec2<u32>(id_x, 0u), 5u);
+let thread_base = u64_add(base_key_idx, offset);
+let diff_check = u64_sub(thread_base, base_key_idx);
+if (u64_ge(diff_check, keys_to_check)) { return false; }
+var lane_mask = 0u;
+for (var lane = 0u; lane < BITS_SLICE_LANES; lane++) {
+let ordinal = u64_add(thread_base, vec2<u32>(lane, 0u));
+let diff = u64_sub(ordinal, base_key_idx);
+if (u64_ge(diff, keys_to_check)) {
+(*p_p0_lane)[lane] = vec2<u32>(0u, 0u);
+continue;
+}
+lane_mask |= (1u << lane);
+let idx = map_template_ordinal(ordinal, mode, fixed_word_byte_position, fixed_word_value);
+let seed0 = (idx.y >> 8u) & 0xFFu;
+let seed1 = (idx.y >> 0u) & 0xFFu;
+let seed2 = (idx.x >> 24u) & 0xFFu;
+let seed3 = (idx.x >> 16u) & 0xFFu;
+let seed4 = (idx.x >> 8u) & 0xFFu;
+let seed5 = (idx.x >> 0u) & 0xFFu;
+let cw3 = (seed0 + seed1 + seed2) & 0xFFu;
+let cw7 = (seed3 + seed4 + seed5) & 0xFFu;
+let hi = (seed0 << 24u) | (seed1 << 16u) | (seed2 << 8u) | cw3;
+let lo = (seed3 << 24u) | (seed4 << 16u) | (seed5 << 8u) | cw7;
+(*p_p0_lane)[lane] = vec2<u32>(lo, hi);
+}
+*p_lane_mask = lane_mask;
+return true;
+}
+fn init_lanes_and_check_range(
+id_x: u32,
+p_lane_mask: ptr<function, u32>,
+p_p0_lane: ptr<function, array<vec2<u32>, 32>>
+) -> bool {
+return init_lanes_and_check_range_mapped(id_x, 1u, 0u, 0u, p_lane_mask, p_p0_lane);
+}
+var<workgroup> tg_u0: array<u32, 64>;
+var<workgroup> tg_u1: array<u32, 64>;
+var<workgroup> tg_u2: array<u32, 64>;
+fn run_streamslice_kernel(
+id_x: u32,
+tid: u32,
+mode: u32,
+fixed_word_byte_position: u32,
+fixed_word_value: u32
+) {
+if (!tg_preload_and_check_found(tid, STREAMSLICE_WORKGROUP_SIZE)) { return; }
+var lane_mask = 0u;
+var p0_lane: array<vec2<u32>, 32>;
+if (!init_lanes_and_check_range_mapped(
+id_x,
+mode,
+fixed_word_byte_position,
+fixed_word_value,
+&lane_mask,
+&p0_lane
+)) { return; }
+for (var pidx = 0u; pidx < packet_count; pidx++) {
+let pkt = load_packet_data(pidx);
+let u0 = pkt.x;
+let u1 = pkt.y;
+let u2 = pkt.z;
+var block0: array<u32, 8>;
+var block1: array<u32, 8>;
+var block2: array<u32, 8>;
+for(var j=0u; j<8u; j++) { block0[j] = 0u; block1[j] = 0u; block2[j] = 0u; }
+for (var lane = 0u; lane < BITS_SLICE_LANES; lane++) {
+let m = 1u << lane;
+if ((lane_mask & m) == 0u) { continue; }
+let b3 = block_decypher3_from_p0_jit(u0, u1, p0_lane[lane]);
+let v0 = (b3.x >> 0u) & 0xFFu;
+let v1 = (b3.x >> 8u) & 0xFFu;
+let v2 = (b3.x >> 16u) & 0xFFu;
+for (var bit = 0u; bit < 8u; bit++) {
+if (((v0 >> bit) & 1u) != 0u) { block0[bit] |= m; }
+if (((v1 >> bit) & 1u) != 0u) { block1[bit] |= m; }
+if (((v2 >> bit) & 1u) != 0u) { block2[bit] |= m; }
+}
+}
+var cw_byte_planes: array<array<u32, 8>, 8>;
+for(var i=0u; i<8u; i++) { for(var j=0u; j<8u; j++) { cw_byte_planes[i][j] = 0u; } }
+for (var lane = 0u; lane < BITS_SLICE_LANES; lane++) {
+let m = 1u << lane;
+if ((lane_mask & m) == 0u) { continue; }
+let p0 = p0_lane[lane];
+let p0_swapped_x = ((p0.x & 0xF0F0F0F0u) >> 4u) | ((p0.x & 0x0F0F0F0Fu) << 4u);
+let p0_swapped_y = ((p0.y & 0xF0F0F0F0u) >> 4u) | ((p0.y & 0x0F0F0F0Fu) << 4u);
+for (var by = 0u; by < 8u; by++) {
+var v: u32;
+let shift = 56u - 8u * by;
+if (shift >= 32u) {
+v = (p0_swapped_y >> (shift - 32u)) & 0xFFu;
+} else {
+v = (p0_swapped_x >> shift) & 0xFFu;
+}
+for (var bit = 0u; bit < 8u; bit++) {
+if (((v >> bit) & 1u) != 0u) {
+cw_byte_planes[by][bit] |= m;
+}
+}
+}
+}
+lane_mask = bs_stream_check3_from_packet(lane_mask, cw_byte_planes, block0, block1, block2, u0, u1, u2);
+if (lane_mask == 0u) { return; }
+if (atomicLoad(&found_flag) > 0u) { return; }
+}
+let old_val = atomicExchange(&found_flag, 1u);
+if (old_val == 0u) {
+let lane = countTrailingZeros(lane_mask);
+result_buffer[0] = p0_lane[lane].x;
+result_buffer[1] = p0_lane[lane].y;
+}
+}
+fn run_bitslice_kernel(
+id_x: u32,
+tid: u32,
+mode: u32,
+fixed_word_byte_position: u32,
+fixed_word_value: u32
+) {
+if (!tg_preload_and_check_found(tid, BITSLICE_WORKGROUP_SIZE)) { return; }
+var lane_mask = 0u;
+var p0_lane: array<vec2<u32>, 32>;
+if (!init_lanes_and_check_range_mapped(
+id_x,
+mode,
+fixed_word_byte_position,
+fixed_word_value,
+&lane_mask,
+&p0_lane
+)) { return; }
+var cw_byte_planes_stream: array<array<u32, 8>, 8>;
+for (var i = 0u; i < 8u; i++) {
+for (var j = 0u; j < 8u; j++) {
+cw_byte_planes_stream[i][j] = 0u;
+}
+}
+for (var lane = 0u; lane < BITS_SLICE_LANES; lane++) {
+let m = 1u << lane;
+if ((lane_mask & m) == 0u) { continue; }
+let p0 = p0_lane[lane];
+let p0_swapped_x = ((p0.x & 0xF0F0F0F0u) >> 4u) | ((p0.x & 0x0F0F0F0Fu) << 4u);
+let p0_swapped_y = ((p0.y & 0xF0F0F0F0u) >> 4u) | ((p0.y & 0x0F0F0F0Fu) << 4u);
+for (var by = 0u; by < 8u; by++) {
+let shift = 56u - 8u * by;
+var v_stream: u32;
+if (shift >= 32u) {
+v_stream = (p0_swapped_y >> (shift - 32u)) & 0xFFu;
+} else {
+v_stream = (p0_swapped_x >> shift) & 0xFFu;
+}
+for (var bit = 0u; bit < 8u; bit++) {
+if (((v_stream >> bit) & 1u) != 0u) {
+cw_byte_planes_stream[by][bit] |= m;
+}
+}
+}
+}
+for (var pidx = 0u; pidx < packet_count; pidx++) {
+let pkt = load_packet_data(pidx);
+let u0 = pkt.x;
+let u1 = pkt.y;
+let u2 = pkt.z;
+var block0: array<u32, 8>;
+var block1: array<u32, 8>;
+var block2: array<u32, 8>;
+bs_block_decypher3_from_cw(cw_byte_planes_stream, lane_mask, u0, u1, &block0, &block1, &block2);
+lane_mask = bs_stream_check3_from_packet(lane_mask, cw_byte_planes_stream, block0, block1, block2, u0, u1, u2);
+if (lane_mask == 0u) { return; }
+if (atomicLoad(&found_flag) > 0u) { return; }
+}
+let old_val = atomicExchange(&found_flag, 1u);
+if (old_val == 0u) {
+let lane = countTrailingZeros(lane_mask);
+result_buffer[0] = p0_lane[lane].x;
+result_buffer[1] = p0_lane[lane].y;
+}
+}
+@compute @workgroup_size(STREAMSLICE_WORKGROUP_SIZE)
+fn dvbcsa_bruteforce_streamslice(
+@builtin(global_invocation_id) id: vec3<u32>,
+@builtin(local_invocation_index) tid: u32
+) {
+run_streamslice_kernel(id.x, tid, 1u, 0u, 0u);
+}
+@compute @workgroup_size(BITSLICE_WORKGROUP_SIZE)
+fn dvbcsa_bruteforce_streamslice_bitslice(
+@builtin(global_invocation_id) id: vec3<u32>,
+@builtin(local_invocation_index) tid: u32
+) {
+run_bitslice_kernel(id.x, tid, 1u, 0u, 0u);
+}
+@compute @workgroup_size(STREAMSLICE_WORKGROUP_SIZE)
+fn dvbcsa_bruteforce_streamslice_template(
+@builtin(global_invocation_id) id: vec3<u32>,
+@builtin(local_invocation_index) tid: u32
+) {
+run_streamslice_kernel(
+id.x,
+tid,
+template_search_options.mode,
+template_search_options.fixed_word_byte_position,
+template_search_options.fixed_word_value
+);
+}
+@compute @workgroup_size(BITSLICE_WORKGROUP_SIZE)
+fn dvbcsa_bruteforce_streamslice_bitslice_template(
+@builtin(global_invocation_id) id: vec3<u32>,
+@builtin(local_invocation_index) tid: u32
+) {
+run_bitslice_kernel(
+id.x,
+tid,
+template_search_options.mode,
+template_search_options.fixed_word_byte_position,
+template_search_options.fixed_word_value
+);
+}</script><script type="module">function readUInt32BE(bytes, offset) {
+    return ((bytes[offset] << 24) | (bytes[offset + 1] << 16) | (bytes[offset + 2] << 8) | bytes[offset + 3]) >>> 0;
+}
+function getPidFromHeaderInt(tsHeaderInt) {
+    return (tsHeaderInt & 0x1fff00) >>> 8;
+}
+function getAdaptationControl(tsHeaderInt) {
+    return (tsHeaderInt & 0x30) >>> 4;
+}
+function getPayloadUnitStart(tsHeaderInt) {
+    return (tsHeaderInt & 0x400000) >>> 22;
+}
+function getEncTag(tsHeaderInt) {
+    return (tsHeaderInt & 0xc0) >>> 6;
+}
+function findTsSyncOffset(data) {
+    const len = data.length;
+    for (let offset = 0; offset + 376 < len; offset++) {
+        if (data[offset] === 0x47 && data[offset + 188] === 0x47)
+            return offset;
+    }
+    return -1;
+}
+function bytesToHexWithSpaces(bytes, start, length) {
+    const end = Math.min(bytes.length, start + length);
+    const parts = [];
+    for (let i = start; i < end; i++) {
+        parts.push(bytes[i].toString(16).padStart(2, "0").toUpperCase());
+    }
+    return parts.join(" ");
+}
+async function readFileChunk(file, offset, size) {
+    const end = Math.min(file.size, offset + size);
+    const blob = file.slice(offset, end);
+    const buf = await blob.arrayBuffer();
+    return new Uint8Array(buf);
+}
+async function checkIsEncrypted(file, offset, maxBytes, count) {
+    const data = await readFileChunk(file, offset, maxBytes);
+    const syncOffset = findTsSyncOffset(data);
+    if (syncOffset < 0) {
+        return { ok: false, error: "TS sync not found.", encrypted: false, pids: [] };
+    }
+    const encryptedPids = new Set();
+    let counter = 0;
+    for (let pos = syncOffset; pos + 188 <= data.length; pos += 188) {
+        if (data[pos] !== 0x47)
+            continue;
+        const headerInt = readUInt32BE(data, pos);
+        const pid = getPidFromHeaderInt(headerInt);
+        const adaptationControl = getAdaptationControl(headerInt);
+        if (pid > 8191 || pid <= 32 || adaptationControl !== 1)
+            continue;
+        const encTag = getEncTag(headerInt);
+        if (encTag === 2 || encTag === 3) {
+            counter += 1;
+            if (counter > count)
+                encryptedPids.add(pid);
+        }
+        else {
+            counter = 0;
+        }
+    }
+    const pids = Array.from(encryptedPids).sort((a, b) => a - b);
+    return { ok: true, encrypted: pids.length > 0, pids: pids.length > 0 ? pids : [-1], syncOffset };
+}
+async function getTsSamples(file, offset, inputPid, maxBytes) {
+    const data = await readFileChunk(file, offset, maxBytes);
+    const syncOffset = findTsSyncOffset(data);
+    if (syncOffset < 0) {
+        return { ok: false, error: "TS sync not found." };
+    }
+    const samples = [];
+    const pesIndexes = [];
+    for (let pos = syncOffset; pos + 188 <= data.length; pos += 188) {
+        if (data[pos] !== 0x47)
+            continue;
+        const headerInt = readUInt32BE(data, pos);
+        const pid = getPidFromHeaderInt(headerInt);
+        if (pid !== inputPid)
+            continue;
+        const adaptationControl = getAdaptationControl(headerInt);
+        const payloadUnitStart = getPayloadUnitStart(headerInt);
+        if (payloadUnitStart !== 1)
+            continue;
+        if (adaptationControl !== 1)
+            continue;
+        const pesIndex = 4;
+        const tsPacket = data.subarray(pos, pos + 188);
+        pesIndexes.push(pesIndex);
+        samples.push(bytesToHexWithSpaces(tsPacket, 0, 16));
+        if (samples.length >= 3)
+            break;
+    }
+    if (samples.length < 3) {
+        return { ok: false, error: "Failed to extract 3 samples for the selected PID." };
+    }
+    return { ok: true, samples, pesIndexes, syncOffset };
+}
+const MAX_SEED = 0xffffffffffffn;
+const DATE_TOKEN_RE = /\{(?:yyyy|MMdd[+-]?|ddMM[+-]?)\}/g;
+const TEMPLATE_VALUE_SOURCE = '(?:[0-9A-Fa-f]|\\{(?:yyyy|MMdd[+-]?|ddMM[+-]?)\\})+';
+const EMBEDDED_TEMPLATE_RE = new RegExp(`(?:^|\\s)(${TEMPLATE_VALUE_SOURCE})\\s+(${TEMPLATE_VALUE_SOURCE})\\s+(\\d+)\\s+(1|5|13)\\s+((?:\\d+(?:\\.\\d+)?|\\.\\d+))(?=\\s|$)`);
+const TEMPLATE_TOKEN_VALIDATION_DATE = {
+    raw: '20250423',
+    year: '2025',
+    month: '04',
+    day: '23',
+};
+const DEFAULT_TEMPLATE_CONFIGS = [
+    {
+        id: 'default-full',
+        name: 'Full seed range',
+        startTemplate: '000000000000',
+        endTemplate: 'FFFFFF000000',
+        reserved: 1,
+        mode: 1,
+        timeoutSeconds: 10,
+        enabled: true,
+    },
+    {
+        id: 'default-year',
+        name: 'Filename year',
+        startTemplate: '{yyyy}00000000',
+        endTemplate: 'FFFFFF000000',
+        reserved: 1,
+        mode: 1,
+        timeoutSeconds: 20,
+        enabled: true,
+    },
+    {
+        id: 'default-mmdd',
+        name: 'Month and day window',
+        startTemplate: '{MMdd-}00000000',
+        endTemplate: '{MMdd+}FF000000',
+        reserved: 1,
+        mode: 1,
+        timeoutSeconds: 30,
+        enabled: true,
+    },
+    {
+        id: 'default-ddmm',
+        name: 'Day and month window',
+        startTemplate: '{ddMM-}00000000',
+        endTemplate: '{ddMM+}FF000000',
+        reserved: 1,
+        mode: 1,
+        timeoutSeconds: 30,
+        enabled: true,
+    },
+];
+function cloneDefaultTemplateConfigs() {
+    return DEFAULT_TEMPLATE_CONFIGS.map((config) => ({ ...config }));
+}
+function isTemplateSearchMode(value) {
+    return value === 1 || value === 5 || value === 13;
+}
+function extractDateFromFilename(filename) {
+    const matches = filename.matchAll(/\d{8}/g);
+    for (const match of matches) {
+        const raw = match[0];
+        const year = raw.slice(0, 4);
+        const month = raw.slice(4, 6);
+        const day = raw.slice(6, 8);
+        const yearNumber = Number(year);
+        const monthNumber = Number(month);
+        const dayNumber = Number(day);
+        const candidate = new Date(Date.UTC(yearNumber, monthNumber - 1, dayNumber));
+        if (candidate.getUTCFullYear() === yearNumber
+            && candidate.getUTCMonth() === monthNumber - 1
+            && candidate.getUTCDate() === dayNumber) {
+            return { raw, year, month, day };
+        }
+    }
+    return null;
+}
+function templateNeedsFilenameDate(value) {
+    DATE_TOKEN_RE.lastIndex = 0;
+    return DATE_TOKEN_RE.test(value);
+}
+function adjustFourDigitValue(value, delta) {
+    const adjusted = Number(value) + delta;
+    if (!Number.isInteger(adjusted) || adjusted < 0 || adjusted > 9999) {
+        throw new Error(`Date token value ${value} cannot be adjusted by ${delta}.`);
+    }
+    return adjusted.toString().padStart(4, '0');
+}
+function expandTemplateValue(value, filenameDate) {
+    if (templateNeedsFilenameDate(value) && !filenameDate) {
+        throw new Error('The filename does not contain a valid YYYYMMDD date.');
+    }
+    if (!filenameDate)
+        return value.toUpperCase();
+    const mmdd = `${filenameDate.month}${filenameDate.day}`;
+    const ddmm = `${filenameDate.day}${filenameDate.month}`;
+    return value
+        .replaceAll('{yyyy}', filenameDate.year)
+        .replaceAll('{MMdd-}', adjustFourDigitValue(mmdd, -1))
+        .replaceAll('{MMdd+}', adjustFourDigitValue(mmdd, 1))
+        .replaceAll('{MMdd}', mmdd)
+        .replaceAll('{ddMM-}', adjustFourDigitValue(ddmm, -1))
+        .replaceAll('{ddMM+}', adjustFourDigitValue(ddmm, 1))
+        .replaceAll('{ddMM}', ddmm)
+        .toUpperCase();
+}
+function parseSeed(value, label) {
+    if (!/^[0-9A-F]{12}$/.test(value)) {
+        throw new Error(`${label} must expand to exactly 12 hexadecimal characters.`);
+    }
+    return BigInt(`0x${value}`);
+}
+function formatSeed(value) {
+    return value.toString(16).toUpperCase().padStart(12, '0');
+}
+function expandTemplateConfig(config, filenameDate) {
+    const dateRequired = templateNeedsFilenameDate(config.startTemplate)
+        || templateNeedsFilenameDate(config.endTemplate);
+    try {
+        if (!config.name.trim())
+            throw new Error('Configuration name is required.');
+        if (!isTemplateSearchMode(config.mode))
+            throw new Error(`Unsupported search mode ${config.mode}.`);
+        if (!Number.isInteger(config.reserved) || config.reserved < 0) {
+            throw new Error('Reserved must be a non-negative integer.');
+        }
+        if (!Number.isFinite(config.timeoutSeconds) || config.timeoutSeconds <= 0) {
+            throw new Error('Timeout must be greater than zero seconds.');
+        }
+        const startHex = expandTemplateValue(config.startTemplate.trim(), filenameDate);
+        const endHex = expandTemplateValue(config.endTemplate.trim(), filenameDate);
+        const startSeed = parseSeed(startHex, 'Start seed');
+        const endSeed = parseSeed(endHex, 'End seed');
+        if (startSeed > endSeed)
+            throw new Error('Start seed must not be greater than end seed.');
+        return { config, startSeed, endSeed, startHex, endHex, dateRequired, valid: true };
+    }
+    catch (error) {
+        return {
+            config,
+            dateRequired,
+            valid: false,
+            error: error instanceof Error ? error.message : String(error),
+        };
+    }
+}
+function validateTemplateConfigSyntax(config) {
+    if (!config.name.trim())
+        throw new Error('Configuration name is required.');
+    if (!isTemplateSearchMode(config.mode))
+        throw new Error(`Unsupported search mode ${config.mode}.`);
+    if (!Number.isInteger(config.reserved) || config.reserved < 0) {
+        throw new Error('Reserved must be a non-negative integer.');
+    }
+    if (!Number.isFinite(config.timeoutSeconds) || config.timeoutSeconds <= 0) {
+        throw new Error('Timeout must be greater than zero seconds.');
+    }
+    parseSeed(expandTemplateValue(config.startTemplate.trim(), TEMPLATE_TOKEN_VALIDATION_DATE), 'Start seed');
+    parseSeed(expandTemplateValue(config.endTemplate.trim(), TEMPLATE_TOKEN_VALIDATION_DATE), 'End seed');
+}
+function parseTemplateLine(line, id, name = 'Imported configuration') {
+    const fields = line.trim().split(/\s+/);
+    if (fields.length !== 5) {
+        throw new Error('A template line must contain start, end, reserved, mode, and timeout fields.');
+    }
+    const reserved = Number(fields[2]);
+    const mode = Number(fields[3]);
+    const timeoutSeconds = Number(fields[4]);
+    if (!Number.isInteger(reserved) || reserved < 0)
+        throw new Error('Reserved must be a non-negative integer.');
+    if (!isTemplateSearchMode(mode))
+        throw new Error('Mode must be 1, 5, or 13.');
+    if (!Number.isFinite(timeoutSeconds) || timeoutSeconds <= 0) {
+        throw new Error('Timeout must be greater than zero seconds.');
+    }
+    return {
+        id,
+        name,
+        startTemplate: fields[0],
+        endTemplate: fields[1],
+        reserved,
+        mode,
+        timeoutSeconds,
+        enabled: true,
+    };
+}
+function templateConfigSignature(config) {
+    return JSON.stringify([
+        config.startTemplate.trim().toUpperCase(),
+        config.endTemplate.trim().toUpperCase(),
+        config.reserved,
+        config.mode,
+        config.timeoutSeconds,
+    ]);
+}
+function assignUniqueImportedTemplateNames(configs, existingConfigs) {
+    const usedNames = new Set(existingConfigs.map((config) => config.name.trim().toLocaleLowerCase()));
+    let sequence = 1;
+    return configs.map((config) => {
+        let name = `Imported template ${sequence}`;
+        while (usedNames.has(name.toLocaleLowerCase())) {
+            sequence += 1;
+            name = `Imported template ${sequence}`;
+        }
+        usedNames.add(name.toLocaleLowerCase());
+        sequence += 1;
+        return { ...config, name };
+    });
+}
+function extractTemplateLine(source) {
+    const withoutListPrefix = source.trim().replace(/^(?:[-*+]\s+|\d+[.)]\s+)/, '');
+    const match = withoutListPrefix.match(EMBEDDED_TEMPLATE_RE);
+    if (!match)
+        return withoutListPrefix;
+    return match.slice(1, 6).join(' ');
+}
+function parseTemplateText(text, createId = (lineNumber) => `imported-line-${lineNumber}`, existingConfigs = []) {
+    const configs = [];
+    const issues = [];
+    const existingSignatures = new Map();
+    const importedSignatures = new Map();
+    existingConfigs.forEach((config) => {
+        const signature = templateConfigSignature(config);
+        if (!existingSignatures.has(signature))
+            existingSignatures.set(signature, config.name);
+    });
+    text.split(/\r?\n/).forEach((source, index) => {
+        const lineNumber = index + 1;
+        const trimmed = source.trim();
+        if (!trimmed || /^```/.test(trimmed))
+            return;
+        try {
+            const candidate = extractTemplateLine(trimmed);
+            const config = parseTemplateLine(candidate, createId(lineNumber), `Imported template ${configs.length + 1}`);
+            validateTemplateConfigSyntax(config);
+            const signature = templateConfigSignature(config);
+            const existingName = existingSignatures.get(signature);
+            if (existingName)
+                throw new Error(`Duplicate of existing template "${existingName}".`);
+            const importedLineNumber = importedSignatures.get(signature);
+            if (importedLineNumber != null) {
+                throw new Error(`Duplicate of line ${importedLineNumber} in this import.`);
+            }
+            importedSignatures.set(signature, lineNumber);
+            configs.push(config);
+        }
+        catch (error) {
+            issues.push({
+                lineNumber,
+                source: trimmed,
+                reason: error instanceof Error ? error.message : String(error),
+            });
+        }
+    });
+    return { configs, issues };
+}
+function serializeTemplateLine(config) {
+    return [
+        config.startTemplate,
+        config.endTemplate,
+        config.reserved,
+        config.mode,
+        config.timeoutSeconds,
+    ].join(' ');
+}
+function fixedWordBytePositionForMode(mode) {
+    if (mode === 5)
+        return 0;
+    if (mode === 13)
+        return 2;
+    return 0;
+}
+function compressSeed(seed, bytePosition) {
+    const lowBitCount = BigInt(bytePosition * 8);
+    const highShift = BigInt((bytePosition + 2) * 8);
+    const lowMask = lowBitCount === 0n ? 0n : (1n << lowBitCount) - 1n;
+    const low = seed & lowMask;
+    const high = seed >> highShift;
+    return (high << lowBitCount) | low;
+}
+function injectFixedWord(ordinal, bytePosition, fixedWordValue) {
+    if (!Number.isInteger(bytePosition) || bytePosition < 0 || bytePosition > 4) {
+        throw new Error('Fixed word byte position must be between 0 and 4.');
+    }
+    if (!Number.isInteger(fixedWordValue) || fixedWordValue < 0 || fixedWordValue > 0xFFFF) {
+        throw new Error('Fixed word value must be between 0 and 65535.');
+    }
+    const lowBitCount = BigInt(bytePosition * 8);
+    const lowMask = lowBitCount === 0n ? 0n : (1n << lowBitCount) - 1n;
+    const low = ordinal & lowMask;
+    const high = ordinal >> lowBitCount;
+    return (high << BigInt((bytePosition + 2) * 8))
+        | (BigInt(fixedWordValue) << lowBitCount)
+        | low;
+}
+function buildSearchRangePlan(startSeed, endSeed, mode) {
+    if (startSeed < 0n || endSeed > MAX_SEED || startSeed > endSeed) {
+        throw new Error('Search range must be an ordered 48-bit seed interval.');
+    }
+    if (mode === 1) {
+        return {
+            mode,
+            baseOrdinal: startSeed,
+            candidateCount: endSeed - startSeed + 1n,
+            fixedWordBytePosition: 0,
+            fixedWordValue: 0,
+            firstCandidate: startSeed,
+            lastCandidate: endSeed,
+        };
+    }
+    const fixedWordBytePosition = fixedWordBytePositionForMode(mode);
+    const fixedWordValue = Number((startSeed >> BigInt(fixedWordBytePosition * 8)) & 0xffffn);
+    let firstOrdinal = compressSeed(startSeed, fixedWordBytePosition);
+    if (injectFixedWord(firstOrdinal, fixedWordBytePosition, fixedWordValue) < startSeed)
+        firstOrdinal += 1n;
+    let lastOrdinal = compressSeed(endSeed, fixedWordBytePosition);
+    if (injectFixedWord(lastOrdinal, fixedWordBytePosition, fixedWordValue) > endSeed)
+        lastOrdinal -= 1n;
+    if (lastOrdinal < firstOrdinal)
+        throw new Error('The selected range contains no candidates for the fixed word.');
+    return {
+        mode,
+        baseOrdinal: firstOrdinal,
+        candidateCount: lastOrdinal - firstOrdinal + 1n,
+        fixedWordBytePosition,
+        fixedWordValue,
+        firstCandidate: injectFixedWord(firstOrdinal, fixedWordBytePosition, fixedWordValue),
+        lastCandidate: injectFixedWord(lastOrdinal, fixedWordBytePosition, fixedWordValue),
+    };
+}
+function getKeyPermByteTable() {
+    const metalTable = [
+        0x12, 0x24, 0x09, 0x07, 0x2A, 0x31, 0x1D, 0x15, 0x1C, 0x36, 0x3E, 0x32, 0x13, 0x21, 0x3B, 0x40,
+        0x18, 0x14, 0x25, 0x27, 0x02, 0x35, 0x1B, 0x01, 0x22, 0x04, 0x0D, 0x0E, 0x39, 0x28, 0x1A, 0x29,
+        0x33, 0x23, 0x34, 0x0C, 0x16, 0x30, 0x1E, 0x3A, 0x2D, 0x1F, 0x08, 0x19, 0x17, 0x2F, 0x3D, 0x11,
+        0x3C, 0x05, 0x38, 0x2B, 0x0B, 0x06, 0x0A, 0x2C, 0x20, 0x3F, 0x2E, 0x0F, 0x03, 0x26, 0x10, 0x37
+    ];
+    const table = new Uint8Array(64);
+    for (let i = 0; i < 64; i++) {
+        table[i] = metalTable[i] - 1;
+    }
+    return table;
+}
+const BLOCK_SBOX_PERM = new Uint32Array([
+    0xD43A, 0xD9EA, 0x5168, 0xFDFE, 0xC633, 0x5BE9, 0x1888, 0x941A, 0x8A83, 0xBBCF, 0x4BE1, 0xF77F, 0xDCBA, 0xC9E2, 0x5438, 0x8412,
+    0x59E8, 0xE227, 0x4361, 0x2E95, 0x300C, 0xE436, 0x6BE5, 0x4570, 0xC8A2, 0xA006, 0x8882, 0x757C, 0xA617, 0xCAA3, 0xE026, 0x1349,
+    0xFCBE, 0xD57A, 0x736D, 0xA347, 0x0BC1, 0x0751, 0xBA8F, 0xCFF3, 0x39CC, 0x975B, 0xE367, 0x7EBD, 0x3BCD, 0x1418, 0x1008, 0x1BC9,
+    0xFFFF, 0x5369, 0xFBEF, 0x8203, 0xB14E, 0x1148, 0x914A, 0x2884, 0xF63F, 0x6CB4, 0x0410, 0x2004, 0x3DDC, 0x6FF5, 0x355C, 0xA9C6,
+    0xA416, 0xDAAB, 0x78AC, 0x314C, 0x4FF1, 0xD16A, 0xF22F, 0x743C, 0xD63B, 0x2DD4, 0x2FD5, 0x2C94, 0x0DD0, 0x29C4, 0xC363, 0xC162,
+    0x4771, 0x4AA1, 0x5FF9, 0xB34F, 0xF02E, 0xD8AA, 0x2BC5, 0xA556, 0xCBE3, 0x5639, 0x8E93, 0xB9CE, 0x6365, 0x6164, 0x69E4, 0x1558,
+    0x716C, 0x1619, 0x8142, 0x5779, 0x3FDD, 0xF9EE, 0xAC96, 0xEDF6, 0x988A, 0x79EC, 0xB41E, 0x2A85, 0x8753, 0x2345, 0xBDDE, 0xDEBB,
+    0xF57E, 0x900A, 0x9C9A, 0x8613, 0xD02A, 0x3E9D, 0x89C2, 0xB55E, 0x955A, 0xB61F, 0xC432, 0x6635, 0x3C9C, 0x58A8, 0xC773, 0x4430,
+    0x5229, 0x763D, 0xEBE7, 0x8C92, 0xAA87, 0x961B, 0xD22B, 0x934B, 0x6AA5, 0xA757, 0xAE97, 0x0140, 0x2615, 0xE9E6, 0x7CBC, 0xB00E,
+    0xDBEB, 0x8BC3, 0x6434, 0x722D, 0x5CB8, 0x2144, 0x6225, 0x68A4, 0x341C, 0xABC7, 0xC223, 0x7BED, 0x0C90, 0xF16E, 0x0550, 0x0000,
+    0x1E99, 0xBC9E, 0x334D, 0x1FD9, 0x9DDA, 0x3A8D, 0xF36F, 0xB75F, 0xF43E, 0xAFD7, 0x4221, 0x6574, 0xA886, 0xBFDF, 0xD36B, 0x2205,
+    0xB88E, 0x375D, 0xE637, 0x0611, 0x8DD2, 0x5028, 0x6775, 0xADD6, 0xEAA7, 0xE777, 0x6024, 0xFEBF, 0x4DF0, 0x4CB0, 0x8002, 0xEEB7,
+    0x5DF8, 0x7DFC, 0x0A81, 0x1209, 0x4EB1, 0x0201, 0xE576, 0x0E91, 0x777D, 0xB20F, 0x19C8, 0x48A0, 0xCDF2, 0x9BCB, 0x5578, 0x4160,
+    0x0FD1, 0xEFF7, 0x49E0, 0x6EB5, 0x1C98, 0xC022, 0xCEB3, 0x4020, 0x361D, 0xE8A6, 0x9FDB, 0xD77B, 0x1759, 0xBE9F, 0xF8AE, 0x4631,
+    0xDFFB, 0x8FD3, 0xECB6, 0x99CA, 0x8343, 0xC572, 0xA207, 0x6DF4, 0x1DD8, 0x0341, 0x2414, 0x2755, 0x320D, 0x2554, 0x9A8B, 0x5EB9,
+    0x7AAD, 0xA146, 0x920B, 0xFAAF, 0x0880, 0x8552, 0x702C, 0xDDFA, 0x388C, 0x1A89, 0xE166, 0x7FFD, 0xCCB2, 0x5AA9, 0x9E9B, 0x09C0,
+]);
+const WORKGROUP_SIZE_BY_KERNEL = {
+    streamslice: 256n,
+    bitslice: 128n,
+};
+function buildKeyPermByteLut(bitPerm) {
+    const lut = new Uint32Array(8 * 256 * 2);
+    const src = new Uint8Array(8);
+    const dst = new Uint8Array(8);
+    for (let byteIndex = 0; byteIndex < 8; byteIndex++) {
+        for (let value = 0; value < 256; value++) {
+            src.fill(0);
+            dst.fill(0);
+            src[byteIndex] = value;
+            for (let bit = 0; bit < 64; bit++) {
+                const srcByte = bit >> 3;
+                const srcBit = 7 - (bit & 7);
+                if (((src[srcByte] >> srcBit) & 1) === 0)
+                    continue;
+                const dstIndex = bitPerm[bit];
+                const dstByte = dstIndex >> 3;
+                const dstBit = 7 - (dstIndex & 7);
+                dst[dstByte] |= 1 << dstBit;
+            }
+            const hi = ((dst[0] << 24) | (dst[1] << 16) | (dst[2] << 8) | dst[3]) >>> 0;
+            const lo = ((dst[4] << 24) | (dst[5] << 16) | (dst[6] << 8) | dst[7]) >>> 0;
+            const base = (byteIndex * 256 + value) * 2;
+            lut[base] = lo;
+            lut[base + 1] = hi;
+        }
+    }
+    return lut;
+}
+function parseHexBytes(hex) {
+    const normalized = hex.replace(/\s+/g, '');
+    if (!/^[0-9A-Fa-f]{32}$/.test(normalized)) {
+        throw new Error('Each TS sample must contain exactly 16 hexadecimal bytes.');
+    }
+    const bytes = new Uint8Array(16);
+    for (let i = 0; i < bytes.length; i++) {
+        bytes[i] = Number.parseInt(normalized.slice(i * 2, i * 2 + 2), 16);
+    }
+    return bytes;
+}
+function buildPacketsPayloads(sampleHexes) {
+    if (sampleHexes.length !== 3)
+        throw new Error('Exactly three TS samples are required.');
+    const payloads = new Uint8Array(sampleHexes.length * 16);
+    sampleHexes.forEach((sample, index) => {
+        const packet = parseHexBytes(sample);
+        payloads.set(packet.subarray(4), index * 16);
+    });
+    return payloads;
+}
+function u64ToU32(value) {
+    return [Number(value & 0xffffffffn), Number((value >> 32n) & 0xffffffffn)];
+}
+function bytesToHex(bytes) {
+    return Array.from(bytes).map((value) => value.toString(16).padStart(2, '0').toUpperCase()).join(' ');
+}
+function resultWordsToKey(lo, hi) {
+    const bytes = new Uint8Array([
+        (hi >>> 24) & 0xFF,
+        (hi >>> 16) & 0xFF,
+        (hi >>> 8) & 0xFF,
+        hi & 0xFF,
+        (lo >>> 24) & 0xFF,
+        (lo >>> 16) & 0xFF,
+        (lo >>> 8) & 0xFF,
+        lo & 0xFF,
+    ]);
+    return bytesToHex(bytes);
+}
+function getCurrentCandidate(plan, checkedCount) {
+    if (checkedCount <= 0n)
+        return plan.firstCandidate;
+    const offset = checkedCount >= plan.candidateCount ? plan.candidateCount - 1n : checkedCount - 1n;
+    const ordinal = plan.baseOrdinal + offset;
+    if (plan.mode === 1)
+        return ordinal;
+    return injectFixedWord(ordinal, plan.fixedWordBytePosition, plan.fixedWordValue);
+}
+function createProgress(plan, checkedCount, startedAt) {
+    const elapsedSeconds = Math.max(0, (performance.now() - startedAt) / 1000);
+    const scaledPercent = plan.candidateCount > 0n
+        ? Number((checkedCount * 10000n) / plan.candidateCount) / 100
+        : 0;
+    return {
+        checkedCount,
+        totalCandidates: plan.candidateCount,
+        currentSeed: formatSeed(getCurrentCandidate(plan, checkedCount)),
+        elapsedSeconds,
+        throughputMkeys: elapsedSeconds > 0 ? Number(checkedCount) / elapsedSeconds / 1_000_000 : 0,
+        progressPercent: Math.min(100, scaledPercent),
+    };
+}
+async function getAdapterSummary(adapter) {
+    const adapterWithInfo = adapter;
+    try {
+        const info = adapterWithInfo.info
+            ?? (adapterWithInfo.requestAdapterInfo ? await adapterWithInfo.requestAdapterInfo() : null);
+        if (!info)
+            return adapterWithInfo.name || 'Unknown GPU';
+        const parts = [info.vendor, info.architecture, info.description, info.device].filter(Boolean);
+        return parts.length > 0 ? parts.join(' | ') : (adapterWithInfo.name || 'Unknown GPU');
+    }
+    catch {
+        return adapterWithInfo.name || 'Unknown GPU';
+    }
+}
+function destroyBuffers(buffers) {
+    buffers.forEach((buffer) => buffer.destroy());
+}
+class TemplateSearchEngine {
+    device = null;
+    shaderModule = null;
+    pipelineCache = {};
+    keyPermBuffer = null;
+    sboxBuffer = null;
+    adapterSummary = 'Not initialized';
+    get gpuSummary() {
+        return this.adapterSummary;
+    }
+    async initialize() {
+        if (this.device && this.shaderModule)
+            return this.adapterSummary;
+        if (!navigator.gpu)
+            throw new Error('WebGPU is not available in this browser.');
+        const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
+        if (!adapter)
+            throw new Error('No compatible WebGPU adapter was found.');
+        this.adapterSummary = await getAdapterSummary(adapter);
+        this.device = await adapter.requestDevice();
+        const embeddedShader = document.getElementById('wgsl-shader');
+        let shaderCode = embeddedShader?.textContent ?? '';
+        if (!shaderCode) {
+            shaderCode = await fetch('dvbcsa.wgsl').then((response) => {
+                if (!response.ok)
+                    throw new Error('Failed to load the WebGPU shader.');
+                return response.text();
+            });
+        }
+        this.shaderModule = this.device.createShaderModule({ code: shaderCode });
+        const compilationInfo = await this.shaderModule.getCompilationInfo();
+        const firstError = compilationInfo.messages.find((message) => message.type === 'error');
+        if (firstError)
+            throw new Error(`Shader compilation failed: ${firstError.message}`);
+        const keyPermBytes = buildKeyPermByteLut(getKeyPermByteTable());
+        this.keyPermBuffer = this.device.createBuffer({
+            size: keyPermBytes.byteLength,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+            mappedAtCreation: true,
+        });
+        new Uint32Array(this.keyPermBuffer.getMappedRange()).set(keyPermBytes);
+        this.keyPermBuffer.unmap();
+        this.sboxBuffer = this.device.createBuffer({
+            size: BLOCK_SBOX_PERM.byteLength,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+            mappedAtCreation: true,
+        });
+        new Uint32Array(this.sboxBuffer.getMappedRange()).set(BLOCK_SBOX_PERM);
+        this.sboxBuffer.unmap();
+        await Promise.all([this.getPipeline('streamslice'), this.getPipeline('bitslice')]);
+        return this.adapterSummary;
+    }
+    async getPipeline(kernel) {
+        if (!this.device || !this.shaderModule)
+            throw new Error('The GPU engine is not initialized.');
+        const cached = this.pipelineCache[kernel];
+        if (cached)
+            return cached;
+        const entryPoint = kernel === 'bitslice'
+            ? 'dvbcsa_bruteforce_streamslice_bitslice_template'
+            : 'dvbcsa_bruteforce_streamslice_template';
+        const deviceWithAsync = this.device;
+        const pipeline = deviceWithAsync.createComputePipelineAsync
+            ? await deviceWithAsync.createComputePipelineAsync.call(this.device, {
+                layout: 'auto',
+                compute: { module: this.shaderModule, entryPoint },
+            })
+            : this.device.createComputePipeline({
+                layout: 'auto',
+                compute: { module: this.shaderModule, entryPoint },
+            });
+        this.pipelineCache[kernel] = pipeline;
+        return pipeline;
+    }
+    async search(request) {
+        if (!this.device || !this.keyPermBuffer || !this.sboxBuffer) {
+            throw new Error('The GPU engine is not initialized.');
+        }
+        if (request.batchSize <= 0n)
+            throw new Error('Batch size must be positive.');
+        if (!Number.isInteger(request.submitBatch) || request.submitBatch <= 0) {
+            throw new Error('Submit batch must be a positive integer.');
+        }
+        const device = this.device;
+        const pipeline = await this.getPipeline(request.kernel);
+        const payloads = buildPacketsPayloads(request.samples);
+        const ownedBuffers = [];
+        const makeBuffer = (descriptor) => {
+            const buffer = device.createBuffer(descriptor);
+            ownedBuffers.push(buffer);
+            return buffer;
+        };
+        try {
+            const packetsBuffer = makeBuffer({
+                size: payloads.byteLength,
+                usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+                mappedAtCreation: true,
+            });
+            new Uint8Array(packetsBuffer.getMappedRange()).set(payloads);
+            packetsBuffer.unmap();
+            const packetCountBuffer = makeBuffer({
+                size: 4,
+                usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+                mappedAtCreation: true,
+            });
+            new Uint32Array(packetCountBuffer.getMappedRange()).set([request.samples.length]);
+            packetCountBuffer.unmap();
+            const foundFlagBuffer = makeBuffer({
+                size: 4,
+                usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+            });
+            const resultBuffer = makeBuffer({
+                size: 8,
+                usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+            });
+            const stagingBuffer = makeBuffer({
+                size: 12,
+                usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
+            });
+            const optionsBuffer = makeBuffer({
+                size: 16,
+                usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+                mappedAtCreation: true,
+            });
+            new Uint32Array(optionsBuffer.getMappedRange()).set([
+                request.plan.mode,
+                request.plan.fixedWordBytePosition,
+                request.plan.fixedWordValue,
+                0,
+            ]);
+            optionsBuffer.unmap();
+            const baseOrdinalBuffers = [];
+            const candidateCountBuffers = [];
+            for (let i = 0; i < request.submitBatch; i++) {
+                baseOrdinalBuffers.push(makeBuffer({
+                    size: 8,
+                    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+                }));
+                candidateCountBuffers.push(makeBuffer({
+                    size: 8,
+                    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+                }));
+            }
+            const commonEntries = [
+                { binding: 0, resource: { buffer: packetsBuffer } },
+                { binding: 1, resource: { buffer: packetCountBuffer } },
+                { binding: 2, resource: { buffer: foundFlagBuffer } },
+                { binding: 3, resource: { buffer: resultBuffer } },
+                { binding: 9, resource: { buffer: optionsBuffer } },
+            ];
+            const kernelEntries = request.kernel === 'streamslice'
+                ? [
+                    { binding: 6, resource: { buffer: this.keyPermBuffer } },
+                    { binding: 8, resource: { buffer: this.sboxBuffer } },
+                ]
+                : [];
+            const bindGroups = baseOrdinalBuffers.map((baseBuffer, index) => device.createBindGroup({
+                layout: pipeline.getBindGroupLayout(0),
+                entries: [
+                    ...commonEntries,
+                    { binding: 4, resource: { buffer: baseBuffer } },
+                    { binding: 5, resource: { buffer: candidateCountBuffers[index] } },
+                    ...kernelEntries,
+                ],
+            }));
+            device.queue.writeBuffer(foundFlagBuffer, 0, new Uint32Array([0]));
+            device.queue.writeBuffer(resultBuffer, 0, new Uint32Array([0, 0]));
+            const workgroupSize = WORKGROUP_SIZE_BY_KERNEL[request.kernel];
+            const keysPerInvocation = 32n;
+            const maxWorkgroups = BigInt(device.limits.maxComputeWorkgroupsPerDimension);
+            const maxCandidatesPerDispatch = maxWorkgroups * workgroupSize * keysPerInvocation;
+            const startedAt = performance.now();
+            let checkedCount = 0n;
+            let currentOrdinal = request.plan.baseOrdinal;
+            let dispatchCounter = 0;
+            const complete = (status, foundKey) => ({
+                status,
+                foundKey,
+                ...createProgress(request.plan, checkedCount, startedAt),
+            });
+            while (checkedCount < request.plan.candidateCount) {
+                if (request.signal?.aborted)
+                    return complete('stopped');
+                if ((performance.now() - startedAt) / 1000 >= request.timeoutSeconds)
+                    return complete('timeout');
+                const remaining = request.plan.candidateCount - checkedCount;
+                let candidatesInBatch = remaining < request.batchSize ? remaining : request.batchSize;
+                const pendingCommands = [];
+                while (candidatesInBatch > 0n) {
+                    if (request.signal?.aborted)
+                        return complete('stopped');
+                    const candidatesThisDispatch = candidatesInBatch < maxCandidatesPerDispatch
+                        ? candidatesInBatch
+                        : maxCandidatesPerDispatch;
+                    const slot = dispatchCounter % request.submitBatch;
+                    dispatchCounter += 1;
+                    device.queue.writeBuffer(baseOrdinalBuffers[slot], 0, new Uint32Array(u64ToU32(currentOrdinal)));
+                    device.queue.writeBuffer(candidateCountBuffers[slot], 0, new Uint32Array(u64ToU32(candidatesThisDispatch)));
+                    const invocationCount = (candidatesThisDispatch + keysPerInvocation - 1n) / keysPerInvocation;
+                    const workgroupCount = Number((invocationCount + workgroupSize - 1n) / workgroupSize);
+                    const encoder = device.createCommandEncoder();
+                    const pass = encoder.beginComputePass();
+                    pass.setPipeline(pipeline);
+                    pass.setBindGroup(0, bindGroups[slot]);
+                    pass.dispatchWorkgroups(workgroupCount);
+                    pass.end();
+                    pendingCommands.push(encoder.finish());
+                    currentOrdinal += candidatesThisDispatch;
+                    checkedCount += candidatesThisDispatch;
+                    candidatesInBatch -= candidatesThisDispatch;
+                    if (pendingCommands.length >= request.submitBatch || candidatesInBatch === 0n) {
+                        device.queue.submit(pendingCommands);
+                        pendingCommands.length = 0;
+                        const readEncoder = device.createCommandEncoder();
+                        readEncoder.copyBufferToBuffer(foundFlagBuffer, 0, stagingBuffer, 0, 4);
+                        readEncoder.copyBufferToBuffer(resultBuffer, 0, stagingBuffer, 4, 8);
+                        device.queue.submit([readEncoder.finish()]);
+                        await stagingBuffer.mapAsync(GPUMapMode.READ);
+                        const data = new DataView(stagingBuffer.getMappedRange());
+                        const found = data.getUint32(0, true);
+                        const resultLo = data.getUint32(4, true);
+                        const resultHi = data.getUint32(8, true);
+                        stagingBuffer.unmap();
+                        const progress = createProgress(request.plan, checkedCount, startedAt);
+                        request.onProgress?.(progress);
+                        if (found > 0)
+                            return complete('found', resultWordsToKey(resultLo, resultHi));
+                        if (request.signal?.aborted)
+                            return complete('stopped');
+                        if (progress.elapsedSeconds >= request.timeoutSeconds)
+                            return complete('timeout');
+                    }
+                }
+            }
+            return complete('exhausted');
+        }
+        finally {
+            destroyBuffers(ownedBuffers);
+        }
+    }
+}
+const TEMPLATE_STORAGE_KEY = 'webbiss.templateConfigs.v1';
+const TEMPLATE_KERNEL_STORAGE_KEY = 'webbiss.template.kernel';
+const TEMPLATE_BATCH_STORAGE_KEY = 'webbiss.template.batchSize';
+const TEMPLATE_SUBMIT_STORAGE_KEY = 'webbiss.template.submitBatch';
+const THEME_STORAGE_KEY = 'webbiss.themeMode';
+const DISCLAIMER_STORAGE_KEY = 'webbiss.disclaimerAccepted';
+const MAX_TS_SCAN_BYTES = 20 * 1024 * 1024;
+const EXAMPLE_DATE = { raw: '20250423', year: '2025', month: '04', day: '23' };
+function element(id) {
+    const value = document.getElementById(id);
+    if (!value)
+        throw new Error(`Missing required element #${id}.`);
+    return value;
+}
+const themeSelect = element('themeSelect');
+const gpuInfoText = element('gpuInfoText');
+const fileDropZone = element('fileDropZone');
+const fileInput = element('fileInput');
+const fileNameText = element('fileNameText');
+const fileDateText = element('fileDateText');
+const pidSelect = element('pidSelect');
+const loadSamplesBtn = element('loadSamplesBtn');
+const sourceStatus = element('sourceStatus');
+const sampleSummary = element('sampleSummary');
+const selectedCountText = element('selectedCountText');
+const importTemplatesBtn = element('importTemplatesBtn');
+const addTemplateBtn = element('addTemplateBtn');
+const templateList = element('templateList');
+const kernelSelect = element('kernelSelect');
+const batchSizeSelect = element('batchSizeSelect');
+const submitBatchSelect = element('submitBatchSelect');
+const runTemplatesBtn = element('runTemplatesBtn');
+const stopTemplatesBtn = element('stopTemplatesBtn');
+const activeTemplateText = element('activeTemplateText');
+const activeRangeText = element('activeRangeText');
+const activeModeText = element('activeModeText');
+const progressText = element('progressText');
+const progressBar = element('progressBar');
+const speedText = element('speedText');
+const currentSeedText = element('currentSeedText');
+const elapsedText = element('elapsedText');
+const queuePositionText = element('queuePositionText');
+const queueList = element('queueList');
+const resultBox = element('resultBox');
+const foundKeyText = element('foundKeyText');
+const foundByText = element('foundByText');
+const copyKeyBtn = element('copyKeyBtn');
+const templateImportModal = element('templateImportModal');
+const templateImportForm = element('templateImportForm');
+const templateImportInput = element('templateImportInput');
+const importSummaryText = element('importSummaryText');
+const importIssues = element('importIssues');
+const importIssueList = element('importIssueList');
+const cancelImportTopBtn = element('cancelImportTopBtn');
+const cancelImportBtn = element('cancelImportBtn');
+const confirmImportBtn = element('confirmImportBtn');
+const templateEditorModal = element('templateEditorModal');
+const templateEditorForm = element('templateEditorForm');
+const templateEditorTitle = element('templateEditorTitle');
+const templateNameInput = element('templateNameInput');
+const startTemplateInput = element('startTemplateInput');
+const endTemplateInput = element('endTemplateInput');
+const reservedInput = element('reservedInput');
+const modeInput = element('modeInput');
+const timeoutInput = element('timeoutInput');
+const enabledInput = element('enabledInput');
+const templateLinePreview = element('templateLinePreview');
+const templatePreviewText = element('templatePreviewText');
+const templateEditorError = element('templateEditorError');
+const cancelTemplateTopBtn = element('cancelTemplateTopBtn');
+const cancelTemplateBtn = element('cancelTemplateBtn');
+const deleteTemplateModal = element('deleteTemplateModal');
+const deleteTemplateText = element('deleteTemplateText');
+const cancelDeleteBtn = element('cancelDeleteBtn');
+const confirmDeleteBtn = element('confirmDeleteBtn');
+const disclaimerModal = element('disclaimerModal');
+const acceptDisclaimerBtn = element('acceptDisclaimerBtn');
+const toastContainer = element('toastContainer');
+const searchEngine = new TemplateSearchEngine();
+let templateConfigs = loadTemplateConfigs();
+let selectedFile = null;
+let filenameDate = null;
+let loadedSamples = null;
+let engineReady = false;
+let isRunning = false;
+let activeAbortController = null;
+let editingTemplateId = null;
+let deletingTemplateId = null;
+let queueItems = [];
+let fileOperationToken = 0;
+let sampleOperationToken = 0;
+function isStoredTemplateConfig(value) {
+    if (!value || typeof value !== 'object')
+        return false;
+    const config = value;
+    return typeof config.id === 'string'
+        && typeof config.name === 'string'
+        && typeof config.startTemplate === 'string'
+        && typeof config.endTemplate === 'string'
+        && typeof config.reserved === 'number'
+        && typeof config.mode === 'number'
+        && isTemplateSearchMode(config.mode)
+        && typeof config.timeoutSeconds === 'number'
+        && typeof config.enabled === 'boolean';
+}
+function loadTemplateConfigs() {
+    try {
+        const stored = localStorage.getItem(TEMPLATE_STORAGE_KEY);
+        if (!stored)
+            return cloneDefaultTemplateConfigs();
+        const parsed = JSON.parse(stored);
+        if (!Array.isArray(parsed) || !parsed.every(isStoredTemplateConfig)) {
+            return cloneDefaultTemplateConfigs();
+        }
+        return parsed.map((config) => ({ ...config }));
+    }
+    catch {
+        return cloneDefaultTemplateConfigs();
+    }
+}
+function persistTemplateConfigs() {
+    try {
+        localStorage.setItem(TEMPLATE_STORAGE_KEY, JSON.stringify(templateConfigs));
+    }
+    catch {
+        showToast('Configurations could not be saved in this browser.', 'error');
+    }
+}
+function getStoredValue(key, fallback) {
+    try {
+        return localStorage.getItem(key) || fallback;
+    }
+    catch {
+        return fallback;
+    }
+}
+function setStoredValue(key, value) {
+    try {
+        localStorage.setItem(key, value);
+    }
+    catch {
+        showToast('This setting could not be saved.', 'error');
+    }
+}
+function getStoredTheme() {
+    const stored = getStoredValue(THEME_STORAGE_KEY, 'system');
+    return stored === 'light' || stored === 'dark' ? stored : 'system';
+}
+function applyTheme(mode) {
+    if (mode === 'system')
+        document.documentElement.removeAttribute('data-theme');
+    else
+        document.documentElement.setAttribute('data-theme', mode);
+    themeSelect.value = mode;
+}
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    toastContainer.appendChild(toast);
+    window.setTimeout(() => {
+        toast.classList.add('fade-out');
+        window.setTimeout(() => toast.remove(), 450);
+    }, 3200);
+}
+function checkDisclaimer() {
+    try {
+        if (localStorage.getItem(DISCLAIMER_STORAGE_KEY) !== 'true') {
+            disclaimerModal.classList.remove('hidden');
+        }
+    }
+    catch {
+        disclaimerModal.classList.remove('hidden');
+    }
+}
+function setSourceStatus(message, isError = false) {
+    sourceStatus.textContent = message;
+    sourceStatus.classList.toggle('is-error', isError);
+}
+function modeLabel(mode) {
+    if (mode === 5)
+        return 'Mode 5 - fix last 2 bytes';
+    if (mode === 13)
+        return 'Mode 13 - fix middle 2 bytes';
+    return 'Mode 1 - full range';
+}
+function formatCandidateCount(value) {
+    const numeric = Number(value);
+    if (numeric >= 1_000_000_000)
+        return `${(numeric / 1_000_000_000).toFixed(2)}B`;
+    if (numeric >= 1_000_000)
+        return `${(numeric / 1_000_000).toFixed(2)}M`;
+    if (numeric >= 1_000)
+        return `${(numeric / 1_000).toFixed(2)}K`;
+    return value.toString();
+}
+function formatElapsed(seconds) {
+    if (seconds < 60)
+        return `${seconds.toFixed(2)}s`;
+    const minutes = Math.floor(seconds / 60);
+    return `${minutes}m ${Math.round(seconds % 60).toString().padStart(2, '0')}s`;
+}
+function makeBadge(text) {
+    const badge = document.createElement('span');
+    badge.className = 'status-badge';
+    badge.textContent = text;
+    return badge;
+}
+function createTemplateRow(config) {
+    const expanded = expandTemplateConfig(config, filenameDate);
+    const row = document.createElement('div');
+    row.className = 'template-row';
+    row.dataset.templateId = config.id;
+    row.classList.toggle('is-unavailable', !expanded.valid);
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'template-check';
+    checkbox.checked = config.enabled;
+    checkbox.disabled = isRunning || !expanded.valid;
+    checkbox.dataset.action = 'toggle';
+    checkbox.setAttribute('aria-label', `Use ${config.name}`);
+    const main = document.createElement('div');
+    main.className = 'template-main';
+    const nameRow = document.createElement('div');
+    nameRow.className = 'template-name';
+    const name = document.createElement('strong');
+    name.textContent = config.name;
+    nameRow.append(name);
+    if (expanded.dateRequired)
+        nameRow.append(makeBadge('Filename date'));
+    const rule = document.createElement('span');
+    rule.className = 'template-rule';
+    rule.textContent = serializeTemplateLine(config);
+    const resolved = document.createElement('span');
+    resolved.className = 'template-resolved';
+    if (expanded.valid && expanded.startHex && expanded.endHex && expanded.startSeed != null && expanded.endSeed != null) {
+        try {
+            const plan = buildSearchRangePlan(expanded.startSeed, expanded.endSeed, config.mode);
+            resolved.textContent = `${expanded.startHex} -> ${expanded.endHex} | ${formatCandidateCount(plan.candidateCount)} candidates`;
+        }
+        catch (error) {
+            resolved.classList.add('is-error');
+            resolved.textContent = error instanceof Error ? error.message : String(error);
+        }
+    }
+    else {
+        resolved.classList.add('is-error');
+        resolved.textContent = expanded.error || 'Configuration is unavailable.';
+    }
+    main.append(nameRow, rule, resolved);
+    const badges = document.createElement('div');
+    badges.className = 'template-badges';
+    badges.append(makeBadge(`Mode ${config.mode}`), makeBadge(`${config.timeoutSeconds}s`));
+    const actions = document.createElement('div');
+    actions.className = 'template-actions';
+    const editButton = document.createElement('button');
+    editButton.type = 'button';
+    editButton.textContent = 'Edit';
+    editButton.dataset.action = 'edit';
+    editButton.disabled = isRunning;
+    const deleteButton = document.createElement('button');
+    deleteButton.type = 'button';
+    deleteButton.textContent = 'Delete';
+    deleteButton.dataset.action = 'delete';
+    deleteButton.disabled = isRunning;
+    actions.append(editButton, deleteButton);
+    row.append(checkbox, main, badges, actions);
+    return row;
+}
+function getReadyTemplateCount() {
+    return templateConfigs.filter((config) => {
+        if (!config.enabled)
+            return false;
+        const expanded = expandTemplateConfig(config, filenameDate);
+        if (!expanded.valid || expanded.startSeed == null || expanded.endSeed == null)
+            return false;
+        try {
+            buildSearchRangePlan(expanded.startSeed, expanded.endSeed, config.mode);
+            return true;
+        }
+        catch {
+            return false;
+        }
+    }).length;
+}
+function renderTemplates() {
+    templateList.replaceChildren(...templateConfigs.map(createTemplateRow));
+    const savedSelected = templateConfigs.filter((config) => config.enabled).length;
+    const readySelected = getReadyTemplateCount();
+    selectedCountText.textContent = `${readySelected} ready / ${savedSelected} selected`;
+    refreshRunAvailability();
+}
+function refreshRunAvailability() {
+    const hasSamples = loadedSamples?.length === 3;
+    runTemplatesBtn.disabled = isRunning || !engineReady || !hasSamples || getReadyTemplateCount() === 0;
+    stopTemplatesBtn.disabled = !isRunning;
+    addTemplateBtn.disabled = isRunning;
+    importTemplatesBtn.disabled = isRunning;
+    fileInput.disabled = isRunning;
+    pidSelect.disabled = isRunning || !selectedFile || pidSelect.options.length === 0;
+    loadSamplesBtn.disabled = isRunning || !selectedFile || !pidSelect.value;
+    kernelSelect.disabled = isRunning;
+    batchSizeSelect.disabled = isRunning;
+    submitBatchSelect.disabled = isRunning;
+}
+function renderSamples() {
+    if (!loadedSamples) {
+        sampleSummary.classList.add('hidden');
+        sampleSummary.replaceChildren();
+        return;
+    }
+    const heading = document.createElement('strong');
+    heading.textContent = 'Loaded sample windows';
+    const lines = loadedSamples.map((sample, index) => {
+        const code = document.createElement('code');
+        code.textContent = `${index + 1}. ${sample}`;
+        return code;
+    });
+    sampleSummary.replaceChildren(heading, ...lines);
+    sampleSummary.classList.remove('hidden');
+}
+async function loadSamplesForSelectedPid(operationToken = fileOperationToken, requestToken = ++sampleOperationToken) {
+    const sourceFile = selectedFile;
+    const pidValue = pidSelect.value;
+    if (!sourceFile || !pidValue)
+        return;
+    const pid = Number(pidValue);
+    const isCurrentRequest = () => operationToken === fileOperationToken
+        && requestToken === sampleOperationToken
+        && selectedFile === sourceFile
+        && pidSelect.value === pidValue;
+    loadedSamples = null;
+    renderSamples();
+    refreshRunAvailability();
+    loadSamplesBtn.disabled = true;
+    setSourceStatus(`Extracting three samples from PID ${pid}...`);
+    try {
+        const result = await getTsSamples(sourceFile, 0, pid, MAX_TS_SCAN_BYTES);
+        if (!isCurrentRequest())
+            return;
+        if (!result.ok || !result.samples) {
+            throw new Error(result.error || 'Failed to extract three samples.');
+        }
+        loadedSamples = result.samples;
+        renderSamples();
+        setSourceStatus(`Three samples loaded from PID ${pid}.`);
+        showToast('TS samples are ready.');
+    }
+    catch (error) {
+        if (!isCurrentRequest())
+            return;
+        setSourceStatus(error instanceof Error ? error.message : String(error), true);
+    }
+    finally {
+        if (isCurrentRequest())
+            refreshRunAvailability();
+    }
+}
+async function handleFile(file) {
+    if (!file.name.toLowerCase().endsWith('.ts')) {
+        setSourceStatus('Please choose a file with the .ts extension.', true);
+        return;
+    }
+    const operationToken = ++fileOperationToken;
+    sampleOperationToken += 1;
+    selectedFile = file;
+    filenameDate = extractDateFromFilename(file.name);
+    loadedSamples = null;
+    resetRuntimeDisplay();
+    fileNameText.textContent = file.name;
+    fileDateText.textContent = filenameDate ? filenameDate.raw : 'No valid YYYYMMDD date found';
+    pidSelect.disabled = true;
+    pidSelect.replaceChildren(new Option('Scanning encrypted PIDs...', ''));
+    renderSamples();
+    renderTemplates();
+    setSourceStatus('Scanning the first 20 MB for encrypted PIDs...');
+    try {
+        const scan = await checkIsEncrypted(file, 0, MAX_TS_SCAN_BYTES, 5);
+        if (operationToken !== fileOperationToken)
+            return;
+        if (!scan.ok || !scan.encrypted || scan.pids.length === 0) {
+            throw new Error(scan.error || 'No encrypted PID was found in the first 20 MB.');
+        }
+        pidSelect.replaceChildren(...scan.pids.map((pid) => new Option(`PID ${pid}`, String(pid))));
+        pidSelect.disabled = false;
+        loadSamplesBtn.disabled = false;
+        setSourceStatus(`Found ${scan.pids.length} encrypted PID${scan.pids.length === 1 ? '' : 's'}.`);
+        await loadSamplesForSelectedPid(operationToken);
+    }
+    catch (error) {
+        if (operationToken !== fileOperationToken)
+            return;
+        pidSelect.replaceChildren(new Option('No encrypted PID available', ''));
+        setSourceStatus(error instanceof Error ? error.message : String(error), true);
+        refreshRunAvailability();
+    }
+}
+function createTemplateId() {
+    if (typeof crypto.randomUUID === 'function')
+        return crypto.randomUUID();
+    return `template-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+function renderImportPreview() {
+    const result = parseTemplateText(templateImportInput.value, undefined, templateConfigs);
+    importSummaryText.textContent = `${result.configs.length} recognized / ${result.issues.length} skipped`;
+    confirmImportBtn.disabled = isRunning || result.configs.length === 0;
+    if (result.issues.length === 0) {
+        importIssues.classList.add('hidden');
+        importIssueList.replaceChildren();
+        return;
+    }
+    const issueRows = result.issues.map((issue) => {
+        const row = document.createElement('li');
+        const heading = document.createElement('strong');
+        heading.textContent = `Line ${issue.lineNumber}: ${issue.reason}`;
+        const source = document.createElement('code');
+        source.textContent = issue.source;
+        row.append(heading, source);
+        return row;
+    });
+    importIssueList.replaceChildren(...issueRows);
+    importIssues.classList.remove('hidden');
+}
+function openTemplateImporter() {
+    templateImportForm.reset();
+    renderImportPreview();
+    templateImportModal.classList.remove('hidden');
+    templateImportInput.focus();
+}
+function closeTemplateImporter() {
+    templateImportModal.classList.add('hidden');
+    templateImportForm.reset();
+    renderImportPreview();
+}
+function importTemplatesFromText() {
+    const result = parseTemplateText(templateImportInput.value, () => createTemplateId(), templateConfigs);
+    if (result.configs.length === 0)
+        return;
+    const namedConfigs = assignUniqueImportedTemplateNames(result.configs, templateConfigs);
+    templateConfigs.push(...namedConfigs);
+    persistTemplateConfigs();
+    closeTemplateImporter();
+    renderTemplates();
+    const skippedText = result.issues.length > 0 ? `, skipped ${result.issues.length}` : '';
+    showToast(`Imported ${result.configs.length} configuration${result.configs.length === 1 ? '' : 's'}${skippedText}.`);
+}
+function configFromEditor() {
+    const mode = Number(modeInput.value);
+    if (!isTemplateSearchMode(mode))
+        throw new Error('Mode must be 1, 5, or 13.');
+    return {
+        id: editingTemplateId || createTemplateId(),
+        name: templateNameInput.value.trim(),
+        startTemplate: startTemplateInput.value.trim(),
+        endTemplate: endTemplateInput.value.trim(),
+        reserved: Number(reservedInput.value),
+        mode,
+        timeoutSeconds: Number(timeoutInput.value),
+        enabled: enabledInput.checked,
+    };
+}
+function updateEditorPreview() {
+    try {
+        const config = configFromEditor();
+        validateTemplateConfigSyntax(config);
+        templateLinePreview.textContent = serializeTemplateLine(config);
+        const previewDate = filenameDate || EXAMPLE_DATE;
+        const startHex = expandTemplateValue(config.startTemplate.trim(), previewDate);
+        const endHex = expandTemplateValue(config.endTemplate.trim(), previewDate);
+        if (!/^[0-9A-F]{12}$/.test(startHex) || !/^[0-9A-F]{12}$/.test(endHex)) {
+            throw new Error('Template values must expand to exactly 12 hexadecimal characters.');
+        }
+        const dateContext = filenameDate ? `filename date ${filenameDate.raw}` : 'example date 20250423';
+        templatePreviewText.textContent = `${startHex} -> ${endHex} using ${dateContext}.`;
+        const needsFilenameDate = templateNeedsFilenameDate(config.startTemplate)
+            || templateNeedsFilenameDate(config.endTemplate);
+        if (!filenameDate && needsFilenameDate && BigInt(`0x${startHex}`) > BigInt(`0x${endHex}`)) {
+            templatePreviewText.textContent += ' Range order will be checked after a file is selected.';
+        }
+        if (filenameDate || !needsFilenameDate) {
+            const expanded = expandTemplateConfig(config, filenameDate);
+            if (!expanded.valid || expanded.startSeed == null || expanded.endSeed == null) {
+                throw new Error(expanded.error || 'Configuration is invalid.');
+            }
+            buildSearchRangePlan(expanded.startSeed, expanded.endSeed, config.mode);
+        }
+        templateEditorError.classList.add('hidden');
+    }
+    catch (error) {
+        templatePreviewText.textContent = 'Enter a valid configuration.';
+        templateEditorError.textContent = error instanceof Error ? error.message : String(error);
+        templateEditorError.classList.remove('hidden');
+    }
+}
+function openTemplateEditor(config) {
+    editingTemplateId = config?.id || null;
+    templateEditorTitle.textContent = config ? 'Edit Template' : 'Add Template';
+    templateNameInput.value = config?.name || '';
+    startTemplateInput.value = config?.startTemplate || '000000000000';
+    endTemplateInput.value = config?.endTemplate || 'FFFFFFFFFFFF';
+    reservedInput.value = String(config?.reserved ?? 1);
+    modeInput.value = String(config?.mode ?? 1);
+    timeoutInput.value = String(config?.timeoutSeconds ?? 10);
+    enabledInput.checked = config?.enabled ?? true;
+    updateEditorPreview();
+    templateEditorModal.classList.remove('hidden');
+    templateNameInput.focus();
+}
+function closeTemplateEditor() {
+    templateEditorModal.classList.add('hidden');
+    editingTemplateId = null;
+    templateEditorForm.reset();
+}
+function saveTemplateFromEditor() {
+    const config = configFromEditor();
+    validateTemplateConfigSyntax(config);
+    const needsFilenameDate = templateNeedsFilenameDate(config.startTemplate)
+        || templateNeedsFilenameDate(config.endTemplate);
+    if (filenameDate || !needsFilenameDate) {
+        const expanded = expandTemplateConfig(config, filenameDate);
+        if (!expanded.valid || expanded.startSeed == null || expanded.endSeed == null) {
+            throw new Error(expanded.error || 'Configuration is invalid.');
+        }
+        buildSearchRangePlan(expanded.startSeed, expanded.endSeed, config.mode);
+    }
+    const existingIndex = templateConfigs.findIndex((item) => item.id === config.id);
+    if (existingIndex >= 0)
+        templateConfigs[existingIndex] = config;
+    else
+        templateConfigs.push(config);
+    persistTemplateConfigs();
+    closeTemplateEditor();
+    renderTemplates();
+    showToast(existingIndex >= 0 ? 'Configuration updated.' : 'Configuration added.');
+}
+function openDeleteDialog(config) {
+    deletingTemplateId = config.id;
+    deleteTemplateText.textContent = `Delete "${config.name}" from this browser?`;
+    deleteTemplateModal.classList.remove('hidden');
+}
+function closeDeleteDialog() {
+    deleteTemplateModal.classList.add('hidden');
+    deletingTemplateId = null;
+}
+function prepareQueue() {
+    return templateConfigs.filter((config) => config.enabled).map((config) => {
+        const expanded = expandTemplateConfig(config, filenameDate);
+        if (!expanded.valid || expanded.startSeed == null || expanded.endSeed == null) {
+            return { config, status: 'skipped', detail: expanded.error || 'Configuration is unavailable.' };
+        }
+        try {
+            const plan = buildSearchRangePlan(expanded.startSeed, expanded.endSeed, config.mode);
+            return {
+                config,
+                plan,
+                startHex: expanded.startHex,
+                endHex: expanded.endHex,
+                status: 'pending',
+                detail: `${formatCandidateCount(plan.candidateCount)} candidates`,
+            };
+        }
+        catch (error) {
+            return {
+                config,
+                status: 'skipped',
+                detail: error instanceof Error ? error.message : String(error),
+            };
+        }
+    });
+}
+function renderQueue() {
+    if (queueItems.length === 0) {
+        queueList.className = 'queue-list empty-list';
+        const message = document.createElement('p');
+        message.textContent = 'Select configurations and load TS samples to prepare a run.';
+        queueList.replaceChildren(message);
+        return;
+    }
+    queueList.className = 'queue-list';
+    const rows = queueItems.map((item, index) => {
+        const row = document.createElement('div');
+        row.className = 'queue-row';
+        row.dataset.status = item.status;
+        const number = document.createElement('span');
+        number.className = 'queue-index';
+        number.textContent = String(index + 1).padStart(2, '0');
+        const copy = document.createElement('div');
+        copy.className = 'queue-copy';
+        const name = document.createElement('strong');
+        name.textContent = item.config.name;
+        const detail = document.createElement('span');
+        detail.textContent = item.detail;
+        copy.append(name, detail);
+        const status = document.createElement('span');
+        status.className = 'queue-status';
+        status.textContent = item.status;
+        row.append(number, copy, status);
+        return row;
+    });
+    queueList.replaceChildren(...rows);
+}
+function resetProgress() {
+    progressText.textContent = '0.00%';
+    progressBar.style.width = '0%';
+    speedText.textContent = '0.00 M/s';
+    currentSeedText.textContent = '--';
+    elapsedText.textContent = '0.00s';
+}
+function resetRuntimeDisplay() {
+    resetProgress();
+    activeTemplateText.textContent = 'Idle';
+    activeRangeText.textContent = '--';
+    activeModeText.textContent = '--';
+    queuePositionText.textContent = '0 / 0';
+    queueItems = [];
+    renderQueue();
+    foundKeyText.textContent = '';
+    foundByText.textContent = '';
+    copyKeyBtn.textContent = 'Copy';
+    resultBox.classList.add('hidden');
+}
+async function copyResolvedKey() {
+    const key = (foundKeyText.textContent || '').replace(/\s+/g, '').toUpperCase();
+    if (!/^[0-9A-F]{16}$/.test(key)) {
+        showToast('No valid 16-character key is available to copy.', 'error');
+        return;
+    }
+    try {
+        await navigator.clipboard.writeText(key);
+        copyKeyBtn.textContent = 'Copied';
+        showToast('Key copied.');
+        window.setTimeout(() => {
+            copyKeyBtn.textContent = 'Copy';
+        }, 1600);
+    }
+    catch {
+        showToast('The key could not be copied to the clipboard.', 'error');
+    }
+}
+function updateProgress(progress) {
+    progressText.textContent = `${progress.progressPercent.toFixed(2)}%`;
+    progressBar.style.width = `${progress.progressPercent}%`;
+    speedText.textContent = `${progress.throughputMkeys.toFixed(2)} M/s`;
+    currentSeedText.textContent = progress.currentSeed;
+    elapsedText.textContent = formatElapsed(progress.elapsedSeconds);
+}
+async function runTemplateQueue() {
+    if (isRunning || !engineReady || !loadedSamples)
+        return;
+    queueItems = prepareQueue();
+    if (!queueItems.some((item) => item.plan)) {
+        showToast('No selected configuration is ready to run.', 'error');
+        renderQueue();
+        return;
+    }
+    isRunning = true;
+    activeAbortController = new AbortController();
+    resultBox.classList.add('hidden');
+    foundKeyText.textContent = '';
+    foundByText.textContent = '';
+    resetProgress();
+    renderTemplates();
+    renderQueue();
+    refreshRunAvailability();
+    const kernel = kernelSelect.value === 'bitslice' ? 'bitslice' : 'streamslice';
+    const batchSize = BigInt(batchSizeSelect.value);
+    const submitBatch = Number(submitBatchSelect.value);
+    try {
+        for (let index = 0; index < queueItems.length; index++) {
+            const item = queueItems[index];
+            if (!item.plan)
+                continue;
+            if (activeAbortController.signal.aborted) {
+                item.status = 'stopped';
+                item.detail = 'Stopped before execution.';
+                continue;
+            }
+            item.status = 'running';
+            item.detail = `${formatCandidateCount(item.plan.candidateCount)} candidates`;
+            activeTemplateText.textContent = item.config.name;
+            activeRangeText.textContent = `${item.startHex} -> ${item.endHex}`;
+            activeModeText.textContent = modeLabel(item.config.mode);
+            queuePositionText.textContent = `${index + 1} / ${queueItems.length}`;
+            resetProgress();
+            renderQueue();
+            const result = await searchEngine.search({
+                samples: loadedSamples,
+                plan: item.plan,
+                kernel: kernel,
+                timeoutSeconds: item.config.timeoutSeconds,
+                batchSize,
+                submitBatch,
+                signal: activeAbortController.signal,
+                onProgress: updateProgress,
+            });
+            updateProgress(result);
+            if (result.status === 'found' && result.foundKey) {
+                item.status = 'found';
+                item.detail = `Matched after ${formatElapsed(result.elapsedSeconds)}.`;
+                foundKeyText.textContent = result.foundKey;
+                foundByText.textContent = `Found by ${item.config.name} using ${modeLabel(item.config.mode)}.`;
+                resultBox.classList.remove('hidden');
+                queueItems.slice(index + 1).forEach((remaining) => {
+                    if (remaining.status === 'pending') {
+                        remaining.status = 'skipped';
+                        remaining.detail = 'Skipped after a key was found.';
+                    }
+                });
+                renderQueue();
+                showToast('Key found. Remaining configurations were skipped.');
+                break;
+            }
+            item.status = result.status;
+            if (result.status === 'timeout')
+                item.detail = `Timed out after ${formatElapsed(result.elapsedSeconds)}.`;
+            else if (result.status === 'stopped')
+                item.detail = 'Stopped by the user.';
+            else
+                item.detail = `Completed ${formatCandidateCount(result.checkedCount)} candidates without a match.`;
+            renderQueue();
+            if (result.status === 'stopped') {
+                queueItems.slice(index + 1).forEach((remaining) => {
+                    if (remaining.status === 'pending') {
+                        remaining.status = 'stopped';
+                        remaining.detail = 'Stopped before execution.';
+                    }
+                });
+                renderQueue();
+                break;
+            }
+        }
+    }
+    catch (error) {
+        const runningItem = queueItems.find((item) => item.status === 'running');
+        if (runningItem) {
+            runningItem.status = 'error';
+            runningItem.detail = error instanceof Error ? error.message : String(error);
+        }
+        renderQueue();
+        showToast(error instanceof Error ? error.message : String(error), 'error');
+    }
+    finally {
+        isRunning = false;
+        activeAbortController = null;
+        activeTemplateText.textContent = resultBox.classList.contains('hidden') ? 'Queue complete' : 'Match found';
+        renderTemplates();
+        refreshRunAvailability();
+    }
+}
+function setupEventListeners() {
+    copyKeyBtn.addEventListener('click', () => void copyResolvedKey());
+    themeSelect.addEventListener('change', () => {
+        const value = themeSelect.value;
+        const mode = value === 'light' || value === 'dark' ? value : 'system';
+        applyTheme(mode);
+        setStoredValue(THEME_STORAGE_KEY, mode);
+    });
+    acceptDisclaimerBtn.addEventListener('click', () => {
+        try {
+            localStorage.setItem(DISCLAIMER_STORAGE_KEY, 'true');
+        }
+        catch {
+        }
+        disclaimerModal.classList.add('hidden');
+    });
+    fileDropZone.addEventListener('click', () => {
+        if (!isRunning)
+            fileInput.click();
+    });
+    fileDropZone.addEventListener('keydown', (event) => {
+        if (!isRunning && (event.key === 'Enter' || event.key === ' ')) {
+            event.preventDefault();
+            fileInput.click();
+        }
+    });
+    fileDropZone.addEventListener('dragover', (event) => {
+        event.preventDefault();
+        if (!isRunning)
+            fileDropZone.classList.add('drag-over');
+    });
+    fileDropZone.addEventListener('dragleave', () => fileDropZone.classList.remove('drag-over'));
+    fileDropZone.addEventListener('drop', (event) => {
+        event.preventDefault();
+        fileDropZone.classList.remove('drag-over');
+        if (!isRunning && event.dataTransfer?.files.length)
+            void handleFile(event.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files?.length)
+            void handleFile(fileInput.files[0]);
+    });
+    pidSelect.addEventListener('change', () => {
+        sampleOperationToken += 1;
+        loadedSamples = null;
+        resetRuntimeDisplay();
+        renderSamples();
+        setSourceStatus('PID changed. Load samples to continue.');
+        refreshRunAvailability();
+    });
+    loadSamplesBtn.addEventListener('click', () => void loadSamplesForSelectedPid());
+    importTemplatesBtn.addEventListener('click', openTemplateImporter);
+    templateImportInput.addEventListener('input', renderImportPreview);
+    templateImportForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        importTemplatesFromText();
+    });
+    cancelImportTopBtn.addEventListener('click', closeTemplateImporter);
+    cancelImportBtn.addEventListener('click', closeTemplateImporter);
+    addTemplateBtn.addEventListener('click', () => openTemplateEditor());
+    templateList.addEventListener('change', (event) => {
+        const target = event.target;
+        if (target.dataset.action !== 'toggle')
+            return;
+        const row = target.closest('[data-template-id]');
+        const config = templateConfigs.find((item) => item.id === row?.dataset.templateId);
+        if (!config)
+            return;
+        config.enabled = target.checked;
+        persistTemplateConfigs();
+        renderTemplates();
+    });
+    templateList.addEventListener('click', (event) => {
+        const target = event.target.closest('button[data-action]');
+        if (!target)
+            return;
+        const row = target.closest('[data-template-id]');
+        const config = templateConfigs.find((item) => item.id === row?.dataset.templateId);
+        if (!config)
+            return;
+        if (target.dataset.action === 'edit')
+            openTemplateEditor(config);
+        if (target.dataset.action === 'delete')
+            openDeleteDialog(config);
+    });
+    [templateNameInput, startTemplateInput, endTemplateInput, reservedInput, modeInput, timeoutInput, enabledInput]
+        .forEach((input) => input.addEventListener('input', updateEditorPreview));
+    templateEditorForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        try {
+            saveTemplateFromEditor();
+        }
+        catch (error) {
+            templateEditorError.textContent = error instanceof Error ? error.message : String(error);
+            templateEditorError.classList.remove('hidden');
+        }
+    });
+    cancelTemplateTopBtn.addEventListener('click', closeTemplateEditor);
+    cancelTemplateBtn.addEventListener('click', closeTemplateEditor);
+    cancelDeleteBtn.addEventListener('click', closeDeleteDialog);
+    confirmDeleteBtn.addEventListener('click', () => {
+        const config = templateConfigs.find((item) => item.id === deletingTemplateId);
+        if (!config)
+            return closeDeleteDialog();
+        templateConfigs = templateConfigs.filter((item) => item.id !== config.id);
+        persistTemplateConfigs();
+        closeDeleteDialog();
+        renderTemplates();
+        showToast('Configuration deleted.');
+    });
+    kernelSelect.addEventListener('change', () => setStoredValue(TEMPLATE_KERNEL_STORAGE_KEY, kernelSelect.value));
+    batchSizeSelect.addEventListener('change', () => setStoredValue(TEMPLATE_BATCH_STORAGE_KEY, batchSizeSelect.value));
+    submitBatchSelect.addEventListener('change', () => setStoredValue(TEMPLATE_SUBMIT_STORAGE_KEY, submitBatchSelect.value));
+    runTemplatesBtn.addEventListener('click', () => void runTemplateQueue());
+    stopTemplatesBtn.addEventListener('click', () => {
+        activeAbortController?.abort();
+        stopTemplatesBtn.disabled = true;
+        showToast('Stop requested. The current GPU batch will finish first.');
+    });
+}
+function applyStoredRuntimeSettings() {
+    const storedKernel = getStoredValue(TEMPLATE_KERNEL_STORAGE_KEY, 'streamslice');
+    kernelSelect.value = storedKernel === 'bitslice' ? 'bitslice' : 'streamslice';
+    const allowedBatches = new Set([
+        '33554432',
+        '67108864',
+        '134217728',
+        '268435456',
+        '536870912',
+        '1073741824',
+    ]);
+    const storedBatch = getStoredValue(TEMPLATE_BATCH_STORAGE_KEY, '134217728');
+    batchSizeSelect.value = allowedBatches.has(storedBatch) ? storedBatch : '134217728';
+    const allowedSubmit = new Set(['2', '3', '5', '10']);
+    const storedSubmit = getStoredValue(TEMPLATE_SUBMIT_STORAGE_KEY, '10');
+    submitBatchSelect.value = allowedSubmit.has(storedSubmit) ? storedSubmit : '10';
+}
+async function initialize() {
+    applyTheme(getStoredTheme());
+    applyStoredRuntimeSettings();
+    checkDisclaimer();
+    setupEventListeners();
+    renderTemplates();
+    renderQueue();
+    refreshRunAvailability();
+    try {
+        gpuInfoText.textContent = 'Compiling template kernels...';
+        gpuInfoText.textContent = await searchEngine.initialize();
+        engineReady = true;
+    }
+    catch (error) {
+        gpuInfoText.textContent = 'Unavailable';
+        showToast(error instanceof Error ? error.message : String(error), 'error');
+    }
+    finally {
+        refreshRunAvailability();
+    }
+}
+void initialize();</script>
+</body>
+</html>
