@@ -1846,6 +1846,9 @@ reserved: u32,
 @group(0) @binding(9) var<uniform> template_search_options: TemplateSearchOptions;
 const BITS_SLICE_LANES = 32u;
 const MAX_PRELOAD_PACKETS = 64u;
+const LANE_COUNTER_PLANES = array<u32, 5>(
+0xAAAAAAAAu, 0xCCCCCCCCu, 0xF0F0F0F0u, 0xFF00FF00u, 0xFFFF0000u
+);
 const BLOCK_PERM_OUT_TO_IN = array<u32, 8>(6u, 0u, 4u, 7u, 3u, 2u, 5u, 1u);
 override STREAMSLICE_WORKGROUP_SIZE: u32 = 256u;
 override BITSLICE_WORKGROUP_SIZE: u32 = 128u;
@@ -2572,6 +2575,80 @@ p_p0_lane: ptr<function, array<vec2<u32>, 32>>
 ) -> bool {
 return init_lanes_and_check_range_mapped(id_x, 1u, 0u, 0u, p_lane_mask, p_p0_lane);
 }
+fn format_control_word(idx: vec2<u32>) -> vec2<u32> {
+let seed0 = (idx.y >> 8u) & 0xFFu;
+let seed1 = idx.y & 0xFFu;
+let seed2 = (idx.x >> 24u) & 0xFFu;
+let seed3 = (idx.x >> 16u) & 0xFFu;
+let seed4 = (idx.x >> 8u) & 0xFFu;
+let seed5 = idx.x & 0xFFu;
+let cw3 = (seed0 + seed1 + seed2) & 0xFFu;
+let cw7 = (seed3 + seed4 + seed5) & 0xFFu;
+let hi = (seed0 << 24u) | (seed1 << 16u) | (seed2 << 8u) | cw3;
+let lo = (seed3 << 24u) | (seed4 << 16u) | (seed5 << 8u) | cw7;
+return vec2<u32>(lo, hi);
+}
+fn fill_checksum_planes(
+p_planes: ptr<function, array<array<u32, 8>, 8>>,
+byte0: u32,
+byte1: u32,
+byte2: u32,
+output_byte: u32
+) {
+var carry01 = 0u;
+var carry012 = 0u;
+for (var bit = 0u; bit < 8u; bit++) {
+let stream_bit = (bit + 4u) & 7u;
+let a = (*p_planes)[byte0][stream_bit];
+let b = (*p_planes)[byte1][stream_bit];
+let c = (*p_planes)[byte2][stream_bit];
+let sum01 = a ^ b ^ carry01;
+carry01 = (a & b) | (carry01 & (a ^ b));
+(*p_planes)[output_byte][stream_bit] = sum01 ^ c ^ carry012;
+carry012 = (sum01 & c) | (carry012 & (sum01 ^ c));
+}
+}
+fn init_direct_key_planes(
+id_x: u32,
+p_lane_mask: ptr<function, u32>,
+p_thread_base: ptr<function, vec2<u32>>,
+p_planes: ptr<function, array<array<u32, 8>, 8>>
+) -> bool {
+let offset = u64_shl(vec2<u32>(id_x, 0u), 5u);
+let thread_base = u64_add(base_key_idx, offset);
+let diff = u64_sub(thread_base, base_key_idx);
+if (u64_ge(diff, keys_to_check)) { return false; }
+let remaining = u64_sub(keys_to_check, diff);
+var lane_mask = 0xFFFFFFFFu;
+if (remaining.y == 0u && remaining.x < BITS_SLICE_LANES) {
+lane_mask = (1u << remaining.x) - 1u;
+}
+var carry = 0u;
+for (var bit = 0u; bit < 48u; bit++) {
+var scalar_bit = 0u;
+if (bit < 32u) {
+scalar_bit = (thread_base.x >> bit) & 1u;
+} else {
+scalar_bit = (thread_base.y >> (bit - 32u)) & 1u;
+}
+let base_plane = select(0u, lane_mask, scalar_bit != 0u);
+var counter_plane = 0u;
+if (bit < 5u) {
+counter_plane = LANE_COUNTER_PLANES[bit] & lane_mask;
+}
+let sum = base_plane ^ counter_plane ^ carry;
+carry = (base_plane & counter_plane) | (carry & (base_plane ^ counter_plane));
+let chunk = bit >> 3u;
+let byte = select(6u - chunk, 5u - chunk, chunk >= 3u);
+let stream_bit = ((bit & 7u) + 4u) & 7u;
+(*p_planes)[byte][stream_bit] = sum;
+}
+fill_checksum_planes(p_planes, 0u, 1u, 2u, 3u);
+fill_checksum_planes(p_planes, 4u, 5u, 6u, 7u);
+*p_lane_mask = lane_mask;
+*p_thread_base = thread_base;
+return true;
+}
 var<workgroup> tg_u0: array<u32, 64>;
 var<workgroup> tg_u1: array<u32, 64>;
 var<workgroup> tg_u2: array<u32, 64>;
@@ -2714,6 +2791,42 @@ result_buffer[0] = p0_lane[lane].x;
 result_buffer[1] = p0_lane[lane].y;
 }
 }
+fn run_bitslice_direct_kernel(id_x: u32, tid: u32) {
+if (!tg_preload_and_check_found(tid, BITSLICE_WORKGROUP_SIZE)) { return; }
+var lane_mask = 0u;
+var thread_base = vec2<u32>(0u);
+var cw_byte_planes_stream: array<array<u32, 8>, 8>;
+if (!init_direct_key_planes(id_x, &lane_mask, &thread_base, &cw_byte_planes_stream)) { return; }
+for (var pidx = 0u; pidx < packet_count; pidx++) {
+let pkt = load_packet_data(pidx);
+let u0 = pkt.x;
+let u1 = pkt.y;
+let u2 = pkt.z;
+var block0: array<u32, 8>;
+var block1: array<u32, 8>;
+var block2: array<u32, 8>;
+bs_block_decypher3_from_cw(cw_byte_planes_stream, lane_mask, u0, u1, &block0, &block1, &block2);
+lane_mask = bs_stream_check3_from_packet(
+lane_mask,
+cw_byte_planes_stream,
+block0,
+block1,
+block2,
+u0,
+u1,
+u2
+);
+if (lane_mask == 0u) { return; }
+if (atomicLoad(&found_flag) > 0u) { return; }
+}
+let old_val = atomicExchange(&found_flag, 1u);
+if (old_val == 0u) {
+let ordinal = u64_add(thread_base, vec2<u32>(countTrailingZeros(lane_mask), 0u));
+let control_word = format_control_word(ordinal);
+result_buffer[0] = control_word.x;
+result_buffer[1] = control_word.y;
+}
+}
 @compute @workgroup_size(STREAMSLICE_WORKGROUP_SIZE)
 fn dvbcsa_bruteforce_streamslice(
 @builtin(global_invocation_id) id: vec3<u32>,
@@ -2726,7 +2839,7 @@ fn dvbcsa_bruteforce_streamslice_bitslice(
 @builtin(global_invocation_id) id: vec3<u32>,
 @builtin(local_invocation_index) tid: u32
 ) {
-run_bitslice_kernel(id.x, tid, 1u, 0u, 0u);
+run_bitslice_direct_kernel(id.x, tid);
 }
 @compute @workgroup_size(STREAMSLICE_WORKGROUP_SIZE)
 fn dvbcsa_bruteforce_streamslice_template(
