@@ -1,5 +1,5 @@
 'use strict';
-const CACHE_NAME = 'webbiss-49a7050fecaa';
+const CACHE_NAME = 'webbiss-f9f5c4bc866a';
 const APP_SHELL = [
     "./",
     "./index.html",
